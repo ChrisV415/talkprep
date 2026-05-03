@@ -51,15 +51,13 @@ export default function SignUpScreen() {
     setLoading(true);
     setError("");
     try {
-      await signUp.create({ emailAddress: email, password });
-      // After create(), use the live Clerk instance — it's always the freshest reference.
-      const live: any =
-        (typeof window !== "undefined" && (window as any).Clerk?.client?.signUp) ??
-        signUp;
-      if (typeof live.prepareVerification === "function") {
-        await live.prepareVerification({ strategy: "email_code" });
-      } else if (typeof live.prepareEmailAddressVerification === "function") {
-        await live.prepareEmailAddressVerification({ strategy: "email_code" });
+      const created: any = await signUp.create({ emailAddress: email, password });
+      // created is the returned SignUp resource — use it directly (not window.Clerk.client.signUp
+      // which gets reset to blank after create()).
+      if (typeof created.prepareVerification === "function") {
+        await created.prepareVerification({ strategy: "email_code" });
+      } else if (typeof created.prepareEmailAddressVerification === "function") {
+        await created.prepareEmailAddressVerification({ strategy: "email_code" });
       }
       // If neither method exists, Clerk auto-sent the code on create().
       setPendingVerification(true);
