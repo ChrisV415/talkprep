@@ -28,6 +28,7 @@ export default function SignUpScreen() {
 
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [confirmPassword, setConfirmPassword] = React.useState("");
   const [code, setCode] = React.useState("");
   const [pendingVerification, setPendingVerification] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
@@ -35,6 +36,14 @@ export default function SignUpScreen() {
 
   const handleSignUp = async () => {
     if (!isLoaded) return;
+    if (password !== confirmPassword) {
+      setError("Passwords don't match");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
@@ -153,15 +162,29 @@ export default function SignUpScreen() {
             autoComplete="new-password"
           />
 
+          <Text style={styles.label}>Confirm password</Text>
+          <TextInput
+            style={[
+              styles.input,
+              confirmPassword.length > 0 && password !== confirmPassword && styles.inputError,
+            ]}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            placeholder="Repeat your password"
+            placeholderTextColor={C.ink4}
+            secureTextEntry
+            autoComplete="new-password"
+          />
+
           {!!error && <Text style={styles.error}>{error}</Text>}
 
           <Pressable
             style={[
               styles.btn,
-              (!email || !password || loading) && styles.btnDisabled,
+              (!email || !password || !confirmPassword || loading) && styles.btnDisabled,
             ]}
             onPress={handleSignUp}
-            disabled={!email || !password || loading}
+            disabled={!email || !password || !confirmPassword || loading}
           >
             <Text style={styles.btnText}>
               {loading ? "Creating account…" : "Create account"}
@@ -211,6 +234,7 @@ const styles = StyleSheet.create({
   btnDisabled: { opacity: 0.5 },
   btnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
   error: { color: "#c0392b", fontSize: 13, marginBottom: 12 },
+  inputError: { borderColor: "#c0392b", borderWidth: 1.5 },
   footer: { flexDirection: "row", justifyContent: "center", marginTop: 8 },
   footerText: { color: C.ink4, fontSize: 14 },
   link: { color: C.rust, fontSize: 14, fontWeight: "600", textAlign: "center", marginTop: 8 },
