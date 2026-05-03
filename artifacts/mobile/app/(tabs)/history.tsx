@@ -136,9 +136,9 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
     emptyBtn: {
       marginTop: 16,
       backgroundColor: colors.rust,
-      paddingHorizontal: 20,
-      paddingVertical: 10,
-      borderRadius: 4,
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 28,
     },
     emptyBtnText: {
       color: "white",

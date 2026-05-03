@@ -82,8 +82,9 @@ export default function PrepScreen() {
         responseRef.current += chunk;
       },
       async () => {
-        setFullResponse(responseRef.current);
-        const id = await saveSession();
+        const response = responseRef.current;
+        setFullResponse(response);
+        const id = await saveSession(response);
         setIsGenerating(false);
         router.push("/result");
       },

@@ -122,7 +122,6 @@ export default function HomeScreen() {
                   },
                 ]}
                 onPress={() => {
-                  const { loadSession } = useApp();
                   loadSession(s);
                   router.push("/result");
                 }}

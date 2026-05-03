@@ -145,7 +145,7 @@ export default function TranscriptScreen() {
                 ) : msg.annotation ? (
                   <View style={styles.annotationContent}>
                     <Feather
-                      name={msg.isGood ? "check" : "triangle"}
+                      name={msg.isGood ? "check" : "alert-triangle"}
                       size={13}
                       color={msg.isGood ? colors.sage : colors.rust}
                     />

@@ -83,7 +83,7 @@ interface AppContextType extends AppState {
   setRpMessages: (msgs: RpMessage[]) => void;
   setRpSystemContext: (ctx: string) => void;
   setScores: (s: Scores) => void;
-  saveSession: () => Promise<string>;
+  saveSession: (response: string) => Promise<string>;
   updateSessionScores: (id: string, scores: Scores) => Promise<void>;
   updateSessionDebrief: (id: string, debrief: Session["debrief"]) => Promise<void>;
   loadSession: (session: Session) => void;
@@ -207,7 +207,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
   }, []);
 
-  const saveSession = useCallback(async (): Promise<string> => {
+  const saveSession = useCallback(async (response: string): Promise<string> => {
     const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const sessionDate = new Date().toLocaleDateString("en-US", {
       month: "short",
@@ -220,7 +220,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       scenario: state.scenario,
       who: state.who,
       situation: state.situation.slice(0, 120) + (state.situation.length > 120 ? "..." : ""),
-      response: state.fullResponse,
+      response,
     };
 
     if (isSignedIn) {
@@ -230,7 +230,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         scenario: state.scenario,
         who: state.who,
         situation: newSession.situation,
-        response: state.fullResponse,
+        response,
       }).catch(() => {});
     }
 
@@ -283,6 +283,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       scenario: session.scenario,
       who: session.who,
       situation: session.situation,
+      outcome: "",
+      tone: "",
       fullResponse: session.response,
       scores: session.scores ? { ...session.scores } : { ...defaultScores },
       currentSessionId: session.id,

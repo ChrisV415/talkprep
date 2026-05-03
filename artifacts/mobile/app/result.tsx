@@ -18,16 +18,37 @@ type Tab = "opening" | "keypoints" | "responses" | "raw";
 
 function parseSections(text: string) {
   const sections: Record<string, string> = {};
-  const parts = text.split(/\n(?=[A-Z][A-Z ]+\n---)/);
-  for (const part of parts) {
-    const lines = part.trim().split("\n");
-    const header = lines[0]?.trim();
-    const dashIdx = lines.findIndex((l) => l.trim() === "---");
-    if (header && dashIdx !== -1) {
-      const content = lines.slice(dashIdx + 1).join("\n").trim();
-      sections[header] = content;
+  if (!text) return sections;
+
+  const lines = text.split(/\r?\n/);
+  let currentHeader: string | null = null;
+  let contentLines: string[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
+    const nextTrimmed = lines[i + 1]?.trim() ?? "";
+
+    const isHeader =
+      trimmed.length > 2 &&
+      /^[A-Z][A-Z ]+$/.test(trimmed) &&
+      (nextTrimmed === "---" || nextTrimmed.startsWith("---"));
+
+    if (isHeader) {
+      if (currentHeader !== null) {
+        sections[currentHeader] = contentLines.join("\n").trim();
+      }
+      currentHeader = trimmed;
+      contentLines = [];
+      i++; // skip the "---" line
+    } else if (currentHeader !== null) {
+      contentLines.push(lines[i]);
     }
   }
+
+  if (currentHeader !== null) {
+    sections[currentHeader] = contentLines.join("\n").trim();
+  }
+
   return sections;
 }
 
@@ -35,7 +56,7 @@ export default function ResultScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { scenario, who, fullResponse } = useApp();
+  const { scenario, who, fullResponse, resetCurrentSession } = useApp();
   const [activeTab, setActiveTab] = useState<Tab>("opening");
 
   useEffect(() => {
@@ -132,7 +153,10 @@ export default function ResultScreen() {
         </Pressable>
         <Pressable
           style={styles.newPrepBtn}
-          onPress={() => router.push("/prep")}
+          onPress={() => {
+            resetCurrentSession();
+            router.push("/prep");
+          }}
         >
           <Feather name="rotate-ccw" size={16} color={colors.ink2} />
         </Pressable>
