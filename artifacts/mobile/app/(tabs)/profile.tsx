@@ -1,9 +1,12 @@
 import { useClerk, useUser } from "@clerk/expo";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Linking,
   Modal,
@@ -23,13 +26,98 @@ import { useColors } from "@/hooks/useColors";
 const APP_VERSION = "1.0.0";
 const ONBOARDING_KEY = "@talkprep_onboarded";
 
-function Avatar({ initials, size = 72, colors }: { initials: string; size?: number; colors: any }) {
+function Avatar({
+  initials, imageUrl, size = 72, uploading, colors, onPress,
+}: {
+  initials: string; imageUrl?: string | null; size?: number;
+  uploading?: boolean; colors: any; onPress?: () => void;
+}) {
   return (
-    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: colors.rust, alignItems: "center", justifyContent: "center" }}>
-      <Text style={{ color: "#fff", fontSize: size * 0.38, fontWeight: "700" }}>{initials}</Text>
-    </View>
+    <Pressable onPress={onPress} style={{ position: "relative" }}>
+      {imageUrl ? (
+        <Image
+          source={{ uri: imageUrl }}
+          style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: colors.card }}
+          contentFit="cover"
+          transition={200}
+        />
+      ) : (
+        <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: colors.rust, alignItems: "center", justifyContent: "center" }}>
+          <Text style={{ color: "#fff", fontSize: size * 0.38, fontWeight: "700" }}>{initials}</Text>
+        </View>
+      )}
+      {/* Camera badge */}
+      <View style={{
+        position: "absolute", bottom: 0, right: 0,
+        width: 26, height: 26, borderRadius: 13,
+        backgroundColor: colors.rust,
+        borderWidth: 2, borderColor: colors.background,
+        alignItems: "center", justifyContent: "center",
+      }}>
+        {uploading
+          ? <ActivityIndicator size="small" color="#fff" />
+          : <Feather name="camera" size={12} color="#fff" />}
+      </View>
+    </Pressable>
   );
 }
+
+function AvatarPhotoMenu({
+  visible, onClose, onLibrary, onCamera, onRemove, hasPhoto, colors,
+}: {
+  visible: boolean; onClose: () => void;
+  onLibrary: () => void; onCamera: () => void;
+  onRemove?: () => void; hasPhoto: boolean; colors: any;
+}) {
+  return (
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <Pressable style={em.backdrop} onPress={onClose} accessibilityLabel="Dismiss photo menu" />
+      <View style={[em.sheet, { backgroundColor: colors.background }]}>
+        <View style={em.handle} />
+        <Text style={[em.title, { color: colors.ink }]}>Profile photo</Text>
+        <Pressable
+          accessibilityLabel="Choose from library"
+          style={[pm.optionBtn, { borderColor: colors.border }]}
+          onPress={() => { onClose(); onLibrary(); }}
+        >
+          <Feather name="image" size={20} color={colors.rust} style={{ marginRight: 12 }} />
+          <Text style={[pm.optionText, { color: colors.ink }]}>Choose from library</Text>
+        </Pressable>
+        <Pressable
+          accessibilityLabel="Take photo"
+          style={[pm.optionBtn, { borderColor: colors.border }]}
+          onPress={() => { onClose(); onCamera(); }}
+        >
+          <Feather name="camera" size={20} color={colors.rust} style={{ marginRight: 12 }} />
+          <Text style={[pm.optionText, { color: colors.ink }]}>Take photo</Text>
+        </Pressable>
+        {hasPhoto && (
+          <Pressable
+            accessibilityLabel="Remove photo"
+            style={[pm.optionBtn, { borderColor: colors.border }]}
+            onPress={() => { onClose(); onRemove?.(); }}
+          >
+            <Feather name="trash-2" size={20} color="#E05252" style={{ marginRight: 12 }} />
+            <Text style={[pm.optionText, { color: "#E05252" }]}>Remove photo</Text>
+          </Pressable>
+        )}
+        <Pressable onPress={onClose} style={{ marginTop: 16, alignItems: "center" }}>
+          <Text style={{ color: colors.ink4, fontSize: 15 }}>Cancel</Text>
+        </Pressable>
+      </View>
+    </Modal>
+  );
+}
+
+const pm = StyleSheet.create({
+  optionBtn: {
+    flexDirection: "row", alignItems: "center",
+    borderWidth: 1, borderRadius: 12,
+    paddingHorizontal: 16, paddingVertical: 14,
+    marginBottom: 10,
+  },
+  optionText: { fontSize: 16, fontWeight: "500" },
+});
 
 function SectionHeader({ label, colors }: { label: string; colors: any }) {
   if (!label) return <View style={{ height: 12 }} />;
@@ -168,10 +256,79 @@ export default function ProfileScreen() {
   const [phoneLoading, setPhoneLoading] = useState(false);
   const [pendingPhone, setPendingPhone] = useState<any>(null);
 
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
+
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
   const phone = user?.primaryPhoneNumber?.phoneNumber ?? "";
   const initials = ((user?.firstName?.[0] ?? "") + (user?.lastName?.[0] ?? "")).toUpperCase()
     || email.slice(0, 2).toUpperCase() || "?";
+  const avatarUrl = user?.imageUrl ?? null;
+
+  async function pickAndUploadAvatar(source: "library" | "camera") {
+    if (!user) return;
+    try {
+      let result: ImagePicker.ImagePickerResult;
+      if (source === "camera") {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert("Permission needed", "Camera access is required to take a photo.");
+          return;
+        }
+        result = await ImagePicker.launchCameraAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        });
+      } else {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert("Permission needed", "Photo library access is required to choose a photo.");
+          return;
+        }
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        });
+      }
+      if (result.canceled || !result.assets?.[0]?.uri) return;
+      setUploadingAvatar(true);
+      const uri = result.assets[0].uri;
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      const ext = uri.split(".").pop()?.toLowerCase() ?? "jpg";
+      const mimeType = ext === "png" ? "image/png" : "image/jpeg";
+      const file = new File([blob], `avatar.${ext}`, { type: mimeType });
+      await user.setProfileImage({ file });
+      await user.reload();
+    } catch (e: any) {
+      Alert.alert("Upload failed", e?.errors?.[0]?.message ?? "Could not upload photo. Please try again.");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }
+
+  function handleAvatarPress() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setAvatarMenuOpen(true);
+  }
+
+  async function handleRemovePhoto() {
+    setUploadingAvatar(true);
+    try {
+      const emptyBlob = new Blob([], { type: "image/png" });
+      const emptyFile = new File([emptyBlob], "remove.png", { type: "image/png" });
+      await user?.setProfileImage({ file: emptyFile });
+      await user?.reload();
+    } catch {
+      Alert.alert("Error", "Could not remove photo.");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }
 
   async function handleSaveName() {
     if (!user || !nameValue.trim()) return;
@@ -286,7 +443,13 @@ export default function ProfileScreen() {
 
       {/* Avatar + identity */}
       <View style={ms.avatarSection}>
-        <Avatar initials={initials} colors={colors} />
+        <Avatar
+          initials={initials}
+          imageUrl={avatarUrl}
+          uploading={uploadingAvatar}
+          colors={colors}
+          onPress={handleAvatarPress}
+        />
         <View style={{ marginTop: 12, alignItems: "center" }}>
           {editingName ? (
             <View style={ms.nameEditRow}>
@@ -395,6 +558,17 @@ export default function ProfileScreen() {
       <View style={ms.card}>
         <RowItem icon="log-out" label="Sign out" onPress={handleSignOut} destructive colors={colors} last />
       </View>
+
+      {/* Avatar photo menu */}
+      <AvatarPhotoMenu
+        visible={avatarMenuOpen}
+        onClose={() => setAvatarMenuOpen(false)}
+        onLibrary={() => pickAndUploadAvatar("library")}
+        onCamera={() => pickAndUploadAvatar("camera")}
+        onRemove={handleRemovePhoto}
+        hasPhoto={!!avatarUrl && !avatarUrl.includes("gravatar")}
+        colors={colors}
+      />
 
       {/* Email edit modal */}
       <EditModal
