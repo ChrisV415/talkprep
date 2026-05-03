@@ -108,6 +108,7 @@ export default function SignUpScreen() {
             <Text style={styles.link}>Resend code</Text>
           </Pressable>
         </View>
+        <View nativeID="clerk-captcha" />
       </SafeAreaView>
     );
   }
@@ -175,6 +176,7 @@ export default function SignUpScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      <View nativeID="clerk-captcha" />
     </SafeAreaView>
   );
 }
