@@ -150,20 +150,15 @@ export default function SignUpScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {!isLoaded && (
-            <Pressable
-              style={styles.iframeBanner}
-              onPress={() =>
-                Linking.openURL(
-                  "https://8ac4c588-a224-4df1-93a4-eca47741178d-00-rnh93ea02kni.expo.worf.replit.dev/sign-up"
-                )
-              }
-            >
-              <Text style={styles.iframeBannerTitle}>⚠️ Open in a new tab to sign up</Text>
+            <View style={styles.iframeBanner}>
+              <Text style={styles.iframeBannerTitle}>⚠️ Can't sign up in the preview panel</Text>
               <Text style={styles.iframeBannerBody}>
-                Clerk auth can't run inside the preview iframe.{"\n"}
-                Tap here to open the app directly →
+                Copy this URL and open it in a new browser tab:
               </Text>
-            </Pressable>
+              <Text selectable style={styles.iframeBannerUrl}>
+                https://8ac4c588-a224-4df1-93a4-eca47741178d-00-rnh93ea02kni.expo.worf.replit.dev
+              </Text>
+            </View>
           )}
           <View style={styles.logoRow}>
             <Text style={styles.logoTalk}>Talk</Text>
@@ -270,7 +265,8 @@ const styles = StyleSheet.create({
   btnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
   iframeBanner: { backgroundColor: "#fff3cd", borderColor: "#ffc107", borderWidth: 1.5, borderRadius: 10, padding: 14, marginBottom: 20 },
   iframeBannerTitle: { fontSize: 14, fontWeight: "700", color: "#856404", marginBottom: 4 },
-  iframeBannerBody: { fontSize: 13, color: "#856404", lineHeight: 18 },
+  iframeBannerBody: { fontSize: 13, color: "#856404", lineHeight: 18, marginBottom: 6 },
+  iframeBannerUrl: { fontSize: 12, color: "#495057", backgroundColor: "#fff", borderRadius: 6, padding: 8, fontFamily: "monospace" },
   debug: { color: "#555", fontSize: 11, marginBottom: 8, fontFamily: "monospace", backgroundColor: "#f0f0f0", padding: 6, borderRadius: 4 },
   error: { color: "#c0392b", fontSize: 13, marginBottom: 12 },
   inputError: { borderColor: "#c0392b", borderWidth: 1.5 },
