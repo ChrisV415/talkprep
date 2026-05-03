@@ -1,14 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   Dimensions,
-  FlatList,
   Pressable,
   StyleSheet,
   Text,
   View,
-  ViewToken,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -25,6 +23,7 @@ const C = {
   border: "#E3E3E3",
   rustLight: "#F9F2ED",
   sageLight: "#EDD6C8",
+  sage: "#A8BFB0",
 };
 
 const slides = [
@@ -59,7 +58,6 @@ const slides = [
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const flatListRef = useRef<FlatList>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const finish = async () => {
@@ -69,23 +67,14 @@ export default function OnboardingScreen() {
 
   const next = () => {
     if (activeIndex < slides.length - 1) {
-      flatListRef.current?.scrollToIndex({ index: activeIndex + 1, animated: true });
+      setActiveIndex(activeIndex + 1);
     } else {
       finish();
     }
   };
 
-  const onViewableItemsChanged = useRef(
-    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
-      if (viewableItems.length > 0 && viewableItems[0].index !== null) {
-        setActiveIndex(viewableItems[0].index);
-      }
-    }
-  ).current;
-
-  const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
-
   const isLast = activeIndex === slides.length - 1;
+  const slide = slides[activeIndex];
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -99,39 +88,35 @@ export default function OnboardingScreen() {
         )}
       </View>
 
-      <FlatList
-        ref={flatListRef}
-        data={slides}
-        keyExtractor={(item) => item.id}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={viewabilityConfig}
-        renderItem={({ item }) => (
-          <View style={styles.slide}>
-            <View style={[styles.iconWrap, { backgroundColor: item.accent }]}>
-              <View style={[styles.iconCircle, { backgroundColor: item.emojiBg }]}>
-                <Text style={styles.emoji}>{item.emoji}</Text>
-              </View>
-            </View>
-            <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.subtitle}>{item.subtitle}</Text>
+      <View style={styles.slide}>
+        <View style={[styles.iconWrap, { backgroundColor: slide.accent }]}>
+          <View style={[styles.iconCircle, { backgroundColor: slide.emojiBg }]}>
+            <Text style={styles.emoji}>{slide.emoji}</Text>
           </View>
-        )}
-      />
+        </View>
+        <Text style={styles.title}>{slide.title}</Text>
+        <Text style={styles.subtitle}>{slide.subtitle}</Text>
+      </View>
 
       <View style={styles.bottom}>
         <View style={styles.dots}>
           {slides.map((_, i) => (
-            <View
+            <Pressable
               key={i}
-              style={[styles.dot, i === activeIndex && styles.dotActive]}
-            />
+              onPress={() => setActiveIndex(i)}
+              hitSlop={8}
+            >
+              <View style={[styles.dot, i === activeIndex && styles.dotActive]} />
+            </Pressable>
           ))}
         </View>
 
-        <Pressable style={styles.btn} onPress={next}>
+        <Pressable
+          style={styles.btn}
+          onPress={next}
+          accessibilityLabel={isLast ? "Get started" : "Next slide"}
+          accessibilityRole="button"
+        >
           <Text style={styles.btnText}>
             {isLast ? "Get started" : "Next"}
           </Text>
@@ -152,12 +137,12 @@ const styles = StyleSheet.create({
   skip: { fontSize: 15, color: C.ink4, fontWeight: "500" },
 
   slide: {
-    width,
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 36,
     paddingBottom: 40,
+    width,
   },
   iconWrap: {
     width: 200,
