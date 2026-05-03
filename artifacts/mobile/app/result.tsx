@@ -168,9 +168,9 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       borderBottomColor: colors.border,
     },
     tag: {
-      paddingHorizontal: 8,
-      paddingVertical: 4,
-      borderRadius: 3,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 20,
     },
     tagText: {
       fontSize: 9,
@@ -221,8 +221,8 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       justifyContent: "center",
       gap: 8,
       backgroundColor: colors.rust,
-      paddingVertical: 13,
-      borderRadius: 4,
+      paddingVertical: 15,
+      borderRadius: 28,
     },
     roleplayBtnText: {
       color: colors.cream,
@@ -231,10 +231,10 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontFamily: "Sora_600SemiBold",
     },
     newPrepBtn: {
-      width: 46,
+      width: 50,
       borderWidth: 1,
       borderColor: colors.border,
-      borderRadius: 4,
+      borderRadius: 25,
       alignItems: "center",
       justifyContent: "center",
     },

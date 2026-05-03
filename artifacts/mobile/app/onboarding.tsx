@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   },
   btn: {
     backgroundColor: C.rust,
-    borderRadius: 14,
+    borderRadius: 28,
     paddingVertical: 16,
     alignItems: "center",
   },

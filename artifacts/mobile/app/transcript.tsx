@@ -246,9 +246,9 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       alignItems: "center",
       justifyContent: "center",
       gap: 8,
-      backgroundColor: colors.ink,
-      paddingVertical: 13,
-      borderRadius: 4,
+      backgroundColor: colors.rust,
+      paddingVertical: 15,
+      borderRadius: 28,
     },
     scoreBtnText: {
       color: colors.cream,
