@@ -2,6 +2,7 @@ import { useSignUp } from "@clerk/expo";
 import { Link, useRouter } from "expo-router";
 import React from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -51,7 +52,10 @@ export default function SignUpScreen() {
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setPendingVerification(true);
     } catch (err: any) {
-      setError(err.errors?.[0]?.longMessage ?? err.errors?.[0]?.message ?? "Something went wrong");
+      const msg = err.errors?.[0]?.longMessage ?? err.errors?.[0]?.message ?? "Something went wrong";
+      const code = err.errors?.[0]?.code ?? "no_code";
+      Alert.alert("Sign up error", `[${code}] ${msg}\n\nFull: ${JSON.stringify(err.errors ?? err)}`);
+      setError(msg);
     } finally {
       setLoading(false);
     }
