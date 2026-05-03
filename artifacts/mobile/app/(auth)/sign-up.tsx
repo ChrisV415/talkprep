@@ -34,9 +34,14 @@ export default function SignUpScreen() {
   const [pendingVerification, setPendingVerification] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
+  const [debugMsg, setDebugMsg] = React.useState("");
 
   const handleSignUp = async () => {
-    if (!isLoaded) return;
+    setDebugMsg(`tap: loaded=${isLoaded} email=${!!email} pw=${!!password} cpw=${!!confirmPassword}`);
+    if (!isLoaded) {
+      setDebugMsg("BLOCKED: Clerk not loaded");
+      return;
+    }
     if (password !== confirmPassword) {
       setError("Passwords don't match");
       return;
@@ -45,10 +50,17 @@ export default function SignUpScreen() {
       setError("Password must be at least 8 characters");
       return;
     }
+    if (!email || !password || !confirmPassword) {
+      setDebugMsg("BLOCKED: empty field(s)");
+      setError("Please fill in all fields");
+      return;
+    }
     setLoading(true);
     setError("");
+    setDebugMsg("calling signUp.create…");
     try {
       await signUp.create({ emailAddress: email, password });
+      setDebugMsg("signUp.create OK — preparing verification…");
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setPendingVerification(true);
     } catch (err: any) {
@@ -180,6 +192,9 @@ export default function SignUpScreen() {
             autoComplete="new-password"
           />
 
+          {!!debugMsg && (
+            <Text style={styles.debug}>{debugMsg}</Text>
+          )}
           {!!error && <Text style={styles.error}>{error}</Text>}
 
           <Pressable
@@ -188,7 +203,6 @@ export default function SignUpScreen() {
               (!email || !password || !confirmPassword || loading) && styles.btnDisabled,
             ]}
             onPress={handleSignUp}
-            disabled={!email || !password || !confirmPassword || loading}
           >
             <Text style={styles.btnText}>
               {loading ? "Creating account…" : "Create account"}
@@ -237,6 +251,7 @@ const styles = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.5 },
   btnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+  debug: { color: "#555", fontSize: 11, marginBottom: 8, fontFamily: "monospace", backgroundColor: "#f0f0f0", padding: 6, borderRadius: 4 },
   error: { color: "#c0392b", fontSize: 13, marginBottom: 12 },
   inputError: { borderColor: "#c0392b", borderWidth: 1.5 },
   footer: { flexDirection: "row", justifyContent: "center", marginTop: 8 },
