@@ -6,6 +6,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   View,
@@ -58,6 +59,7 @@ export default function ResultScreen() {
   const navigation = useNavigation();
   const { scenario, who, fullResponse, resetCurrentSession } = useApp();
   const [activeTab, setActiveTab] = useState<Tab>("opening");
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
@@ -79,6 +81,31 @@ export default function ResultScreen() {
     return sections[t.section] || "Section not found in response.";
   }
 
+  async function handleShare() {
+    if (!fullResponse) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const text = `TalkPrep Guide — ${scenario}${who ? ` with ${who}` : ""}\n${"─".repeat(40)}\n\n${fullResponse}`;
+    if (Platform.OS === "web") {
+      try {
+        if (navigator?.share) {
+          await navigator.share({ title: "My TalkPrep Guide", text });
+        } else if (navigator?.clipboard) {
+          await navigator.clipboard.writeText(text);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        }
+      } catch {
+        // dismissed
+      }
+      return;
+    }
+    try {
+      await Share.share({ message: text, title: "My TalkPrep Guide" });
+    } catch {
+      // dismissed
+    }
+  }
+
   const styles = makeStyles(colors);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
@@ -89,7 +116,19 @@ export default function ResultScreen() {
           <Feather name="arrow-left" size={20} color={colors.ink3} />
         </Pressable>
         <Text style={styles.topTitle}>Your Prep Guide</Text>
-        <View style={{ width: 36 }} />
+        <Pressable
+          onPress={handleShare}
+          style={styles.shareBtn}
+          disabled={!fullResponse}
+          accessibilityLabel="Share prep guide"
+          accessibilityRole="button"
+        >
+          {copied ? (
+            <Text style={styles.copiedText}>Copied!</Text>
+          ) : (
+            <Feather name="share" size={19} color={fullResponse ? colors.ink3 : colors.border} />
+          )}
+        </Pressable>
       </View>
 
       <View style={styles.metaRow}>
@@ -177,6 +216,8 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       borderBottomColor: colors.border,
     },
     backBtn: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
+    shareBtn: { width: 52, height: 36, alignItems: "center", justifyContent: "center" },
+    copiedText: { fontSize: 11, color: colors.rust, fontFamily: "Sora_600SemiBold" },
     topTitle: {
       fontSize: 16,
       fontWeight: "600",

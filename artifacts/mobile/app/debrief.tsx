@@ -7,6 +7,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   TextInput,
@@ -35,6 +36,7 @@ export default function DebriefScreen() {
   const [different, setDifferent] = useState("");
   const [selectedOutcome, setSelectedOutcome] = useState("");
   const [debriefText, setDebriefText] = useState("");
+  const [copied, setCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const debriefRef = useRef("");
 
@@ -71,6 +73,40 @@ export default function DebriefScreen() {
     );
   }
 
+  async function handleShare() {
+    if (!debriefText) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const lines: string[] = [
+      `TalkPrep Debrief — ${scenario}${who ? ` with ${who}` : ""}`,
+      "─".repeat(40),
+      "",
+    ];
+    if (selectedOutcome) lines.push(`Outcome: ${selectedOutcome}`, "");
+    if (happened) lines.push(`What happened: ${happened}`, "");
+    if (different) lines.push(`What I'd do differently: ${different}`, "");
+    lines.push("─".repeat(40), "", debriefText);
+    const text = lines.join("\n");
+    if (Platform.OS === "web") {
+      try {
+        if (navigator?.share) {
+          await navigator.share({ title: "My TalkPrep Debrief", text });
+        } else if (navigator?.clipboard) {
+          await navigator.clipboard.writeText(text);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        }
+      } catch {
+        // dismissed
+      }
+      return;
+    }
+    try {
+      await Share.share({ message: text, title: "My TalkPrep Debrief" });
+    } catch {
+      // dismissed
+    }
+  }
+
   const styles = makeStyles(colors);
   const topPad = Platform.OS === "web" ? 67 : insets.top;
 
@@ -81,7 +117,19 @@ export default function DebriefScreen() {
           <Feather name="arrow-left" size={20} color={colors.ink3} />
         </Pressable>
         <Text style={styles.topTitle}>Debrief</Text>
-        <View style={{ width: 36 }} />
+        <Pressable
+          onPress={handleShare}
+          style={styles.shareBtn}
+          disabled={!debriefText}
+          accessibilityLabel="Share debrief"
+          accessibilityRole="button"
+        >
+          {copied ? (
+            <Text style={styles.copiedText}>Copied!</Text>
+          ) : (
+            <Feather name="share" size={19} color={debriefText ? colors.ink3 : colors.border} />
+          )}
+        </Pressable>
       </View>
 
       <ScrollView
@@ -222,6 +270,8 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       borderBottomColor: colors.border,
     },
     backBtn: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
+    shareBtn: { width: 52, height: 36, alignItems: "center", justifyContent: "center" },
+    copiedText: { fontSize: 11, color: colors.rust, fontFamily: "Sora_600SemiBold" },
     topTitle: {
       fontSize: 16,
       fontWeight: "600",
