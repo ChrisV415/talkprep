@@ -3,6 +3,8 @@ import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React from "react";
 import {
+  Image,
+  ImageSourcePropType,
   Platform,
   Pressable,
   ScrollView,
@@ -14,18 +16,79 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 
-const SCENARIOS = [
-  { label: "Resignation", icon: "log-out" as const, hint: "Leaving a job" },
-  { label: "Salary negotiation", icon: "trending-up" as const, hint: "Ask for what you're worth" },
-  { label: "Difficult feedback", icon: "message-circle" as const, hint: "Hard truths" },
-  { label: "Family confrontation", icon: "users" as const, hint: "Family dynamics" },
-  { label: "Relationship talk", icon: "heart" as const, hint: "Important conversations" },
-  { label: "Firing someone", icon: "user-x" as const, hint: "Ending employment" },
-  { label: "Confronting a friend", icon: "user" as const, hint: "Friendship tension" },
-  { label: "Setting a boundary", icon: "shield" as const, hint: "Protect your limits" },
-  { label: "Bad news to client", icon: "alert-circle" as const, hint: "Deliver difficult news" },
-  { label: "Landlord dispute", icon: "home" as const, hint: "Housing issues" },
-  { label: "Other difficult conversation", icon: "edit-3" as const, hint: "Something else" },
+type ScenarioItem = {
+  label: string;
+  icon: React.ComponentProps<typeof Feather>["name"];
+  hint: string;
+  image?: ImageSourcePropType;
+};
+
+const SCENARIOS: ScenarioItem[] = [
+  {
+    label: "Resignation",
+    icon: "log-out",
+    hint: "Leaving a job",
+    image: require("../../assets/images/scenario_resign.jpg"),
+  },
+  {
+    label: "Salary negotiation",
+    icon: "trending-up",
+    hint: "Ask for what you're worth",
+    image: require("../../assets/images/scenario_salary.jpg"),
+  },
+  {
+    label: "Difficult feedback",
+    icon: "message-circle",
+    hint: "Hard truths",
+    image: require("../../assets/images/scenario_feedback.jpg"),
+  },
+  {
+    label: "Family confrontation",
+    icon: "users",
+    hint: "Family dynamics",
+    image: require("../../assets/images/scenario_family.jpg"),
+  },
+  {
+    label: "Relationship talk",
+    icon: "heart",
+    hint: "Important conversations",
+    image: require("../../assets/images/scenario_relationship.jpg"),
+  },
+  {
+    label: "Firing someone",
+    icon: "user-x",
+    hint: "Ending employment",
+    image: require("../../assets/images/scenario_firing.jpg"),
+  },
+  {
+    label: "Confronting a friend",
+    icon: "user",
+    hint: "Friendship tension",
+    image: require("../../assets/images/scenario_friend.jpg"),
+  },
+  {
+    label: "Setting a boundary",
+    icon: "shield",
+    hint: "Protect your limits",
+    image: require("../../assets/images/scenario_boundary.jpg"),
+  },
+  {
+    label: "Bad news to client",
+    icon: "alert-circle",
+    hint: "Deliver difficult news",
+    image: require("../../assets/images/scenario_client.jpg"),
+  },
+  {
+    label: "Landlord dispute",
+    icon: "home",
+    hint: "Housing issues",
+    image: require("../../assets/images/scenario_landlord.jpg"),
+  },
+  {
+    label: "Other difficult conversation",
+    icon: "edit-3",
+    hint: "Something else",
+  },
 ];
 
 export default function HomeScreen() {
@@ -56,6 +119,7 @@ export default function HomeScreen() {
       contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
       showsVerticalScrollIndicator={false}
     >
+      {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 16 }]}>
         <View>
           <Text style={styles.logoText}>
@@ -69,16 +133,26 @@ export default function HomeScreen() {
         </Pressable>
       </View>
 
-      <View style={styles.heroSection}>
-        <Text style={styles.heroTitle}>
-          Say the hard thing,{"\n"}
-          <Text style={{ color: colors.rust, fontStyle: "italic" }}>the right way.</Text>
-        </Text>
-        <Text style={styles.heroSub}>
-          AI-powered prep for difficult conversations — so you walk in confident, not nervous.
-        </Text>
+      {/* Hero image banner */}
+      <View style={styles.heroBanner}>
+        <Image
+          source={require("../../assets/images/hero.jpg")}
+          style={styles.heroBannerImg}
+          resizeMode="cover"
+        />
+        <View style={styles.heroBannerOverlay} />
+        <View style={styles.heroBannerText}>
+          <Text style={styles.heroTitle}>
+            Say the hard thing,{"\n"}
+            <Text style={{ fontStyle: "italic" }}>the right way.</Text>
+          </Text>
+          <Text style={styles.heroSub}>
+            AI-powered prep for difficult conversations — walk in confident, not nervous.
+          </Text>
+        </View>
       </View>
 
+      {/* Quick Start */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionLabel}>QUICK START</Text>
       </View>
@@ -92,15 +166,29 @@ export default function HomeScreen() {
             ]}
             onPress={() => startWithScenario(sc.label)}
           >
-            <View style={styles.scenarioIconWrap}>
-              <Feather name={sc.icon} size={18} color={colors.rust} />
+            {sc.image ? (
+              <View style={styles.cardImageWrap}>
+                <Image
+                  source={sc.image}
+                  style={styles.cardImage}
+                  resizeMode="cover"
+                />
+                <View style={styles.cardImageOverlay} />
+              </View>
+            ) : (
+              <View style={styles.scenarioIconWrap}>
+                <Feather name={sc.icon} size={18} color={colors.rust} />
+              </View>
+            )}
+            <View style={styles.cardBody}>
+              <Text style={styles.scenarioTitle}>{sc.label}</Text>
+              <Text style={styles.scenarioHint}>{sc.hint}</Text>
             </View>
-            <Text style={styles.scenarioTitle}>{sc.label}</Text>
-            <Text style={styles.scenarioHint}>{sc.hint}</Text>
           </Pressable>
         ))}
       </View>
 
+      {/* Recent sessions */}
       {recentSessions.length > 0 && (
         <>
           <View style={styles.sectionHeader}>
@@ -169,6 +257,7 @@ export default function HomeScreen() {
 function makeStyles(colors: ReturnType<typeof useColors>) {
   return StyleSheet.create({
     container: { flex: 1 },
+
     header: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -204,27 +293,43 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontWeight: "500",
       fontFamily: "Sora_500Medium",
     },
-    heroSection: {
-      paddingHorizontal: 20,
-      paddingVertical: 24,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
+
+    heroBanner: {
+      marginHorizontal: 16,
+      marginBottom: 4,
+      borderRadius: 20,
+      overflow: "hidden",
+      height: 170,
+      position: "relative",
+    },
+    heroBannerImg: { width: "100%", height: "100%" },
+    heroBannerOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: "rgba(49,49,49,0.52)",
+    },
+    heroBannerText: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      padding: 18,
     },
     heroTitle: {
-      fontSize: 28,
+      fontSize: 22,
       fontWeight: "700",
-      color: colors.ink,
-      lineHeight: 34,
+      color: "#fff",
+      lineHeight: 28,
       letterSpacing: -0.5,
       fontFamily: "Sora_700Bold",
-      marginBottom: 10,
+      marginBottom: 6,
     },
     heroSub: {
-      fontSize: 14,
-      color: colors.ink2,
-      lineHeight: 21,
+      fontSize: 12,
+      color: "rgba(255,255,255,0.80)",
+      lineHeight: 18,
       fontFamily: "Sora_400Regular",
     },
+
     sectionHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -245,23 +350,35 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       color: colors.ink3,
       fontFamily: "Sora_400Regular",
     },
+
     scenarioGrid: {
       flexDirection: "row",
       flexWrap: "wrap",
       paddingHorizontal: 16,
-      gap: 8,
+      gap: 10,
     },
     scenarioCard: {
       width: "47%",
       backgroundColor: "#ffffff",
       borderRadius: 16,
-      padding: 14,
+      overflow: "hidden",
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.07,
       shadowRadius: 6,
       elevation: 2,
     },
+    cardImageWrap: {
+      width: "100%",
+      height: 78,
+      position: "relative",
+    },
+    cardImage: { width: "100%", height: "100%" },
+    cardImageOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: "rgba(0,0,0,0.08)",
+    },
+    cardBody: { padding: 12 },
     scenarioIconWrap: {
       width: 34,
       height: 34,
@@ -269,7 +386,8 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       backgroundColor: colors.rustLight,
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: 8,
+      margin: 12,
+      marginBottom: 4,
     },
     scenarioTitle: {
       fontSize: 13,
@@ -284,6 +402,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontFamily: "Sora_400Regular",
       marginTop: 2,
     },
+
     sessionList: {
       marginHorizontal: 16,
       borderRadius: 16,
@@ -313,10 +432,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       color: colors.ink,
       fontFamily: "Sora_600SemiBold",
     },
-    sessionRight: {
-      alignItems: "flex-end",
-      gap: 4,
-    },
+    sessionRight: { alignItems: "flex-end", gap: 4 },
     scoreDots: { flexDirection: "row", gap: 3 },
     scoreDot: { width: 8, height: 8, borderRadius: 4 },
     sessionDate: {
