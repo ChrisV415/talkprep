@@ -1,5 +1,6 @@
 import { useSignIn } from "@clerk/expo";
 import { Link, useRouter } from "expo-router";
+
 import React from "react";
 import {
   KeyboardAvoidingView,
@@ -109,6 +110,10 @@ export default function SignInScreen() {
             </Text>
           </Pressable>
 
+          <Link href="/(auth)/forgot-password" style={styles.forgotLink}>
+            <Text style={styles.forgotText}>Forgot password?</Text>
+          </Link>
+
           <View style={styles.footer}>
             <Text style={styles.footerText}>Don't have an account? </Text>
             <Link href="/(auth)/sign-up">
@@ -151,6 +156,8 @@ const styles = StyleSheet.create({
   btnDisabled: { opacity: 0.5 },
   btnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
   error: { color: "#c0392b", fontSize: 13, marginBottom: 12 },
+  forgotLink: { alignSelf: "center", marginBottom: 20 },
+  forgotText: { color: C.ink4, fontSize: 14 },
   footer: { flexDirection: "row", justifyContent: "center", marginTop: 8 },
   footerText: { color: C.ink4, fontSize: 14 },
   link: { color: C.rust, fontSize: 14, fontWeight: "600" },
