@@ -4,6 +4,7 @@ import { Link, useRouter } from "expo-router";
 import React from "react";
 import {
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -64,6 +65,22 @@ export default function SignInScreen() {
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
+          {!isLoaded && (
+            <Pressable
+              style={styles.iframeBanner}
+              onPress={() =>
+                Linking.openURL(
+                  "https://8ac4c588-a224-4df1-93a4-eca47741178d-00-rnh93ea02kni.expo.worf.replit.dev/"
+                )
+              }
+            >
+              <Text style={styles.iframeBannerTitle}>⚠️ Open in a new tab to sign in</Text>
+              <Text style={styles.iframeBannerBody}>
+                Clerk auth can't run inside the preview iframe.{"\n"}
+                Tap here to open the app directly →
+              </Text>
+            </Pressable>
+          )}
           <View style={styles.logoRow}>
             <Text style={styles.logoTalk}>Talk</Text>
             <Text style={styles.logoPrep}>Prep</Text>
@@ -154,6 +171,9 @@ const styles = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.5 },
   btnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+  iframeBanner: { backgroundColor: "#fff3cd", borderColor: "#ffc107", borderWidth: 1.5, borderRadius: 10, padding: 14, marginBottom: 20 },
+  iframeBannerTitle: { fontSize: 14, fontWeight: "700", color: "#856404", marginBottom: 4 },
+  iframeBannerBody: { fontSize: 13, color: "#856404", lineHeight: 18 },
   error: { color: "#c0392b", fontSize: 13, marginBottom: 12 },
   forgotLink: { alignSelf: "center", marginBottom: 20 },
   forgotText: { color: C.ink4, fontSize: 14 },
