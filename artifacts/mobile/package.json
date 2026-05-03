@@ -61,6 +61,7 @@
     "zod-validation-error": "^3.4.0"
   },
   "dependencies": {
+    "@expo-google-fonts/sora": "^0.4.2",
     "@react-native-community/slider": "^5.2.0"
   }
 }

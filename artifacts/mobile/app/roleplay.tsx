@@ -297,14 +297,14 @@ function MessageBubble({
       fontSize: 9,
       letterSpacing: 0.8,
       marginBottom: 2,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
     bubble: {
       padding: 10,
       borderRadius: 4,
       fontSize: 14,
       lineHeight: 20,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
     systemBubble: {
       backgroundColor: colors.goldLight,
@@ -315,7 +315,7 @@ function MessageBubble({
       fontStyle: "italic",
       fontSize: 12,
       color: colors.gold,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
   });
 
@@ -384,11 +384,11 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
     personaName: {
       fontSize: 12,
       color: colors.rustDim,
-      fontFamily: "Inter_500Medium",
+      fontFamily: "Sora_500Medium",
       fontWeight: "500",
     },
     topStats: { flexDirection: "row", alignItems: "center", gap: 4 },
-    statText: { fontSize: 11, color: colors.ink3, fontFamily: "Inter_400Regular" },
+    statText: { fontSize: 11, color: colors.ink3, fontFamily: "Sora_400Regular" },
     statSep: { fontSize: 11, color: colors.ink4 },
     chatList: { flex: 1 },
     nudgeCard: {
@@ -408,7 +408,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 12,
       color: colors.ink2,
       lineHeight: 18,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
     typingBubble: {
       alignSelf: "flex-start",
@@ -439,7 +439,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       color: colors.ink,
       backgroundColor: "white",
       maxHeight: 100,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
     sendBtn: {
       width: 42,
@@ -459,6 +459,6 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       borderWidth: 1,
       borderColor: colors.border,
     },
-    endBtnText: { fontSize: 12, color: colors.ink2, fontFamily: "Inter_400Regular" },
+    endBtnText: { fontSize: 12, color: colors.ink2, fontFamily: "Sora_400Regular" },
   });
 }

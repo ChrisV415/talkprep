@@ -102,7 +102,7 @@ export default function ResultScreen() {
             <Text
               style={[
                 styles.tabText,
-                activeTab === t.key && { color: colors.rust, fontFamily: "Inter_600SemiBold" },
+                activeTab === t.key && { color: colors.rust, fontFamily: "Sora_600SemiBold" },
               ]}
             >
               {t.label}
@@ -157,7 +157,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 16,
       fontWeight: "600",
       color: colors.ink,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
     },
     metaRow: {
       flexDirection: "row",
@@ -176,7 +176,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 9,
       fontWeight: "600",
       letterSpacing: 0.8,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
     },
     tabBar: {
       flexDirection: "row",
@@ -196,14 +196,14 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
     tabText: {
       fontSize: 12,
       color: colors.ink3,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
     content: { padding: 20 },
     contentText: {
       fontSize: 15,
       color: colors.ink2,
       lineHeight: 26,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
     footer: {
       flexDirection: "row",
@@ -228,7 +228,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       color: colors.cream,
       fontSize: 14,
       fontWeight: "600",
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
     },
     newPrepBtn: {
       width: 46,

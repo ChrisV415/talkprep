@@ -181,13 +181,13 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 22,
       fontWeight: "700",
       color: colors.ink,
-      fontFamily: "Inter_700Bold",
+      fontFamily: "Sora_700Bold",
       letterSpacing: -0.5,
     },
     tagline: {
       fontSize: 11,
       color: colors.ink3,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
       marginTop: 2,
     },
     newBtn: {
@@ -203,7 +203,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       color: colors.primaryForeground,
       fontSize: 13,
       fontWeight: "500",
-      fontFamily: "Inter_500Medium",
+      fontFamily: "Sora_500Medium",
     },
     heroSection: {
       paddingHorizontal: 20,
@@ -217,14 +217,14 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       color: colors.ink,
       lineHeight: 34,
       letterSpacing: -0.5,
-      fontFamily: "Inter_700Bold",
+      fontFamily: "Sora_700Bold",
       marginBottom: 10,
     },
     heroSub: {
       fontSize: 14,
       color: colors.ink2,
       lineHeight: 21,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
     sectionHeader: {
       flexDirection: "row",
@@ -239,12 +239,12 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontWeight: "600",
       color: colors.rust,
       letterSpacing: 1.5,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
     },
     seeAll: {
       fontSize: 12,
       color: colors.ink3,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
     scenarioGrid: {
       flexDirection: "row",
@@ -273,13 +273,13 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 13,
       fontWeight: "600",
       color: colors.ink,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
       lineHeight: 18,
     },
     scenarioHint: {
       fontSize: 11,
       color: colors.ink3,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
       marginTop: 2,
     },
     sessionList: {
@@ -298,14 +298,14 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
     sessionScenario: {
       fontSize: 9,
       letterSpacing: 1,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
       marginBottom: 2,
     },
     sessionWho: {
       fontSize: 14,
       fontWeight: "600",
       color: colors.ink,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
     },
     sessionRight: {
       alignItems: "flex-end",
@@ -316,7 +316,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
     sessionDate: {
       fontSize: 10,
       color: colors.ink4,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
   });
 }

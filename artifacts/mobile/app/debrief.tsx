@@ -119,7 +119,7 @@ export default function DebriefScreen() {
                     styles.chipText,
                     selectedOutcome === c && {
                       color: colors.rustDim,
-                      fontFamily: "Inter_600SemiBold",
+                      fontFamily: "Sora_600SemiBold",
                     },
                   ]}
                 >
@@ -226,7 +226,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 16,
       fontWeight: "600",
       color: colors.ink,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
     },
     content: { padding: 20 },
     sectionTag: {
@@ -234,21 +234,21 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontWeight: "600",
       color: colors.rust,
       letterSpacing: 1.5,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
       marginBottom: 4,
     },
     sectionTitle: {
       fontSize: 22,
       fontWeight: "700",
       color: colors.ink,
-      fontFamily: "Inter_700Bold",
+      fontFamily: "Sora_700Bold",
       marginBottom: 6,
     },
     sectionHint: {
       fontSize: 13,
       color: colors.ink3,
       lineHeight: 19,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
       marginBottom: 20,
     },
     fieldGroup: { marginBottom: 18 },
@@ -257,7 +257,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontWeight: "600",
       color: colors.ink2,
       letterSpacing: 1.2,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
       marginBottom: 8,
     },
     chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
@@ -269,7 +269,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       borderRadius: 4,
       backgroundColor: "white",
     },
-    chipText: { fontSize: 13, color: colors.ink2, fontFamily: "Inter_400Regular" },
+    chipText: { fontSize: 13, color: colors.ink2, fontFamily: "Sora_400Regular" },
     input: {
       borderWidth: 1,
       borderColor: colors.input,
@@ -278,7 +278,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 14,
       color: colors.ink,
       backgroundColor: "white",
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
     textarea: { minHeight: 90, paddingTop: 12 },
     debriefCard: {
@@ -300,13 +300,13 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontWeight: "600",
       color: colors.rust,
       letterSpacing: 1,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
     },
     debriefText: {
       fontSize: 15,
       color: colors.ink2,
       lineHeight: 26,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
     generatingRow: { marginTop: 10, alignItems: "center" },
     footer: {
@@ -329,7 +329,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       color: colors.cream,
       fontSize: 14,
       fontWeight: "600",
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
     },
     doneBtn: {
       flexDirection: "row",
@@ -344,7 +344,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       color: colors.cream,
       fontSize: 14,
       fontWeight: "600",
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
     },
   });
 }

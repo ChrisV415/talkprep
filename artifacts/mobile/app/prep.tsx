@@ -164,7 +164,7 @@ export default function PrepScreen() {
                   <Text
                     style={[
                       styles.pickerItemText,
-                      scenario === sc && { color: colors.rust, fontFamily: "Inter_600SemiBold" },
+                      scenario === sc && { color: colors.rust, fontFamily: "Sora_600SemiBold" },
                     ]}
                   >
                     {sc}
@@ -234,7 +234,7 @@ export default function PrepScreen() {
                     styles.toneBtnText,
                     tone === t && {
                       color: colors.rustDim,
-                      fontFamily: "Inter_600SemiBold",
+                      fontFamily: "Sora_600SemiBold",
                     },
                   ]}
                 >
@@ -294,7 +294,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 16,
       fontWeight: "600",
       color: colors.ink,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
     },
     content: { padding: 20 },
     sectionTag: {
@@ -302,21 +302,21 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontWeight: "600",
       color: colors.rust,
       letterSpacing: 1.5,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
       marginBottom: 4,
     },
     sectionTitle: {
       fontSize: 22,
       fontWeight: "700",
       color: colors.ink,
-      fontFamily: "Inter_700Bold",
+      fontFamily: "Sora_700Bold",
       marginBottom: 6,
     },
     sectionHint: {
       fontSize: 13,
       color: colors.ink3,
       lineHeight: 19,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
       marginBottom: 24,
     },
     fieldGroup: { marginBottom: 20 },
@@ -325,13 +325,13 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontWeight: "600",
       color: colors.ink2,
       letterSpacing: 1.2,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
       marginBottom: 6,
     },
     fieldSub: {
       fontSize: 11,
       color: colors.ink3,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
       marginBottom: 6,
       lineHeight: 16,
     },
@@ -343,7 +343,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 14,
       color: colors.ink,
       backgroundColor: "white",
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
     textarea: { minHeight: 110, paddingTop: 12 },
     selectBtn: {
@@ -356,7 +356,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       alignItems: "center",
       backgroundColor: "white",
     },
-    selectText: { fontSize: 14, fontFamily: "Inter_400Regular" },
+    selectText: { fontSize: 14, fontFamily: "Sora_400Regular" },
     pickerList: {
       borderWidth: 1,
       borderTopWidth: 0,
@@ -376,7 +376,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
     pickerItemText: {
       fontSize: 14,
       color: colors.ink2,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
     toneGrid: {
       flexDirection: "row",
@@ -394,7 +394,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
     toneBtnText: {
       fontSize: 13,
       color: colors.ink2,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
     footer: {
       paddingHorizontal: 20,
@@ -415,7 +415,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       color: colors.cream,
       fontSize: 15,
       fontWeight: "600",
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
     },
   });
 }

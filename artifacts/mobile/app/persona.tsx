@@ -150,7 +150,7 @@ export default function PersonaScreen() {
                     styles.reactionBtnText,
                     persona.reaction === r && {
                       color: colors.rustDim,
-                      fontFamily: "Inter_600SemiBold",
+                      fontFamily: "Sora_600SemiBold",
                     },
                   ]}
                 >
@@ -181,7 +181,7 @@ export default function PersonaScreen() {
                     styles.difficultyBtnText,
                     persona.difficulty === d && {
                       color: colors.rustDim,
-                      fontFamily: "Inter_600SemiBold",
+                      fontFamily: "Sora_600SemiBold",
                     },
                   ]}
                 >
@@ -241,7 +241,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 16,
       fontWeight: "600",
       color: colors.ink,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
     },
     content: { padding: 20 },
     sectionTag: {
@@ -249,21 +249,21 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontWeight: "600",
       color: colors.rust,
       letterSpacing: 1.5,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
       marginBottom: 4,
     },
     sectionTitle: {
       fontSize: 20,
       fontWeight: "700",
       color: colors.ink,
-      fontFamily: "Inter_700Bold",
+      fontFamily: "Sora_700Bold",
       marginBottom: 6,
     },
     sectionHint: {
       fontSize: 13,
       color: colors.ink3,
       lineHeight: 19,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
       marginBottom: 20,
     },
     traitCard: {
@@ -278,7 +278,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 12,
       fontWeight: "600",
       color: colors.ink2,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
       marginBottom: 8,
     },
     slider: { width: "100%", height: 30 },
@@ -286,7 +286,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
     traitEnd: {
       fontSize: 10,
       color: colors.ink4,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
     fieldGroup: { marginTop: 16 },
     fieldLabel: {
@@ -294,7 +294,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontWeight: "600",
       color: colors.ink2,
       letterSpacing: 1.2,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
       marginBottom: 8,
     },
     reactionGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
@@ -309,7 +309,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
     reactionBtnText: {
       fontSize: 12,
       color: colors.ink2,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
     difficultyRow: { flexDirection: "row", gap: 8 },
     difficultyBtn: {
@@ -324,12 +324,12 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
     difficultyBtnText: {
       fontSize: 13,
       color: colors.ink2,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
     difficultyHint: {
       fontSize: 11,
       color: colors.ink3,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
       marginTop: 6,
       lineHeight: 16,
     },
@@ -341,7 +341,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 14,
       color: colors.ink,
       backgroundColor: "white",
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
     textarea: { minHeight: 80, paddingTop: 12 },
     footer: {
@@ -366,7 +366,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
     skipBtnText: {
       fontSize: 12,
       color: colors.ink3,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
     startBtn: {
       flex: 1,
@@ -382,7 +382,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       color: colors.cream,
       fontSize: 14,
       fontWeight: "600",
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
     },
   });
 }

@@ -194,7 +194,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 16,
       fontWeight: "600",
       color: colors.ink,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
     },
     content: { paddingVertical: 8 },
     messageRow: {
@@ -211,16 +211,16 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
     speaker: {
       fontSize: 10,
       letterSpacing: 1,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
       fontWeight: "600",
     },
     tag: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 3 },
-    tagText: { fontSize: 8, fontFamily: "Inter_600SemiBold", letterSpacing: 0.5 },
+    tagText: { fontSize: 8, fontFamily: "Sora_600SemiBold", letterSpacing: 0.5 },
     msgText: {
       fontSize: 14,
       color: colors.ink2,
       lineHeight: 22,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
     annotationBox: {
       marginTop: 8,
@@ -231,9 +231,9 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       borderBottomLeftRadius: 0,
     },
     annotatingRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-    annotatingText: { fontSize: 11, color: colors.rust, fontFamily: "Inter_400Regular" },
+    annotatingText: { fontSize: 11, color: colors.rust, fontFamily: "Sora_400Regular" },
     annotationContent: { flexDirection: "row", alignItems: "flex-start", gap: 6 },
-    annotationText: { flex: 1, fontSize: 12, lineHeight: 18, fontFamily: "Inter_400Regular" },
+    annotationText: { flex: 1, fontSize: 12, lineHeight: 18, fontFamily: "Sora_400Regular" },
     footer: {
       paddingHorizontal: 16,
       paddingTop: 12,
@@ -254,7 +254,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       color: colors.cream,
       fontSize: 14,
       fontWeight: "600",
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
     },
   });
 }

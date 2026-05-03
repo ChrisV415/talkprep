@@ -183,12 +183,12 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 28,
       fontWeight: "700",
       color: colors.ink,
-      fontFamily: "Inter_700Bold",
+      fontFamily: "Sora_700Bold",
     },
     subtitle: {
       fontSize: 13,
       color: colors.ink3,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
       marginTop: 2,
     },
     empty: {
@@ -201,13 +201,13 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 18,
       fontWeight: "600",
       color: colors.ink2,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
       marginTop: 12,
     },
     emptyHint: {
       fontSize: 14,
       color: colors.ink3,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
       textAlign: "center",
       lineHeight: 20,
     },
@@ -221,7 +221,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
     emptyBtnText: {
       color: "white",
       fontSize: 14,
-      fontFamily: "Inter_500Medium",
+      fontFamily: "Sora_500Medium",
       fontWeight: "500",
     },
     statsRow: {
@@ -240,12 +240,12 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 22,
       fontWeight: "700",
       color: colors.ink,
-      fontFamily: "Inter_700Bold",
+      fontFamily: "Sora_700Bold",
     },
     statLabel: {
       fontSize: 8,
       color: colors.ink3,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
       letterSpacing: 0.8,
       marginTop: 2,
       textAlign: "center",
@@ -271,10 +271,10 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 14,
       fontWeight: "600",
       color: colors.ink,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
     },
     badge: { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 3 },
-    badgeText: { fontSize: 9, fontWeight: "600", letterSpacing: 0.5, fontFamily: "Inter_600SemiBold" },
+    badgeText: { fontSize: 9, fontWeight: "600", letterSpacing: 0.5, fontFamily: "Sora_600SemiBold" },
     trendChart: {
       flexDirection: "row",
       alignItems: "flex-end",
@@ -288,14 +288,14 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
     trendLabel: {
       fontSize: 8,
       color: colors.ink4,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
       marginTop: 4,
       textAlign: "center",
     },
     trendNote: {
       fontSize: 9,
       color: colors.ink4,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
       padding: 14,
       paddingTop: 8,
     },
@@ -308,8 +308,8 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    scenLabel: { fontSize: 13, color: colors.ink2, fontFamily: "Inter_400Regular", flex: 1 },
-    scenCount: { fontSize: 12, color: colors.rust, fontFamily: "Inter_600SemiBold" },
+    scenLabel: { fontSize: 13, color: colors.ink2, fontFamily: "Sora_400Regular", flex: 1 },
+    scenCount: { fontSize: 12, color: colors.rust, fontFamily: "Sora_600SemiBold" },
     barRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -317,7 +317,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       paddingHorizontal: 14,
       paddingVertical: 10,
     },
-    barLabel: { fontSize: 12, color: colors.ink3, fontFamily: "Inter_400Regular", width: 70 },
+    barLabel: { fontSize: 12, color: colors.ink3, fontFamily: "Sora_400Regular", width: 70 },
     barTrack: {
       flex: 1,
       height: 8,
@@ -326,6 +326,6 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       overflow: "hidden",
     },
     barFill: { height: "100%", borderRadius: 4 },
-    barVal: { fontSize: 11, color: colors.ink3, fontFamily: "Inter_500Medium", width: 28, textAlign: "right" },
+    barVal: { fontSize: 11, color: colors.ink3, fontFamily: "Sora_500Medium", width: 28, textAlign: "right" },
   });
 }

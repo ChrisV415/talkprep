@@ -150,7 +150,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 16,
       fontWeight: "600",
       color: colors.ink,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
     },
     content: { padding: 20 },
     sectionTag: {
@@ -158,21 +158,21 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontWeight: "600",
       color: colors.rust,
       letterSpacing: 1.5,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
       marginBottom: 4,
     },
     sectionTitle: {
       fontSize: 22,
       fontWeight: "700",
       color: colors.ink,
-      fontFamily: "Inter_700Bold",
+      fontFamily: "Sora_700Bold",
       marginBottom: 6,
     },
     sectionHint: {
       fontSize: 13,
       color: colors.ink3,
       lineHeight: 19,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
       marginBottom: 20,
     },
     scoreCard: {
@@ -193,18 +193,18 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 15,
       fontWeight: "600",
       color: colors.ink,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
     },
     scoreValue: {
       fontSize: 13,
       color: colors.rust,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
       fontWeight: "600",
     },
     scoreDesc: {
       fontSize: 12,
       color: colors.ink3,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
       marginBottom: 12,
       lineHeight: 17,
     },
@@ -220,7 +220,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
     scoreBtnText: {
       fontSize: 14,
       color: colors.ink3,
-      fontFamily: "Inter_500Medium",
+      fontFamily: "Sora_500Medium",
       fontWeight: "500",
     },
     footer: {
@@ -243,7 +243,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       color: colors.cream,
       fontSize: 14,
       fontWeight: "600",
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
     },
   });
 }

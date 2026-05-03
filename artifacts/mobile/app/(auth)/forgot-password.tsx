@@ -14,12 +14,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const C = {
-  cream: "#f9f5ef",
-  rust: "#c4622d",
-  ink: "#1c1814",
-  ink4: "#6b6560",
-  card: "#f0ebe2",
-  border: "#e2ddd6",
+  cream: "#F9F2ED",
+  rust: "#C67C4E",
+  ink: "#313131",
+  ink4: "#9e9189",
+  card: "#EDD6C8",
+  border: "#E3E3E3",
 };
 
 export default function ForgotPasswordScreen() {

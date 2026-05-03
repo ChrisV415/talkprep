@@ -106,12 +106,12 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 28,
       fontWeight: "700",
       color: colors.ink,
-      fontFamily: "Inter_700Bold",
+      fontFamily: "Sora_700Bold",
     },
     subtitle: {
       fontSize: 13,
       color: colors.ink3,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
       marginTop: 2,
     },
     empty: {
@@ -124,13 +124,13 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 18,
       fontWeight: "600",
       color: colors.ink2,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
       marginTop: 12,
     },
     emptyHint: {
       fontSize: 14,
       color: colors.ink3,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
       textAlign: "center",
     },
     emptyBtn: {
@@ -143,7 +143,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
     emptyBtnText: {
       color: "white",
       fontSize: 14,
-      fontFamily: "Inter_500Medium",
+      fontFamily: "Sora_500Medium",
       fontWeight: "500",
     },
     list: {
@@ -160,7 +160,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
     itemScenario: {
       fontSize: 9,
       letterSpacing: 1,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
       fontWeight: "600",
       marginBottom: 2,
     },
@@ -168,12 +168,12 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 15,
       fontWeight: "600",
       color: colors.ink,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
     },
     itemPreview: {
       fontSize: 12,
       color: colors.ink3,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
       marginTop: 2,
     },
     itemRight: {
@@ -183,7 +183,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
     itemDate: {
       fontSize: 10,
       color: colors.ink4,
-      fontFamily: "Inter_400Regular",
+      fontFamily: "Sora_400Regular",
     },
     badge: {
       paddingHorizontal: 6,
@@ -194,7 +194,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontSize: 8,
       fontWeight: "600",
       letterSpacing: 0.5,
-      fontFamily: "Inter_600SemiBold",
+      fontFamily: "Sora_600SemiBold",
     },
   });
 }

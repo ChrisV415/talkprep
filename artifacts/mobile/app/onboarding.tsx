@@ -17,14 +17,14 @@ const { width } = Dimensions.get("window");
 const ONBOARDING_KEY = "@talkprep_onboarded";
 
 const C = {
-  cream: "#f9f5ef",
-  rust: "#c4622d",
-  sage: "#5c7a6a",
-  ink: "#1c1814",
-  ink4: "#6b6560",
-  card: "#f0ebe2",
-  rustLight: "#fdf0e8",
-  sageLight: "#eaf0ed",
+  cream: "#F9F2ED",
+  rust: "#C67C4E",
+  ink: "#313131",
+  ink4: "#9e9189",
+  card: "#EDD6C8",
+  border: "#E3E3E3",
+  rustLight: "#F9F2ED",
+  sageLight: "#EDD6C8",
 };
 
 const slides = [
