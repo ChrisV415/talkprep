@@ -51,8 +51,8 @@ export default function SignUpScreen() {
     setLoading(true);
     setError("");
     try {
-      await signUp.create({ emailAddress: email, password });
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      const created = await signUp.create({ emailAddress: email, password });
+      await created.prepareEmailAddressVerification({ strategy: "email_code" });
       setPendingVerification(true);
     } catch (err: any) {
       const clerkErr = err.errors?.[0];
