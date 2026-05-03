@@ -52,7 +52,7 @@ export default function SignUpScreen() {
     setError("");
     try {
       const created = await signUp.create({ emailAddress: email, password });
-      await created.prepareEmailAddressVerification({ strategy: "email_code" });
+      await created.prepareVerification({ strategy: "email_code" });
       setPendingVerification(true);
     } catch (err: any) {
       const clerkErr = err.errors?.[0];
@@ -69,7 +69,7 @@ export default function SignUpScreen() {
     setLoading(true);
     setError("");
     try {
-      const result = await signUp.attemptEmailAddressVerification({ code });
+      const result = await signUp.attemptVerification({ code });
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
         router.replace("/(tabs)");
@@ -86,7 +86,7 @@ export default function SignUpScreen() {
   const resendCode = async () => {
     if (!signUp) return;
     try {
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      await signUp.prepareVerification({ strategy: "email_code" });
     } catch (err: any) {
       setError(err.errors?.[0]?.message ?? "Could not resend code");
     }
