@@ -33,6 +33,7 @@ function RootLayoutNav() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="prep" options={{ headerShown: false, presentation: "card" }} />
       <Stack.Screen name="result" options={{ headerShown: false, presentation: "card" }} />
       <Stack.Screen name="persona" options={{ headerShown: false, presentation: "card" }} />

@@ -1,13 +1,16 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "@clerk/expo";
 import { BlurView } from "expo-blur";
 import { Redirect, Tabs } from "expo-router";
 import { Feather } from "@expo/vector-icons";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Platform, StyleSheet, View, useColorScheme } from "react-native";
 import { SymbolView } from "expo-symbols";
 
 import { useColors } from "@/hooks/useColors";
 import { setAuthTokenGetter } from "@/lib/api";
+
+const ONBOARDING_KEY = "@talkprep_onboarded";
 
 export default function TabLayout() {
   const { isSignedIn, isLoaded, getToken } = useAuth();
@@ -17,12 +20,25 @@ export default function TabLayout() {
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
 
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
+
   useEffect(() => {
     setAuthTokenGetter(() => getToken());
   }, [getToken]);
 
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) return;
+    AsyncStorage.getItem(ONBOARDING_KEY).then((val) => {
+      setNeedsOnboarding(val === null);
+      setOnboardingChecked(true);
+    });
+  }, [isLoaded, isSignedIn]);
+
   if (!isLoaded) return null;
   if (!isSignedIn) return <Redirect href="/(auth)/sign-in" />;
+  if (!onboardingChecked) return null;
+  if (needsOnboarding) return <Redirect href="/onboarding" />;
 
   return (
     <Tabs
