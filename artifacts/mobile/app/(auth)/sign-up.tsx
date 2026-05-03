@@ -1,4 +1,4 @@
-import { useSignUp, useAuth } from "@clerk/expo";
+import { useSignUp } from "@clerk/expo";
 import { Link, useRouter } from "expo-router";
 import React from "react";
 import {
@@ -24,43 +24,70 @@ const C = {
 };
 
 export default function SignUpScreen() {
-  const { signUp, errors, fetchStatus } = useSignUp();
-  const { isSignedIn } = useAuth();
+  const { isLoaded, signUp, setActive } = useSignUp();
   const router = useRouter();
 
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [code, setCode] = React.useState("");
+  const [pendingVerification, setPendingVerification] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
 
   const handleSignUp = async () => {
-    const { error } = await signUp.password({ emailAddress: email, password });
-    if (error) return;
-    await signUp.verifications.sendEmailCode();
-  };
-
-  const handleVerify = async () => {
-    await signUp.verifications.verifyEmailCode({ code });
-    if (signUp.status === "complete") {
-      await signUp.finalize({
-        navigate: () => router.replace("/(tabs)"),
-      });
+    if (!isLoaded) return;
+    setLoading(true);
+    setError("");
+    try {
+      await signUp.create({ emailAddress: email, password });
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      setPendingVerification(true);
+    } catch (err: any) {
+      setError(err.errors?.[0]?.longMessage ?? err.errors?.[0]?.message ?? "Something went wrong");
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (isSignedIn) return null;
+  const handleVerify = async () => {
+    if (!isLoaded) return;
+    setLoading(true);
+    setError("");
+    try {
+      const result = await signUp.attemptEmailAddressVerification({ code });
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+        router.replace("/(tabs)");
+      } else {
+        setError("Verification incomplete. Please try again.");
+      }
+    } catch (err: any) {
+      setError(err.errors?.[0]?.longMessage ?? err.errors?.[0]?.message ?? "Invalid code");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  if (
-    signUp.status === "missing_requirements" &&
-    signUp.unverifiedFields.includes("email_address") &&
-    signUp.missingFields.length === 0
-  ) {
+  const resendCode = async () => {
+    if (!isLoaded) return;
+    try {
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+    } catch (err: any) {
+      setError(err.errors?.[0]?.message ?? "Could not resend code");
+    }
+  };
+
+  if (pendingVerification) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.container}>
+          <View style={styles.logoRow}>
+            <Text style={styles.logoTalk}>Talk</Text>
+            <Text style={styles.logoPrep}>Prep</Text>
+          </View>
           <Text style={styles.title}>Verify your email</Text>
-          <Text style={styles.subtitle}>
-            We sent a 6-digit code to {email}
-          </Text>
+          <Text style={styles.subtitle}>We sent a 6-digit code to {email}</Text>
+          <Text style={styles.label}>Verification code</Text>
           <TextInput
             style={styles.input}
             value={code}
@@ -70,23 +97,18 @@ export default function SignUpScreen() {
             keyboardType="numeric"
             autoFocus
           />
-          {errors.fields.code && (
-            <Text style={styles.error}>{errors.fields.code.message}</Text>
-          )}
+          {!!error && <Text style={styles.error}>{error}</Text>}
           <Pressable
-            style={[styles.btn, fetchStatus === "fetching" && styles.btnDisabled]}
+            style={[styles.btn, (loading || !code) && styles.btnDisabled]}
             onPress={handleVerify}
-            disabled={fetchStatus === "fetching"}
+            disabled={loading || !code}
           >
-            <Text style={styles.btnText}>
-              {fetchStatus === "fetching" ? "Verifying…" : "Verify email"}
-            </Text>
+            <Text style={styles.btnText}>{loading ? "Verifying…" : "Verify email"}</Text>
           </Pressable>
-          <Pressable onPress={() => signUp.verifications.sendEmailCode()}>
+          <Pressable onPress={resendCode}>
             <Text style={styles.link}>Resend code</Text>
           </Pressable>
         </View>
-        <View nativeID="clerk-captcha" />
       </SafeAreaView>
     );
   }
@@ -106,9 +128,7 @@ export default function SignUpScreen() {
             <Text style={styles.logoPrep}>Prep</Text>
           </View>
           <Text style={styles.title}>Create account</Text>
-          <Text style={styles.subtitle}>
-            Your sessions sync across devices
-          </Text>
+          <Text style={styles.subtitle}>Your sessions sync across devices</Text>
 
           <Text style={styles.label}>Email</Text>
           <TextInput
@@ -121,34 +141,30 @@ export default function SignUpScreen() {
             keyboardType="email-address"
             autoComplete="email"
           />
-          {errors.fields.emailAddress && (
-            <Text style={styles.error}>{errors.fields.emailAddress.message}</Text>
-          )}
 
           <Text style={styles.label}>Password</Text>
           <TextInput
             style={styles.input}
             value={password}
             onChangeText={setPassword}
-            placeholder="Create a password"
+            placeholder="Create a password (8+ characters)"
             placeholderTextColor={C.ink4}
             secureTextEntry
             autoComplete="new-password"
           />
-          {errors.fields.password && (
-            <Text style={styles.error}>{errors.fields.password.message}</Text>
-          )}
+
+          {!!error && <Text style={styles.error}>{error}</Text>}
 
           <Pressable
             style={[
               styles.btn,
-              (!email || !password || fetchStatus === "fetching") && styles.btnDisabled,
+              (!email || !password || loading) && styles.btnDisabled,
             ]}
             onPress={handleSignUp}
-            disabled={!email || !password || fetchStatus === "fetching"}
+            disabled={!email || !password || loading}
           >
             <Text style={styles.btnText}>
-              {fetchStatus === "fetching" ? "Creating account…" : "Create account"}
+              {loading ? "Creating account…" : "Create account"}
             </Text>
           </Pressable>
 
@@ -160,7 +176,6 @@ export default function SignUpScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-      <View nativeID="clerk-captcha" />
     </SafeAreaView>
   );
 }
@@ -169,7 +184,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.cream },
   container: { flexGrow: 1, padding: 28, justifyContent: "center" },
   logoRow: { flexDirection: "row", marginBottom: 36 },
-  logoTalk: { fontSize: 28, fontWeight: "700", color: "#1c1814" },
+  logoTalk: { fontSize: 28, fontWeight: "700", color: C.ink },
   logoPrep: { fontSize: 28, fontWeight: "700", color: C.rust },
   title: { fontSize: 26, fontWeight: "700", color: C.ink, marginBottom: 6 },
   subtitle: { fontSize: 15, color: C.ink4, marginBottom: 28 },
@@ -194,8 +209,8 @@ const styles = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.5 },
   btnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  error: { color: "#c0392b", fontSize: 13, marginTop: -10, marginBottom: 10 },
+  error: { color: "#c0392b", fontSize: 13, marginBottom: 12 },
   footer: { flexDirection: "row", justifyContent: "center", marginTop: 8 },
   footerText: { color: C.ink4, fontSize: 14 },
-  link: { color: C.rust, fontSize: 14, fontWeight: "600" },
+  link: { color: C.rust, fontSize: 14, fontWeight: "600", textAlign: "center", marginTop: 8 },
 });

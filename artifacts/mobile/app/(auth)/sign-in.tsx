@@ -1,4 +1,4 @@
-import { useSignIn, useAuth } from "@clerk/expo";
+import { useSignIn } from "@clerk/expo";
 import { Link, useRouter } from "expo-router";
 import React from "react";
 import {
@@ -24,76 +24,35 @@ const C = {
 };
 
 export default function SignInScreen() {
-  const { signIn, errors, fetchStatus } = useSignIn();
-  const { isSignedIn } = useAuth();
+  const { isLoaded, signIn, setActive } = useSignIn();
   const router = useRouter();
 
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
-  const [verifyCode, setVerifyCode] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
 
   const handleSignIn = async () => {
-    const { error } = await signIn.password({ emailAddress: email, password });
-    if (error) return;
-
-    if (signIn.status === "complete") {
-      await signIn.finalize({
-        navigate: ({ decorateUrl }) => {
-          const url = decorateUrl("/");
-          router.replace(url.startsWith("http") ? "/(tabs)" : "/(tabs)");
-        },
+    if (!isLoaded) return;
+    setLoading(true);
+    setError("");
+    try {
+      const result = await signIn.create({
+        identifier: email,
+        password,
       });
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+        router.replace("/(tabs)");
+      } else {
+        setError("Sign in could not be completed. Please try again.");
+      }
+    } catch (err: any) {
+      setError(err.errors?.[0]?.longMessage ?? err.errors?.[0]?.message ?? "Sign in failed");
+    } finally {
+      setLoading(false);
     }
   };
-
-  const handleVerify = async () => {
-    await signIn.mfa.verifyEmailCode({ code: verifyCode });
-    if (signIn.status === "complete") {
-      await signIn.finalize({
-        navigate: () => router.replace("/(tabs)"),
-      });
-    }
-  };
-
-  if (isSignedIn) return null;
-
-  if (signIn.status === "needs_client_trust") {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.container}>
-          <Text style={styles.title}>Check your email</Text>
-          <Text style={styles.subtitle}>
-            We sent a verification code to {email}
-          </Text>
-          <TextInput
-            style={styles.input}
-            value={verifyCode}
-            onChangeText={setVerifyCode}
-            placeholder="6-digit code"
-            placeholderTextColor={C.ink4}
-            keyboardType="numeric"
-            autoFocus
-          />
-          {errors.fields.code && (
-            <Text style={styles.error}>{errors.fields.code.message}</Text>
-          )}
-          <Pressable
-            style={[styles.btn, fetchStatus === "fetching" && styles.btnDisabled]}
-            onPress={handleVerify}
-            disabled={fetchStatus === "fetching"}
-          >
-            <Text style={styles.btnText}>Verify</Text>
-          </Pressable>
-          <Pressable onPress={() => signIn.mfa.sendEmailCode()}>
-            <Text style={styles.link}>Resend code</Text>
-          </Pressable>
-          <Pressable onPress={() => signIn.reset()}>
-            <Text style={styles.link}>Start over</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -123,9 +82,6 @@ export default function SignInScreen() {
             keyboardType="email-address"
             autoComplete="email"
           />
-          {errors.fields.identifier && (
-            <Text style={styles.error}>{errors.fields.identifier.message}</Text>
-          )}
 
           <Text style={styles.label}>Password</Text>
           <TextInput
@@ -137,20 +93,19 @@ export default function SignInScreen() {
             secureTextEntry
             autoComplete="password"
           />
-          {errors.fields.password && (
-            <Text style={styles.error}>{errors.fields.password.message}</Text>
-          )}
+
+          {!!error && <Text style={styles.error}>{error}</Text>}
 
           <Pressable
             style={[
               styles.btn,
-              (!email || !password || fetchStatus === "fetching") && styles.btnDisabled,
+              (!email || !password || loading) && styles.btnDisabled,
             ]}
             onPress={handleSignIn}
-            disabled={!email || !password || fetchStatus === "fetching"}
+            disabled={!email || !password || loading}
           >
             <Text style={styles.btnText}>
-              {fetchStatus === "fetching" ? "Signing in…" : "Sign in"}
+              {loading ? "Signing in…" : "Sign in"}
             </Text>
           </Pressable>
 
@@ -195,7 +150,7 @@ const styles = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.5 },
   btnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  error: { color: "#c0392b", fontSize: 13, marginTop: -10, marginBottom: 10 },
+  error: { color: "#c0392b", fontSize: 13, marginBottom: 12 },
   footer: { flexDirection: "row", justifyContent: "center", marginTop: 8 },
   footerText: { color: C.ink4, fontSize: 14 },
   link: { color: C.rust, fontSize: 14, fontWeight: "600" },
