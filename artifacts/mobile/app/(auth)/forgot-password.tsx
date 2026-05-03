@@ -35,7 +35,7 @@ export default function ForgotPasswordScreen() {
   const [error, setError] = React.useState("");
 
   const handleSendCode = async () => {
-    if (!isLoaded) return;
+    if (!signIn) return;
     setLoading(true);
     setError("");
     try {
@@ -52,7 +52,7 @@ export default function ForgotPasswordScreen() {
   };
 
   const handleReset = async () => {
-    if (!isLoaded) return;
+    if (!signIn) return;
     if (newPassword !== confirmPassword) {
       setError("Passwords don't match");
       return;

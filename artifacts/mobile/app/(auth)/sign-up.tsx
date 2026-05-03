@@ -2,9 +2,7 @@ import { useSignUp } from "@clerk/expo";
 import { Link, useRouter } from "expo-router";
 import React from "react";
 import {
-  Alert,
   KeyboardAvoidingView,
-  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -25,7 +23,7 @@ const C = {
 };
 
 export default function SignUpScreen() {
-  const { isLoaded, signUp, setActive } = useSignUp();
+  const { signUp, setActive } = useSignUp();
   const router = useRouter();
 
   const [email, setEmail] = React.useState("");
@@ -35,12 +33,11 @@ export default function SignUpScreen() {
   const [pendingVerification, setPendingVerification] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
-  const [debugMsg, setDebugMsg] = React.useState("");
 
   const handleSignUp = async () => {
-    setDebugMsg(`tap: loaded=${isLoaded} email=${!!email} pw=${!!password} cpw=${!!confirmPassword}`);
-    if (!isLoaded) {
-      setDebugMsg("BLOCKED: Clerk not loaded");
+    if (!signUp) return;
+    if (!email || !password || !confirmPassword) {
+      setError("Please fill in all fields");
       return;
     }
     if (password !== confirmPassword) {
@@ -51,31 +48,21 @@ export default function SignUpScreen() {
       setError("Password must be at least 8 characters");
       return;
     }
-    if (!email || !password || !confirmPassword) {
-      setDebugMsg("BLOCKED: empty field(s)");
-      setError("Please fill in all fields");
-      return;
-    }
     setLoading(true);
     setError("");
-    setDebugMsg("calling signUp.create…");
     try {
       await signUp.create({ emailAddress: email, password });
-      setDebugMsg("signUp.create OK — preparing verification…");
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setPendingVerification(true);
     } catch (err: any) {
-      const msg = err.errors?.[0]?.longMessage ?? err.errors?.[0]?.message ?? "Something went wrong";
-      const code = err.errors?.[0]?.code ?? "no_code";
-      Alert.alert("Sign up error", `[${code}] ${msg}\n\nFull: ${JSON.stringify(err.errors ?? err)}`);
-      setError(msg);
+      setError(err.errors?.[0]?.longMessage ?? err.errors?.[0]?.message ?? "Something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
   const handleVerify = async () => {
-    if (!isLoaded) return;
+    if (!signUp) return;
     setLoading(true);
     setError("");
     try {
@@ -94,7 +81,7 @@ export default function SignUpScreen() {
   };
 
   const resendCode = async () => {
-    if (!isLoaded) return;
+    if (!signUp) return;
     try {
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
     } catch (err: any) {
@@ -149,17 +136,6 @@ export default function SignUpScreen() {
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
-          {!isLoaded && (
-            <View style={styles.iframeBanner}>
-              <Text style={styles.iframeBannerTitle}>⚠️ Can't sign up in the preview panel</Text>
-              <Text style={styles.iframeBannerBody}>
-                Copy this URL and open it in a new browser tab:
-              </Text>
-              <Text selectable style={styles.iframeBannerUrl}>
-                https://8ac4c588-a224-4df1-93a4-eca47741178d-00-rnh93ea02kni.expo.worf.replit.dev
-              </Text>
-            </View>
-          )}
           <View style={styles.logoRow}>
             <Text style={styles.logoTalk}>Talk</Text>
             <Text style={styles.logoPrep}>Prep</Text>
@@ -204,9 +180,6 @@ export default function SignUpScreen() {
             autoComplete="new-password"
           />
 
-          {!!debugMsg && (
-            <Text style={styles.debug}>{debugMsg}</Text>
-          )}
           {!!error && <Text style={styles.error}>{error}</Text>}
 
           <Pressable
@@ -263,11 +236,6 @@ const styles = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.5 },
   btnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  iframeBanner: { backgroundColor: "#fff3cd", borderColor: "#ffc107", borderWidth: 1.5, borderRadius: 10, padding: 14, marginBottom: 20 },
-  iframeBannerTitle: { fontSize: 14, fontWeight: "700", color: "#856404", marginBottom: 4 },
-  iframeBannerBody: { fontSize: 13, color: "#856404", lineHeight: 18, marginBottom: 6 },
-  iframeBannerUrl: { fontSize: 12, color: "#495057", backgroundColor: "#fff", borderRadius: 6, padding: 8, fontFamily: "monospace" },
-  debug: { color: "#555", fontSize: 11, marginBottom: 8, fontFamily: "monospace", backgroundColor: "#f0f0f0", padding: 6, borderRadius: 4 },
   error: { color: "#c0392b", fontSize: 13, marginBottom: 12 },
   inputError: { borderColor: "#c0392b", borderWidth: 1.5 },
   footer: { flexDirection: "row", justifyContent: "center", marginTop: 8 },

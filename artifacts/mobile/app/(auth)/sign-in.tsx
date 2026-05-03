@@ -4,7 +4,6 @@ import { Link, useRouter } from "expo-router";
 import React from "react";
 import {
   KeyboardAvoidingView,
-  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -34,7 +33,7 @@ export default function SignInScreen() {
   const [error, setError] = React.useState("");
 
   const handleSignIn = async () => {
-    if (!isLoaded) return;
+    if (!signIn) return;
     setLoading(true);
     setError("");
     try {
@@ -65,7 +64,7 @@ export default function SignInScreen() {
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
-          {!isLoaded && (
+          {!signIn && (
             <View style={styles.iframeBanner}>
               <Text style={styles.iframeBannerTitle}>⚠️ Can't sign in in the preview panel</Text>
               <Text style={styles.iframeBannerBody}>
