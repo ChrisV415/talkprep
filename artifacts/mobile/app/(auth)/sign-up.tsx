@@ -51,8 +51,17 @@ export default function SignUpScreen() {
     setLoading(true);
     setError("");
     try {
-      const created = await signUp.create({ emailAddress: email, password });
-      await created.prepareVerification({ strategy: "email_code" });
+      await signUp.create({ emailAddress: email, password });
+      // After create(), use the live Clerk instance — it's always the freshest reference.
+      const live: any =
+        (typeof window !== "undefined" && (window as any).Clerk?.client?.signUp) ??
+        signUp;
+      if (typeof live.prepareVerification === "function") {
+        await live.prepareVerification({ strategy: "email_code" });
+      } else if (typeof live.prepareEmailAddressVerification === "function") {
+        await live.prepareEmailAddressVerification({ strategy: "email_code" });
+      }
+      // If neither method exists, Clerk auto-sent the code on create().
       setPendingVerification(true);
     } catch (err: any) {
       const clerkErr = err.errors?.[0];
@@ -86,7 +95,14 @@ export default function SignUpScreen() {
   const resendCode = async () => {
     if (!signUp) return;
     try {
-      await signUp.prepareVerification({ strategy: "email_code" });
+      const live: any =
+        (typeof window !== "undefined" && (window as any).Clerk?.client?.signUp) ??
+        signUp;
+      if (typeof live.prepareVerification === "function") {
+        await live.prepareVerification({ strategy: "email_code" });
+      } else if (typeof live.prepareEmailAddressVerification === "function") {
+        await live.prepareEmailAddressVerification({ strategy: "email_code" });
+      }
     } catch (err: any) {
       setError(err.errors?.[0]?.message ?? "Could not resend code");
     }
