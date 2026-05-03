@@ -23,7 +23,8 @@ const C = {
 };
 
 export default function SignUpScreen() {
-  const { signUp, setActive } = useSignUp();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { signUp, setActive } = useSignUp() as any;
   const router = useRouter();
 
   const [email, setEmail] = React.useState("");
@@ -76,7 +77,7 @@ export default function SignUpScreen() {
     setLoading(true);
     setError("");
     try {
-      const result = await signUp.attemptVerification({ code });
+      const result: any = await signUp.attemptVerification({ code });
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
         router.replace("/(tabs)");

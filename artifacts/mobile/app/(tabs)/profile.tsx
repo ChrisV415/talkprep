@@ -258,6 +258,7 @@ export default function ProfileScreen() {
 
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
+  const [signOutModalOpen, setSignOutModalOpen] = useState(false);
 
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
   const phone = user?.primaryPhoneNumber?.phoneNumber ?? "";
@@ -411,15 +412,15 @@ export default function ProfileScreen() {
     }
   }
 
-  async function handleSignOut() {
+  function handleSignOut() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert("Sign out", "Are you sure you want to sign out?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Sign out", style: "destructive",
-        onPress: async () => { await signOut(); router.replace("/(auth)/sign-in"); },
-      },
-    ]);
+    setSignOutModalOpen(true);
+  }
+
+  async function confirmSignOut() {
+    setSignOutModalOpen(false);
+    await signOut();
+    router.replace("/(auth)/sign-in");
   }
 
   async function handleReplayOnboarding() {
@@ -558,6 +559,28 @@ export default function ProfileScreen() {
       <View style={ms.card}>
         <RowItem icon="log-out" label="Sign out" onPress={handleSignOut} destructive colors={colors} last />
       </View>
+
+      {/* Sign out confirmation modal */}
+      <Modal visible={signOutModalOpen} animationType="slide" transparent onRequestClose={() => setSignOutModalOpen(false)}>
+        <Pressable style={em.backdrop} onPress={() => setSignOutModalOpen(false)} />
+        <View style={[em.sheet, { backgroundColor: colors.background }]}>
+          <View style={em.handle} />
+          <Text style={[em.title, { color: colors.ink }]}>Sign out</Text>
+          <Text style={[em.hint, { color: colors.ink4, marginTop: 0, marginBottom: 24 }]}>
+            Are you sure you want to sign out of TalkPrep?
+          </Text>
+          <Pressable
+            accessibilityLabel="Confirm sign out"
+            style={[em.btn, { backgroundColor: "#E05252" }]}
+            onPress={confirmSignOut}
+          >
+            <Text style={em.btnText}>Sign out</Text>
+          </Pressable>
+          <Pressable onPress={() => setSignOutModalOpen(false)} style={{ marginTop: 12, alignItems: "center" }}>
+            <Text style={{ color: colors.ink4, fontSize: 15 }}>Cancel</Text>
+          </Pressable>
+        </View>
+      </Modal>
 
       {/* Avatar photo menu */}
       <AvatarPhotoMenu

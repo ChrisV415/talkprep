@@ -23,7 +23,8 @@ const C = {
 };
 
 export default function ForgotPasswordScreen() {
-  const { isLoaded, signIn, setActive } = useSignIn();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { isLoaded, signIn, setActive } = useSignIn() as any;
   const router = useRouter();
 
   const [step, setStep] = React.useState<"email" | "reset">("email");

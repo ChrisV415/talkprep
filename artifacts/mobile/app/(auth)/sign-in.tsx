@@ -24,7 +24,8 @@ const C = {
 };
 
 export default function SignInScreen() {
-  const { isLoaded, signIn, setActive } = useSignIn();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { isLoaded, signIn, setActive } = useSignIn() as any;
   const router = useRouter();
 
   const [email, setEmail] = React.useState("");
@@ -37,7 +38,7 @@ export default function SignInScreen() {
     setLoading(true);
     setError("");
     try {
-      const result = await signIn.create({
+      const result: any = await signIn.create({
         identifier: email,
         password,
       });

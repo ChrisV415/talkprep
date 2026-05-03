@@ -75,7 +75,7 @@ export default function RoleplayScreen() {
   const [exchangeCount, setExchangeCount] = useState(0);
   const [elapsedSecs, setElapsedSecs] = useState(0);
   const inputRef = useRef<TextInput>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval>>();
+  const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const historyRef = useRef<RpMessage[]>([]);
 
   useEffect(() => {
@@ -159,9 +159,17 @@ export default function RoleplayScreen() {
           generateNudge(text, fullContent);
         }
       },
-      () => {
+      (err) => {
         setIsStreaming(false);
         setShowTyping(false);
+        const isLimit = err?.message?.includes("limit") || err?.message?.includes("429");
+        const errorContent = isLimit
+          ? "You've reached your monthly AI limit. Upgrade to Pro for unlimited practice."
+          : "Couldn't get a response. Check your connection and try again.";
+        setDisplayMsgs((prev) => [
+          ...prev,
+          { id: newId(), role: "system", content: errorContent },
+        ]);
       }
     );
   }
