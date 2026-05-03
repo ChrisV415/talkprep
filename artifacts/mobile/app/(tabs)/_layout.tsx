@@ -103,6 +103,18 @@ export default function TabLayout() {
             ),
         }}
       />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="person.circle" tintColor={color} size={22} />
+            ) : (
+              <Feather name="user" size={22} color={color} />
+            ),
+        }}
+      />
     </Tabs>
   );
 }
