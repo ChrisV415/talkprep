@@ -6,26 +6,73 @@ export function getApiUrl(): string {
   return `https://${domain}/`;
 }
 
+let authTokenGetter: (() => Promise<string | null>) | null = null;
+
+export function setAuthTokenGetter(getter: () => Promise<string | null>) {
+  authTokenGetter = getter;
+}
+
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  if (!authTokenGetter) return {};
+  try {
+    const token = await authTokenGetter();
+    if (token) return { Authorization: `Bearer ${token}` };
+  } catch {}
+  return {};
+}
+
+export async function apiRequest<T = unknown>(
+  path: string,
+  method: string,
+  body?: object,
+): Promise<T> {
+  const baseUrl = getApiUrl();
+  const authHeaders = await getAuthHeaders();
+  const response = await fetch(`${baseUrl}${path}`, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders,
+    },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+  if (!response.ok) {
+    const text = await response.text().catch(() => "");
+    throw new Error(`HTTP ${response.status}: ${text}`);
+  }
+  return response.json() as T;
+}
+
 export async function streamRequest(
   path: string,
   body: object,
   onChunk: (text: string) => void,
   onDone?: () => void,
-  onError?: (err: Error) => void
+  onError?: (err: Error) => void,
 ): Promise<void> {
   const baseUrl = getApiUrl();
+  const authHeaders = await getAuthHeaders();
   try {
     const response = await fetch(`${baseUrl}${path}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Accept: "text/event-stream",
+        ...authHeaders,
       },
       body: JSON.stringify(body),
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+      const text = await response.text().catch(() => "");
+      let message = `HTTP ${response.status}`;
+      if (response.status === 429) {
+        try {
+          const json = JSON.parse(text);
+          message = json.message || "Monthly AI limit reached";
+        } catch {}
+      }
+      throw new Error(message);
     }
 
     const reader = response.body?.getReader();

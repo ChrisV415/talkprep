@@ -1,5 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "@clerk/expo";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { getApiUrl } from "@/lib/api";
 
 export interface Persona {
   emotional_intensity: number;
@@ -67,6 +69,7 @@ interface AppState {
   scores: Scores;
   currentSessionId?: string;
   sessions: Session[];
+  sessionsLoaded: boolean;
 }
 
 interface AppContextType extends AppState {
@@ -92,7 +95,37 @@ const AppContext = createContext<AppContextType | null>(null);
 
 const SESSIONS_KEY = "tp_sessions";
 
+function dbRowToSession(row: Record<string, unknown>): Session {
+  return {
+    id: row.id as string,
+    date: row.sessionDate as string,
+    scenario: row.scenario as string,
+    who: row.who as string,
+    situation: (row.situation as string) ?? "",
+    response: (row.response as string) ?? "",
+    scores:
+      row.scoresClarity != null
+        ? {
+            clarity: row.scoresClarity as number,
+            composure: row.scoresComposure as number,
+            outcome_score: row.scoresOutcome as number,
+          }
+        : undefined,
+    debrief:
+      row.debriefOutcome != null
+        ? {
+            outcome: row.debriefOutcome as string,
+            happened: (row.debriefHappened as string) ?? "",
+            different: (row.debriefDifferent as string) ?? "",
+            text: (row.debriefText as string) ?? "",
+          }
+        : undefined,
+  };
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const { isSignedIn, getToken } = useAuth();
+
   const [state, setState] = useState<AppState>({
     scenario: "",
     who: "",
@@ -106,18 +139,69 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     scores: { ...defaultScores },
     currentSessionId: undefined,
     sessions: [],
+    sessionsLoaded: false,
   });
 
+  const authFetch = useCallback(
+    async (path: string, method: string, body?: object) => {
+      const token = await getToken();
+      const baseUrl = getApiUrl();
+      const res = await fetch(`${baseUrl}${path}`, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        ...(body ? { body: JSON.stringify(body) } : {}),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    },
+    [getToken],
+  );
+
   useEffect(() => {
-    AsyncStorage.getItem(SESSIONS_KEY).then((raw) => {
-      if (raw) {
-        try {
-          const sessions = JSON.parse(raw) as Session[];
-          setState((s) => ({ ...s, sessions }));
-        } catch {}
-      }
-    });
-  }, []);
+    if (isSignedIn) {
+      authFetch("api/sessions", "GET")
+        .then((rows: Record<string, unknown>[]) => {
+          const sessions = rows.map(dbRowToSession);
+          setState((s) => ({ ...s, sessions, sessionsLoaded: true }));
+        })
+        .catch(() => {
+          AsyncStorage.getItem(SESSIONS_KEY).then((raw) => {
+            if (raw) {
+              try {
+                setState((s) => ({
+                  ...s,
+                  sessions: JSON.parse(raw) as Session[],
+                  sessionsLoaded: true,
+                }));
+              } catch {
+                setState((s) => ({ ...s, sessionsLoaded: true }));
+              }
+            } else {
+              setState((s) => ({ ...s, sessionsLoaded: true }));
+            }
+          });
+        });
+    } else {
+      AsyncStorage.getItem(SESSIONS_KEY).then((raw) => {
+        if (raw) {
+          try {
+            setState((s) => ({
+              ...s,
+              sessions: JSON.parse(raw) as Session[],
+              sessionsLoaded: true,
+            }));
+          } catch {
+            setState((s) => ({ ...s, sessionsLoaded: true }));
+          }
+        } else {
+          setState((s) => ({ ...s, sessionsLoaded: true }));
+        }
+      });
+    }
+  }, [isSignedIn]);
 
   const saveSessions = useCallback(async (sessions: Session[]) => {
     await AsyncStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
@@ -125,39 +209,73 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const saveSession = useCallback(async (): Promise<string> => {
     const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const sessionDate = new Date().toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
     const newSession: Session = {
       id,
-      date: new Date().toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
+      date: sessionDate,
       scenario: state.scenario,
       who: state.who,
       situation: state.situation.slice(0, 120) + (state.situation.length > 120 ? "..." : ""),
       response: state.fullResponse,
     };
+
+    if (isSignedIn) {
+      authFetch("api/sessions", "POST", {
+        id,
+        sessionDate,
+        scenario: state.scenario,
+        who: state.who,
+        situation: newSession.situation,
+        response: state.fullResponse,
+      }).catch(() => {});
+    }
+
     const updated = [newSession, ...state.sessions].slice(0, 50);
     setState((s) => ({ ...s, sessions: updated, currentSessionId: id }));
     await saveSessions(updated);
     return id;
-  }, [state, saveSessions]);
+  }, [state, isSignedIn, authFetch, saveSessions]);
 
-  const updateSessionScores = useCallback(async (id: string, scores: Scores) => {
-    const updated = state.sessions.map((s) =>
-      s.id === id ? { ...s, scores } : s
-    );
-    setState((s) => ({ ...s, sessions: updated, scores }));
-    await saveSessions(updated);
-  }, [state.sessions, saveSessions]);
+  const updateSessionScores = useCallback(
+    async (id: string, scores: Scores) => {
+      if (isSignedIn) {
+        authFetch(`api/sessions/${id}`, "PATCH", {
+          scoresClarity: scores.clarity,
+          scoresComposure: scores.composure,
+          scoresOutcome: scores.outcome_score,
+        }).catch(() => {});
+      }
+      const updated = state.sessions.map((s) =>
+        s.id === id ? { ...s, scores } : s,
+      );
+      setState((s) => ({ ...s, sessions: updated, scores }));
+      await saveSessions(updated);
+    },
+    [state.sessions, isSignedIn, authFetch, saveSessions],
+  );
 
-  const updateSessionDebrief = useCallback(async (id: string, debrief: Session["debrief"]) => {
-    const updated = state.sessions.map((s) =>
-      s.id === id ? { ...s, debrief } : s
-    );
-    setState((s) => ({ ...s, sessions: updated }));
-    await saveSessions(updated);
-  }, [state.sessions, saveSessions]);
+  const updateSessionDebrief = useCallback(
+    async (id: string, debrief: Session["debrief"]) => {
+      if (isSignedIn && debrief) {
+        authFetch(`api/sessions/${id}`, "PATCH", {
+          debriefOutcome: debrief.outcome,
+          debriefHappened: debrief.happened,
+          debriefDifferent: debrief.different,
+          debriefText: debrief.text,
+        }).catch(() => {});
+      }
+      const updated = state.sessions.map((s) =>
+        s.id === id ? { ...s, debrief } : s,
+      );
+      setState((s) => ({ ...s, sessions: updated }));
+      await saveSessions(updated);
+    },
+    [state.sessions, isSignedIn, authFetch, saveSessions],
+  );
 
   const loadSession = useCallback((session: Session) => {
     setState((s) => ({

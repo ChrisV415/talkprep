@@ -1,5 +1,7 @@
 import { Router } from "express";
 import OpenAI from "openai";
+import { requireAuth } from "../middlewares/requireAuth";
+import { rateLimiter } from "../middlewares/rateLimiter";
 
 const router = Router();
 
@@ -16,7 +18,7 @@ function startSSE(res: import("express").Response) {
   res.flushHeaders();
 }
 
-router.post("/api/talkprep/generate", async (req, res) => {
+router.post("/api/talkprep/generate", requireAuth, rateLimiter, async (req, res) => {
   startSSE(res);
   const { scenario, who, situation, outcome, tone } = req.body as {
     scenario: string;
@@ -84,7 +86,7 @@ Generate their conversation prep guide.`;
   }
 });
 
-router.post("/api/talkprep/roleplay", async (req, res) => {
+router.post("/api/talkprep/roleplay", requireAuth, rateLimiter, async (req, res) => {
   startSSE(res);
   const { messages, systemContext } = req.body as {
     messages: { role: "user" | "assistant"; content: string }[];
@@ -116,7 +118,7 @@ router.post("/api/talkprep/roleplay", async (req, res) => {
   }
 });
 
-router.post("/api/talkprep/nudge", async (req, res) => {
+router.post("/api/talkprep/nudge", requireAuth, rateLimiter, async (req, res) => {
   startSSE(res);
   const { scenario, outcome, userSaid, theySaid } = req.body as {
     scenario: string;
@@ -162,7 +164,7 @@ Format: Just the tip. No preamble. No labels.`;
   }
 });
 
-router.post("/api/talkprep/annotate", async (req, res) => {
+router.post("/api/talkprep/annotate", requireAuth, rateLimiter, async (req, res) => {
   startSSE(res);
   const { scenario, outcome, context, message } = req.body as {
     scenario: string;
@@ -214,7 +216,7 @@ ANNOTATION: One specific sentence explaining what was good or what the missed op
   }
 });
 
-router.post("/api/talkprep/debrief", async (req, res) => {
+router.post("/api/talkprep/debrief", requireAuth, rateLimiter, async (req, res) => {
   startSSE(res);
   const { scenario, who, situation, outcome, happened, different, scores } =
     req.body as {
