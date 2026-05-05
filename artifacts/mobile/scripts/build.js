@@ -6,8 +6,8 @@ const projectRoot = path.resolve(__dirname, "..");
 function getDeploymentDomain() {
   const d =
     process.env.REPLIT_INTERNAL_APP_DOMAIN ||
-    process.env.REPLIT_DEV_DOMAIN ||
-    process.env.EXPO_PUBLIC_DOMAIN;
+    process.env.EXPO_PUBLIC_DOMAIN ||
+    process.env.REPLIT_DEV_DOMAIN;
   if (!d) {
     console.error("ERROR: No deployment domain found.");
     process.exit(1);
