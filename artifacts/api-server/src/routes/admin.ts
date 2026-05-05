@@ -35,8 +35,7 @@ router.get("/admin/stats", adminAuth, async (_req, res) => {
 
     const [totalPreps] = await db
       .select({ total: sql<number>`coalesce(sum(ai_calls),0)::int` })
-      .from(usageCounts)
-      .where(eq(usageCounts.period, "all-time"));
+      .from(usageCounts);
 
     const [overrideCount] = await db
       .select({ count: sql<number>`count(*)::int` })
@@ -65,25 +64,42 @@ router.get("/admin/stats", adminAuth, async (_req, res) => {
 
 router.get("/admin/users", adminAuth, async (_req, res) => {
   try {
-    // All users from our DB
-    const allUsers = await db
-      .select()
-      .from(users)
-      .orderBy(desc(users.createdAt));
+    // Collect every user ID seen across all three tables
+    const allUserIdRows = await db.execute<{ user_id: string }>(sql`
+      SELECT DISTINCT user_id FROM (
+        SELECT id        AS user_id FROM tp_users
+        UNION
+        SELECT user_id               FROM tp_sessions
+        UNION
+        SELECT user_id               FROM usage_counts
+      ) combined
+      ORDER BY user_id
+    `);
+    const allUserIds = allUserIdRows.rows.map((r) => r.user_id);
 
-    // Prep counts (all-time period)
-    const prepRows = await db
-      .select({ userId: usageCounts.userId, preps: usageCounts.aiCalls })
-      .from(usageCounts)
-      .where(eq(usageCounts.period, "all-time"));
-    const prepMap = new Map(prepRows.map((r) => [r.userId, r.preps]));
+    // Profile rows (may be absent for users who never hit Stripe/phone)
+    const profileRows = await db.select().from(users);
+    const profileMap = new Map(profileRows.map((u) => [u.id, u]));
+
+    // Prep counts — sum across ALL periods per user
+    const prepRows = await db.execute<{ user_id: string; total: string }>(sql`
+      SELECT user_id, coalesce(sum(ai_calls), 0)::int AS total
+      FROM usage_counts
+      GROUP BY user_id
+    `);
+    const prepMap = new Map(prepRows.rows.map((r) => [r.user_id, Number(r.total)]));
+
+    // Earliest session date per user (fallback join date when tp_users row absent)
+    const firstSeenRows = await db.execute<{ user_id: string; first_seen: string }>(sql`
+      SELECT user_id, min(created_at) AS first_seen
+      FROM tp_sessions
+      GROUP BY user_id
+    `);
+    const firstSeenMap = new Map(firstSeenRows.rows.map((r) => [r.user_id, r.first_seen]));
 
     // Session counts per user
     const sessionRows = await db
-      .select({
-        userId: sessions.userId,
-        count: sql<number>`count(*)::int`,
-      })
+      .select({ userId: sessions.userId, count: sql<number>`count(*)::int` })
       .from(sessions)
       .groupBy(sessions.userId);
     const sessionMap = new Map(sessionRows.map((r) => [r.userId, r.count]));
@@ -92,27 +108,35 @@ router.get("/admin/users", adminAuth, async (_req, res) => {
     const overrideRows = await db.select().from(proOverrides);
     const overrideMap = new Map(overrideRows.map((r) => [r.userId, r]));
 
-    // Fetch emails from Clerk in one shot
-    const clerkEmailMap = await fetchClerkEmails(allUsers.map((u) => u.id));
+    // Fetch all emails from Clerk in one request
+    const clerkEmailMap = await fetchClerkEmails(allUserIds);
 
-    const result = allUsers.map((u) => {
-      const hasOverride = overrideMap.has(u.id);
-      const hasStripe = !!u.stripeSubscriptionId;
+    const result = allUserIds.map((id) => {
+      const profile = profileMap.get(id);
+      const hasOverride = overrideMap.has(id);
+      const hasStripe = !!profile?.stripeSubscriptionId;
       let proSource: "stripe" | "override" | "none" = "none";
       if (hasOverride) proSource = "override";
       else if (hasStripe) proSource = "stripe";
 
+      const joinedAt =
+        profile?.createdAt?.toISOString() ??
+        firstSeenMap.get(id) ??
+        null;
+
       return {
-        userId: u.id,
-        email: clerkEmailMap.get(u.id) ?? u.email ?? "",
-        joinedAt: u.createdAt,
-        prepsUsed: prepMap.get(u.id) ?? 0,
-        sessionCount: sessionMap.get(u.id) ?? 0,
+        userId: id,
+        email: clerkEmailMap.get(id) ?? profile?.email ?? "",
+        joinedAt,
+        prepsUsed: prepMap.get(id) ?? 0,
+        sessionCount: sessionMap.get(id) ?? 0,
         proSource,
-        overrideNote: overrideMap.get(u.id)?.note ?? "",
-        stripeSubscriptionId: u.stripeSubscriptionId ?? null,
+        overrideNote: overrideMap.get(id)?.note ?? "",
+        stripeSubscriptionId: profile?.stripeSubscriptionId ?? null,
       };
-    });
+    })
+    // Sort: most active first
+    .sort((a, b) => (b.prepsUsed + b.sessionCount) - (a.prepsUsed + a.sessionCount));
 
     res.json(result);
   } catch (err) {
@@ -125,7 +149,7 @@ router.get("/admin/users", adminAuth, async (_req, res) => {
 
 router.post("/admin/users/:userId/grant", adminAuth, async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.params.userId as string;
     const { note = "Admin grant" } = req.body as { note?: string };
     await storage.grantProOverride(userId, note);
     res.json({ ok: true });
@@ -139,7 +163,7 @@ router.post("/admin/users/:userId/grant", adminAuth, async (req, res) => {
 
 router.delete("/admin/users/:userId/grant", adminAuth, async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.params.userId as string;
     await storage.revokeProOverride(userId);
     res.json({ ok: true });
   } catch (err) {
@@ -152,12 +176,10 @@ router.delete("/admin/users/:userId/grant", adminAuth, async (req, res) => {
 
 router.post("/admin/users/:userId/reset-preps", adminAuth, async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.params.userId as string;
     await db
       .delete(usageCounts)
-      .where(
-        sql`${usageCounts.userId} = ${userId} AND ${usageCounts.period} = 'all-time'`,
-      );
+      .where(eq(usageCounts.userId, userId));
     res.json({ ok: true });
   } catch (err) {
     logger.error({ err }, "admin/reset-preps error");
