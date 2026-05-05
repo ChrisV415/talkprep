@@ -18,7 +18,15 @@
     },
     "android": {},
     "web": {
-      "favicon": "./assets/images/icon.png"
+      "favicon": "./assets/images/icon.png",
+      "bundler": "metro",
+      "output": "single",
+      "name": "TalkPrep",
+      "shortName": "TalkPrep",
+      "description": "AI-powered conversation prep — practice interviews, pitches, and tough talks.",
+      "themeColor": "#C67C4E",
+      "backgroundColor": "#F9F2ED",
+      "lang": "en"
     },
     "plugins": [
       [
