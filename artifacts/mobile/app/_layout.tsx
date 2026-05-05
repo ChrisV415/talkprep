@@ -118,10 +118,17 @@ export default function RootLayout() {
             <QueryClientProvider client={queryClient}>
               <AppProvider>
                 <GestureHandlerRootView style={{ flex: 1 }}>
-                  <KeyboardProvider>
-                    <RootLayoutNav />
-                    <PWAInstallPrompt />
-                  </KeyboardProvider>
+                  {Platform.OS !== "web" ? (
+                    <KeyboardProvider>
+                      <RootLayoutNav />
+                      <PWAInstallPrompt />
+                    </KeyboardProvider>
+                  ) : (
+                    <>
+                      <RootLayoutNav />
+                      <PWAInstallPrompt />
+                    </>
+                  )}
                 </GestureHandlerRootView>
               </AppProvider>
             </QueryClientProvider>

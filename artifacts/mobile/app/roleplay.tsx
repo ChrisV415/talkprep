@@ -12,7 +12,8 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import { KeyboardAvoidingView as RNKeyboardAvoidingView } from "react-native";
+const KeyboardAvoidingView = RNKeyboardAvoidingView;
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/expo";
 import { Redirect } from "expo-router";
