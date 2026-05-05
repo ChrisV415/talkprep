@@ -1,6 +1,16 @@
 import { fetch } from "expo/fetch";
 
 export function getApiUrl(): string {
+  // On web, always derive the base URL from the current page origin at runtime.
+  // This makes the bundle domain-agnostic so it works on any domain without
+  // needing to be rebuilt.
+  if (
+    typeof window !== "undefined" &&
+    window.location?.hostname &&
+    window.location.hostname !== "localhost"
+  ) {
+    return `${window.location.protocol}//${window.location.host}/`;
+  }
   const domain = process.env.EXPO_PUBLIC_DOMAIN;
   if (!domain) return "http://localhost:80/";
   return `https://${domain}/`;

@@ -24,7 +24,23 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { initReminders } from "@/lib/notifications";
 
 const domain = process.env.EXPO_PUBLIC_DOMAIN;
-if (domain) setBaseUrl(`https://${domain}`);
+
+// On web, derive the base URL and Clerk proxy URL from window.location at
+// runtime so the bundle is domain-agnostic and works without rebuilding.
+function getRuntimeOrigin(): string | null {
+  if (
+    Platform.OS === "web" &&
+    typeof window !== "undefined" &&
+    window.location?.hostname &&
+    window.location.hostname !== "localhost"
+  ) {
+    return `${window.location.protocol}//${window.location.host}`;
+  }
+  return domain ? `https://${domain}` : null;
+}
+
+const runtimeOrigin = getRuntimeOrigin();
+if (runtimeOrigin) setBaseUrl(runtimeOrigin);
 
 SplashScreen.preventAutoHideAsync();
 
@@ -32,7 +48,7 @@ const queryClient = new QueryClient();
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 const tokenCache = Platform.OS !== "web" ? nativeTokenCache : undefined;
-const proxyUrl = domain ? `https://${domain}/api/__clerk` : undefined;
+const proxyUrl = runtimeOrigin ? `${runtimeOrigin}/api/__clerk` : undefined;
 
 function AuthSync() {
   const { getToken } = useAuth();

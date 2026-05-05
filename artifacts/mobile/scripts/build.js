@@ -33,7 +33,7 @@ const env = {
 
 try {
   execSync(
-    "pnpm exec expo export --platform web --output-dir dist --clear",
+    "pnpm exec expo export --platform web --output-dir dist",
     {
       cwd: projectRoot,
       env,
