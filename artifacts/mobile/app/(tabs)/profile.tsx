@@ -564,7 +564,7 @@ export default function ProfileScreen() {
         />
         <RowItem
           icon="book-open" label="FAQ & guides"
-          onPress={() => Linking.openURL("https://talkprep.app/help")}
+          onPress={() => Linking.openURL("https://talkprep-website.replit.app/faq-and-guides")}
           colors={colors}
         />
         <RowItem
