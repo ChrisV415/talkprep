@@ -3,6 +3,7 @@ import { db } from "@workspace/db";
 import { usageCounts } from "@workspace/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 import type { AuthenticatedRequest } from "./requireAuth";
+import { storage } from "../lib/storage";
 
 const FREE_TIER_LIMIT = 20;
 
@@ -20,6 +21,17 @@ export async function rateLimiter(
   if (!userId) {
     next();
     return;
+  }
+
+  // Pro users have unlimited access
+  try {
+    const isPro = await storage.isProUser(userId);
+    if (isPro) {
+      next();
+      return;
+    }
+  } catch {
+    // If subscription check fails (e.g. stripe schema not ready), fall through to count-based limit
   }
 
   const period = getCurrentPeriod();
@@ -49,6 +61,7 @@ export async function rateLimiter(
         message: `You've used all ${FREE_TIER_LIMIT} free AI calls for this month. Upgrade to Pro for unlimited access.`,
         limit: FREE_TIER_LIMIT,
         period,
+        upgrade: true,
       });
       return;
     }

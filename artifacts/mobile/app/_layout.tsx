@@ -43,6 +43,7 @@ function RootLayoutNav() {
       <Stack.Screen name="transcript" options={{ headerShown: false, presentation: "card" }} />
       <Stack.Screen name="score" options={{ headerShown: false, presentation: "card" }} />
       <Stack.Screen name="debrief" options={{ headerShown: false, presentation: "card" }} />
+      <Stack.Screen name="upgrade" options={{ headerShown: false, presentation: "modal" }} />
     </Stack>
   );
 }

@@ -163,13 +163,14 @@ export default function RoleplayScreen() {
         setIsStreaming(false);
         setShowTyping(false);
         const isLimit = err?.message?.includes("limit") || err?.message?.includes("429");
-        const errorContent = isLimit
-          ? "You've reached your monthly AI limit. Upgrade to Pro for unlimited practice."
-          : "Couldn't get a response. Check your connection and try again.";
-        setDisplayMsgs((prev) => [
-          ...prev,
-          { id: newId(), role: "system", content: errorContent },
-        ]);
+        if (isLimit) {
+          router.push("/upgrade");
+        } else {
+          setDisplayMsgs((prev) => [
+            ...prev,
+            { id: newId(), role: "system", content: "Couldn't get a response. Check your connection and try again." },
+          ]);
+        }
       }
     );
   }

@@ -499,6 +499,12 @@ export default function ProfileScreen() {
         <RowItem icon="lock" label="Change password" onPress={() => router.push("/(auth)/forgot-password")} colors={colors} last />
       </View>
 
+      {/* UPGRADE */}
+      <SectionHeader label="Subscription" colors={colors} />
+      <View style={ms.card}>
+        <RowItem icon="zap" label="Upgrade to Pro" value="Unlimited AI" onPress={() => router.push("/upgrade")} colors={colors} last />
+      </View>
+
       {/* SETTINGS */}
       <SectionHeader label="Settings" colors={colors} />
       <View style={ms.card}>
