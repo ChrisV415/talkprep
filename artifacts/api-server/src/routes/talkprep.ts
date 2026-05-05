@@ -63,8 +63,8 @@ Generate their conversation prep guide.`;
 
   try {
     const stream = await openai.chat.completions.create({
-      model: "gpt-5.4",
-      max_completion_tokens: 8192,
+      model: "gpt-4o",
+      max_tokens: 4096,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
@@ -95,8 +95,8 @@ router.post("/talkprep/roleplay", requireAuth, rateLimiter, async (req, res) => 
 
   try {
     const stream = await openai.chat.completions.create({
-      model: "gpt-5.4",
-      max_completion_tokens: 8192,
+      model: "gpt-4o",
+      max_tokens: 2048,
       messages: [
         { role: "system", content: systemContext },
         ...messages,
@@ -137,8 +137,8 @@ Format: Just the tip. No preamble. No labels.`;
 
   try {
     const stream = await openai.chat.completions.create({
-      model: "gpt-5.4",
-      max_completion_tokens: 8192,
+      model: "gpt-4o",
+      max_tokens: 256,
       messages: [
         {
           role: "system",
@@ -189,8 +189,8 @@ ANNOTATION: One specific sentence explaining what was good or what the missed op
 
   try {
     const stream = await openai.chat.completions.create({
-      model: "gpt-5.4",
-      max_completion_tokens: 8192,
+      model: "gpt-4o",
+      max_tokens: 256,
       messages: [
         {
           role: "system",
@@ -238,8 +238,8 @@ Give a warm, specific debrief in 3-5 sentences. What did they handle well? What'
 
   try {
     const stream = await openai.chat.completions.create({
-      model: "gpt-5.4",
-      max_completion_tokens: 8192,
+      model: "gpt-4o",
+      max_tokens: 512,
       messages: [
         {
           role: "system",

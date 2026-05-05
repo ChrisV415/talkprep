@@ -4,6 +4,7 @@ import { router, useNavigation } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Platform,
   Pressable,
   ScrollView,
@@ -88,8 +89,14 @@ export default function PrepScreen() {
         setIsGenerating(false);
         router.push("/result");
       },
-      () => {
+      (err) => {
         setIsGenerating(false);
+        const msg = err?.message || "Something went wrong. Please try again.";
+        if (Platform.OS === "web") {
+          window.alert(msg);
+        } else {
+          Alert.alert("Generation Failed", msg);
+        }
       }
     );
   }
