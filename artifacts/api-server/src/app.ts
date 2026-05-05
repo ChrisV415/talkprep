@@ -80,10 +80,14 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const productionDomain = process.env.REPLIT_DOMAINS?.split(",")[0]?.trim();
 app.use(
   clerkMiddleware({
     publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
     secretKey: process.env.CLERK_SECRET_KEY,
+    ...(productionDomain
+      ? { proxyUrl: `https://${productionDomain}/api/__clerk` }
+      : {}),
   }),
 );
 

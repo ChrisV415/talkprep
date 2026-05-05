@@ -5,7 +5,7 @@ import {
   Sora_700Bold,
   useFonts,
 } from "@expo-google-fonts/sora";
-import { ClerkProvider, ClerkLoaded } from "@clerk/expo";
+import { ClerkProvider, ClerkLoaded, useAuth } from "@clerk/expo";
 import { tokenCache as nativeTokenCache } from "@clerk/expo/token-cache";
 import { Platform } from "react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -15,7 +15,8 @@ import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { setBaseUrl } from "@workspace/api-client-react";
+import { setBaseUrl, setAuthTokenGetter as setApiClientTokenGetter } from "@workspace/api-client-react";
+import { setAuthTokenGetter } from "@/lib/api";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppProvider } from "@/context/AppContext";
@@ -31,6 +32,17 @@ const queryClient = new QueryClient();
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 const tokenCache = Platform.OS !== "web" ? nativeTokenCache : undefined;
+const proxyUrl = domain ? `https://${domain}/api/__clerk` : undefined;
+
+function AuthSync() {
+  const { getToken } = useAuth();
+  useEffect(() => {
+    const getter = () => getToken();
+    setApiClientTokenGetter(getter);
+    setAuthTokenGetter(getter);
+  }, [getToken]);
+  return null;
+}
 
 function useWebPWA() {
   useEffect(() => {
@@ -111,8 +123,9 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) return null;
 
   return (
-    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache} proxyUrl={proxyUrl}>
       <ClerkLoaded>
+        <AuthSync />
         <SafeAreaProvider>
           <ErrorBoundary>
             <QueryClientProvider client={queryClient}>
