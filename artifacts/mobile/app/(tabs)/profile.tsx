@@ -5,7 +5,7 @@ import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -503,7 +503,7 @@ export default function ProfileScreen() {
         />
         <RowItem
           icon="phone" label="Phone number" value={phone || "Add phone"}
-          onPress={() => { setPhoneStep("input"); setPhoneModalOpen(true); }}
+          onPress={() => setPhoneModalOpen(true)}
           colors={colors}
         />
         <RowItem icon="lock" label="Change password" onPress={() => router.push("/(auth)/forgot-password")} colors={colors} last />
