@@ -19,6 +19,7 @@ import { setBaseUrl } from "@workspace/api-client-react";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppProvider } from "@/context/AppContext";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 const domain = process.env.EXPO_PUBLIC_DOMAIN;
 if (domain) setBaseUrl(`https://${domain}`);
@@ -29,6 +30,44 @@ const queryClient = new QueryClient();
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 const tokenCache = Platform.OS !== "web" ? nativeTokenCache : undefined;
+
+function useWebPWA() {
+  useEffect(() => {
+    if (Platform.OS !== "web" || typeof document === "undefined") return;
+
+    const metaTags: { name?: string; property?: string; content: string }[] = [
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-title", content: "TalkPrep" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "application-name", content: "TalkPrep" },
+      { name: "theme-color", content: "#C67C4E" },
+      { name: "msapplication-TileColor", content: "#C67C4E" },
+    ];
+
+    metaTags.forEach(({ name, content }) => {
+      if (!document.querySelector(`meta[name="${name}"]`)) {
+        const meta = document.createElement("meta");
+        if (name) meta.name = name;
+        meta.content = content;
+        document.head.appendChild(meta);
+      }
+    });
+
+    if (!document.querySelector('link[rel="apple-touch-icon"]')) {
+      const link = document.createElement("link");
+      link.rel = "apple-touch-icon";
+      link.href = "/apple-touch-icon.png";
+      document.head.appendChild(link);
+    }
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/sw.js", { scope: "/" })
+        .catch(() => {});
+    }
+  }, []);
+}
 
 function RootLayoutNav() {
   return (
@@ -56,6 +95,8 @@ export default function RootLayout() {
     Sora_700Bold,
   });
 
+  useWebPWA();
+
   useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
@@ -71,9 +112,10 @@ export default function RootLayout() {
           <ErrorBoundary>
             <QueryClientProvider client={queryClient}>
               <AppProvider>
-                <GestureHandlerRootView>
+                <GestureHandlerRootView style={{ flex: 1 }}>
                   <KeyboardProvider>
                     <RootLayoutNav />
+                    <PWAInstallPrompt />
                   </KeyboardProvider>
                 </GestureHandlerRootView>
               </AppProvider>

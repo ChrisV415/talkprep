@@ -26,7 +26,10 @@
       "description": "AI-powered conversation prep — practice interviews, pitches, and tough talks.",
       "themeColor": "#C67C4E",
       "backgroundColor": "#F9F2ED",
-      "lang": "en"
+      "lang": "en",
+      "display": "standalone",
+      "startUrl": "/",
+      "scope": "/"
     },
     "plugins": [
       [
