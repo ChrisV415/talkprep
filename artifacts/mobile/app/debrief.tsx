@@ -145,6 +145,8 @@ export default function DebriefScreen() {
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        bounces={false}
+        overScrollMode="never"
       >
         <Text style={styles.sectionTag}>POST-CONVERSATION</Text>
         <Text style={styles.sectionTitle}>How did it actually go?</Text>

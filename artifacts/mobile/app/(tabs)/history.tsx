@@ -31,6 +31,8 @@ export default function HistoryScreen() {
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
       showsVerticalScrollIndicator={false}
+      bounces={false}
+      overScrollMode="never"
     >
       <View style={[styles.header, { paddingTop: topPad + 16 }]}>
         <Text style={styles.title}>History</Text>

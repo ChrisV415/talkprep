@@ -131,6 +131,8 @@ export default function PrepScreen() {
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        bounces={false}
+        overScrollMode="never"
       >
         <Text style={styles.sectionTag}>CONVERSATION TYPE</Text>
         <Text style={styles.sectionTitle}>What kind of conversation?</Text>

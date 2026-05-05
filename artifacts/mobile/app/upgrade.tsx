@@ -293,7 +293,7 @@ export default function UpgradeScreen() {
         <Text style={styles.headerTitle}>Upgrade to Pro</Text>
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.inner}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.inner} bounces={false} overScrollMode="never">
         <View style={styles.hero}>
           <Text style={styles.heroTag}>Pricing</Text>
           <Text style={styles.heroTitle}>Less than one{"\n"}hour of coaching.</Text>

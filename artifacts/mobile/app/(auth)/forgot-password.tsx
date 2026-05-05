@@ -103,6 +103,8 @@ export default function ForgotPasswordScreen() {
           <ScrollView
             contentContainerStyle={styles.container}
             keyboardShouldPersistTaps="handled"
+            bounces={false}
+            overScrollMode="never"
           >
             <Image
               source={require("../../assets/images/icon.png")}
@@ -180,6 +182,8 @@ export default function ForgotPasswordScreen() {
         <ScrollView
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
+          bounces={false}
+          overScrollMode="never"
         >
           <Image
             source={require("../../assets/images/icon.png")}

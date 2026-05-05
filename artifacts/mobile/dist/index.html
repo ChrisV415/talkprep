@@ -7,20 +7,29 @@
     <title>TalkPrep</title>
     <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
     <style id="expo-reset">
-      /* These styles make the body full-height */
+      /* Make body full-height */
       html,
       body {
         height: 100%;
+        /* Prevent rubber-band / elastic overscroll on the page */
+        overscroll-behavior: none;
       }
-      /* These styles disable body scrolling if you are using <ScrollView> */
+      /* Disable body scrolling when using <ScrollView>.
+         position:fixed locks the layout so the mobile browser address-bar
+         appearing / disappearing never resizes the viewport and causes jitter. */
       body {
         overflow: hidden;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
       }
-      /* These styles make the root element full-height */
+      /* Make root element full-height */
       #root {
         display: flex;
         height: 100%;
         flex: 1;
+        overflow: hidden;
       }
     </style>
   <meta name="theme-color" content="#C67C4E">
@@ -34,6 +43,6 @@
     </noscript>
     <!-- The root element for your Expo app. -->
     <div id="root"></div>
-  <script src="/_expo/static/js/web/entry-f43b7fd4be43892a9226dbd176838a05.js" defer></script>
+  <script src="/_expo/static/js/web/entry-4bd91fe7ce7c24ad832314005c32a9ad.js" defer></script>
 </body>
 </html>

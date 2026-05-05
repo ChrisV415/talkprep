@@ -81,6 +81,8 @@ export default function ScoreScreen() {
         style={{ flex: 1 }}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
         showsVerticalScrollIndicator={false}
+        bounces={false}
+        overScrollMode="never"
       >
         <Text style={styles.sectionTag}>PERFORMANCE SCORES</Text>
         <Text style={styles.sectionTitle}>How did you do?</Text>

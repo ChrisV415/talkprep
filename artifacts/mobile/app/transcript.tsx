@@ -114,6 +114,8 @@ export default function TranscriptScreen() {
         style={{ flex: 1 }}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
         showsVerticalScrollIndicator={false}
+        bounces={false}
+        overScrollMode="never"
       >
         {messages.map((msg, idx) => (
           <View

@@ -444,6 +444,8 @@ export default function ProfileScreen() {
       contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
+      bounces={false}
+      overScrollMode="never"
     >
       {/* Header */}
       <View style={[ms.header, { paddingTop: topPad + 16 }]}>

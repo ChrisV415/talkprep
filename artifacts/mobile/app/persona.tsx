@@ -83,6 +83,8 @@ export default function PersonaScreen() {
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        bounces={false}
+        overScrollMode="never"
       >
         <Text style={styles.sectionTag}>PRACTICE PARTNER</Text>
         <Text style={styles.sectionTitle}>How does {personName} tend to behave?</Text>

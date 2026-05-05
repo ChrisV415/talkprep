@@ -68,6 +68,8 @@ export default function SignInScreen() {
         <ScrollView
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
+          bounces={false}
+          overScrollMode="never"
         >
           <Image
             source={require("../../assets/images/icon.png")}

@@ -95,6 +95,20 @@ function useWebPWA() {
         .register("/sw.js", { scope: "/" })
         .catch(() => {});
     }
+
+    // Prevent address-bar resize from jumping the layout and stop rubber-band
+    // overscroll on the body. Must be injected rather than only put in the
+    // built index.html so every dev-server reload also gets these rules.
+    if (!document.getElementById("talkprep-scroll-lock")) {
+      const style = document.createElement("style");
+      style.id = "talkprep-scroll-lock";
+      style.textContent = [
+        "html,body{overscroll-behavior:none;}",
+        "body{overflow:hidden;position:fixed;top:0;left:0;width:100%;}",
+        "#root{overflow:hidden;}",
+      ].join("");
+      document.head.appendChild(style);
+    }
   }, []);
 }
 
