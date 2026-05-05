@@ -20,6 +20,7 @@ import { setBaseUrl } from "@workspace/api-client-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppProvider } from "@/context/AppContext";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { initReminders } from "@/lib/notifications";
 
 const domain = process.env.EXPO_PUBLIC_DOMAIN;
 if (domain) setBaseUrl(`https://${domain}`);
@@ -102,6 +103,10 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError]);
+
+  useEffect(() => {
+    initReminders().catch(() => {});
+  }, []);
 
   if (!fontsLoaded && !fontError) return null;
 

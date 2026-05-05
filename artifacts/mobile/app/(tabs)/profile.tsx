@@ -23,6 +23,11 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useColors } from "@/hooks/useColors";
+import {
+  isRemindersEnabled,
+  enableReminders,
+  disableReminders,
+} from "@/lib/notifications";
 
 const APP_VERSION = "1.0.0";
 const ONBOARDING_KEY = "@talkprep_onboarded";
@@ -248,6 +253,10 @@ export default function ProfileScreen() {
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [remindersEnabled, setRemindersEnabled] = useState(false);
+
+  useEffect(() => {
+    isRemindersEnabled().then(setRemindersEnabled);
+  }, []);
 
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState(user?.fullName ?? user?.firstName ?? "");
@@ -517,8 +526,28 @@ export default function ProfileScreen() {
         <RowItem
           icon="calendar" label="Practice reminders" colors={colors}
           rightElement={
-            <Switch value={remindersEnabled} onValueChange={(v) => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setRemindersEnabled(v); }}
-              trackColor={{ false: colors.border, true: colors.rust }} thumbColor="#fff" />
+            <Switch
+              value={remindersEnabled}
+              onValueChange={async (v) => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                if (v) {
+                  const result = await enableReminders();
+                  if (result.ok) {
+                    setRemindersEnabled(true);
+                  } else {
+                    Alert.alert(
+                      "Permission Required",
+                      result.reason ?? "Could not enable reminders.",
+                    );
+                  }
+                } else {
+                  await disableReminders();
+                  setRemindersEnabled(false);
+                }
+              }}
+              trackColor={{ false: colors.border, true: colors.rust }}
+              thumbColor="#fff"
+            />
           }
         />
         <RowItem icon="clock" label="Session history" onPress={() => router.push("/(tabs)/history")} colors={colors} />
