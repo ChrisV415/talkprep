@@ -162,15 +162,19 @@ function RowItem({ icon, label, value, onPress, destructive, rightElement, color
 type EditModalStep = "input" | "verify";
 
 function EditModal({
-  visible, onClose, title, placeholder, keyboardType, onSubmit, onVerify, step, loading, colors,
+  visible, onClose, title, placeholder, keyboardType, onSubmit, onVerify, step, loading, colors, initialValue,
 }: {
   visible: boolean; onClose: () => void; title: string; placeholder: string;
   keyboardType?: "email-address" | "phone-pad" | "default";
   onSubmit: (val: string) => void; onVerify: (code: string) => void;
-  step: EditModalStep; loading: boolean; colors: any;
+  step: EditModalStep; loading: boolean; colors: any; initialValue?: string;
 }) {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(initialValue ?? "");
   const [code, setCode] = useState("");
+
+  useEffect(() => {
+    if (visible) setValue(initialValue ?? "");
+  }, [visible, initialValue]);
 
   function reset() { setValue(""); setCode(""); onClose(); }
 
@@ -257,6 +261,21 @@ export default function ProfileScreen() {
   useEffect(() => {
     isRemindersEnabled().then(setRemindersEnabled);
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    getToken().then((token) => {
+      const baseUrl = process.env.EXPO_PUBLIC_DOMAIN
+        ? `https://${process.env.EXPO_PUBLIC_DOMAIN}/`
+        : "http://localhost:80/";
+      fetch(`${baseUrl}api/user/me`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+        .then((r) => r.json())
+        .then((data) => { if (data?.user?.phone) setSavedPhone(data.user.phone); })
+        .catch(() => {});
+    });
+  }, [user?.id]);
 
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState(user?.fullName ?? user?.firstName ?? "");
@@ -647,7 +666,7 @@ export default function ProfileScreen() {
       <EditModal
         visible={phoneModalOpen}
         onClose={() => setPhoneModalOpen(false)}
-        title="Add phone number"
+        title={phone ? "Update phone number" : "Add phone number"}
         placeholder="+1 555 000 0000"
         keyboardType="phone-pad"
         onSubmit={handleSubmitPhone}
@@ -655,6 +674,7 @@ export default function ProfileScreen() {
         step="input"
         loading={phoneLoading}
         colors={colors}
+        initialValue={phone}
       />
     </ScrollView>
   );
