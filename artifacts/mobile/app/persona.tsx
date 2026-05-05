@@ -13,6 +13,8 @@ import {
 } from "react-native";
 import Slider from "@react-native-community/slider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "@clerk/expo";
+import { Redirect } from "expo-router";
 import { Persona, useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 
@@ -30,6 +32,7 @@ const REACTIONS = [
 const DIFFICULTIES = ["Realistic", "Challenging", "Curveball"];
 
 export default function PersonaScreen() {
+  const { isSignedIn, isLoaded } = useAuth();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -38,6 +41,9 @@ export default function PersonaScreen() {
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
+
+  if (!isLoaded) return null;
+  if (!isSignedIn) return <Redirect href="/(auth)/sign-in" />;
 
   function update(key: keyof Persona, value: string | number) {
     setPersona({ ...persona, [key]: value });

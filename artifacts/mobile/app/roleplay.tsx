@@ -14,6 +14,8 @@ import {
 } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "@clerk/expo";
+import { Redirect } from "expo-router";
 import { RpMessage, useApp } from "@/context/AppContext";
 import { streamRequest } from "@/lib/api";
 import { useColors } from "@/hooks/useColors";
@@ -62,6 +64,7 @@ IMPORTANT INSTRUCTIONS:
 }
 
 export default function RoleplayScreen() {
+  const { isSignedIn, isLoaded } = useAuth();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -102,6 +105,9 @@ export default function RoleplayScreen() {
     const s = secs % 60;
     return `${m}:${s.toString().padStart(2, "0")}`;
   }, []);
+
+  if (!isLoaded) return null;
+  if (!isSignedIn) return <Redirect href="/(auth)/sign-in" />;
 
   async function sendMessage() {
     const text = input.trim();

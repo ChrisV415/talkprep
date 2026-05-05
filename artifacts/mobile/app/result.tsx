@@ -12,6 +12,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "@clerk/expo";
+import { Redirect } from "expo-router";
 import { useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 
@@ -54,6 +56,7 @@ function parseSections(text: string) {
 }
 
 export default function ResultScreen() {
+  const { isSignedIn, isLoaded } = useAuth();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -66,6 +69,9 @@ export default function ResultScreen() {
   }, [navigation]);
 
   const sections = useMemo(() => parseSections(fullResponse), [fullResponse]);
+
+  if (!isLoaded) return null;
+  if (!isSignedIn) return <Redirect href="/(auth)/sign-in" />;
 
   const tabs: { key: Tab; label: string; section: string }[] = [
     { key: "opening", label: "Opening", section: "OPENING LINE" },

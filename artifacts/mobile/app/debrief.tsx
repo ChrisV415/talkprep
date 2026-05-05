@@ -14,6 +14,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "@clerk/expo";
+import { Redirect } from "expo-router";
 import { useApp } from "@/context/AppContext";
 import { streamRequest } from "@/lib/api";
 import { useColors } from "@/hooks/useColors";
@@ -27,6 +29,7 @@ const OUTCOME_CHIPS = [
 ];
 
 export default function DebriefScreen() {
+  const { isSignedIn, isLoaded } = useAuth();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -43,6 +46,9 @@ export default function DebriefScreen() {
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
+
+  if (!isLoaded) return null;
+  if (!isSignedIn) return <Redirect href="/(auth)/sign-in" />;
 
   async function generateDebrief() {
     if (!happened.trim() || isGenerating) return;

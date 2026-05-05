@@ -11,6 +11,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "@clerk/expo";
+import { Redirect } from "expo-router";
 import { Scores, useApp } from "@/context/AppContext";
 import { useColors } from "@/hooks/useColors";
 
@@ -33,6 +35,7 @@ const SCORE_DIMS = [
 ];
 
 export default function ScoreScreen() {
+  const { isSignedIn, isLoaded } = useAuth();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -41,6 +44,9 @@ export default function ScoreScreen() {
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
+
+  if (!isLoaded) return null;
+  if (!isSignedIn) return <Redirect href="/(auth)/sign-in" />;
 
   const allScored = scores.clarity > 0 && scores.composure > 0 && scores.outcome_score > 0;
 

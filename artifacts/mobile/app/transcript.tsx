@@ -11,6 +11,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "@clerk/expo";
+import { Redirect } from "expo-router";
 import { useApp } from "@/context/AppContext";
 import { streamRequest } from "@/lib/api";
 import { useColors } from "@/hooks/useColors";
@@ -24,6 +26,7 @@ interface AnnotatedMsg {
 }
 
 export default function TranscriptScreen() {
+  const { isSignedIn, isLoaded } = useAuth();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -46,6 +49,9 @@ export default function TranscriptScreen() {
       annotateMessages(initial);
     }
   }, []);
+
+  if (!isLoaded) return null;
+  if (!isSignedIn) return <Redirect href="/(auth)/sign-in" />;
 
   async function annotateMessages(msgs: AnnotatedMsg[]) {
     for (let i = 0; i < msgs.length; i++) {

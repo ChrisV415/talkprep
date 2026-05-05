@@ -1,4 +1,5 @@
 import { useClerk, useUser } from "@clerk/expo";
+import { useApp } from "@/context/AppContext";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
@@ -235,6 +236,7 @@ function EditModal({
 export default function ProfileScreen() {
   const { user } = useUser();
   const { signOut } = useClerk();
+  const { resetCurrentSession } = useApp();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const topPad = Platform.OS === "web" ? 67 : insets.top;
@@ -419,6 +421,7 @@ export default function ProfileScreen() {
 
   async function confirmSignOut() {
     setSignOutModalOpen(false);
+    resetCurrentSession();
     await signOut();
     router.replace("/(auth)/sign-in");
   }

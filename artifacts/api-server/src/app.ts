@@ -60,7 +60,7 @@ app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 const allowedOrigins: (string | RegExp)[] = [
   /\.replit\.dev$/,
   /\.replit\.app$/,
-  /localhost/,
+  /^https?:\/\/localhost(:\d+)?$/,
 ];
 if (process.env.REPLIT_DOMAINS) {
   process.env.REPLIT_DOMAINS.split(",").forEach((d) =>

@@ -124,7 +124,7 @@ function dbRowToSession(row: Record<string, unknown>): Session {
 }
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const { isSignedIn, getToken } = useAuth();
+  const { isSignedIn, isLoaded, getToken } = useAuth();
 
   const [state, setState] = useState<AppState>({
     scenario: "",
@@ -161,6 +161,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   useEffect(() => {
+    if (!isLoaded) return;
     if (isSignedIn) {
       authFetch("api/sessions", "GET")
         .then((rows: Record<string, unknown>[]) => {
@@ -185,23 +186,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           });
         });
     } else {
-      AsyncStorage.getItem(SESSIONS_KEY).then((raw) => {
-        if (raw) {
-          try {
-            setState((s) => ({
-              ...s,
-              sessions: JSON.parse(raw) as Session[],
-              sessionsLoaded: true,
-            }));
-          } catch {
-            setState((s) => ({ ...s, sessionsLoaded: true }));
-          }
-        } else {
-          setState((s) => ({ ...s, sessionsLoaded: true }));
-        }
+      AsyncStorage.removeItem(SESSIONS_KEY);
+      setState({
+        scenario: "",
+        who: "",
+        situation: "",
+        outcome: "",
+        tone: "",
+        fullResponse: "",
+        persona: { ...defaultPersona },
+        rpMessages: [],
+        rpSystemContext: "",
+        scores: { ...defaultScores },
+        currentSessionId: undefined,
+        sessions: [],
+        sessionsLoaded: true,
       });
     }
-  }, [isSignedIn]);
+  }, [isLoaded, isSignedIn]);
 
   const saveSessions = useCallback(async (sessions: Session[]) => {
     await AsyncStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
