@@ -67,12 +67,14 @@ export default function SignInScreen() {
         >
           {!signIn && (
             <View style={styles.iframeBanner}>
-              <Text style={styles.iframeBannerTitle}>⚠️ Can't sign in in the preview panel</Text>
+              <Text style={styles.iframeBannerTitle}>⚠️ Open in a new tab to sign in</Text>
               <Text style={styles.iframeBannerBody}>
-                Copy this URL and open it in a new browser tab:
+                Sign-in doesn't work inside an embedded preview. Copy this link and open it directly:
               </Text>
               <Text selectable style={styles.iframeBannerUrl}>
-                https://8ac4c588-a224-4df1-93a4-eca47741178d-00-rnh93ea02kni.expo.worf.replit.dev
+                {process.env.EXPO_PUBLIC_DOMAIN
+                  ? `https://${process.env.EXPO_PUBLIC_DOMAIN}`
+                  : "Open TalkPrep in a new browser tab"}
               </Text>
             </View>
           )}
