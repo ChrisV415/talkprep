@@ -41,11 +41,9 @@ router.get("/stripe/subscription", requireAuth, async (req: Request, res: Respon
 
 router.post("/stripe/checkout", requireAuth, async (req: Request, res: Response) => {
   const userId = (req as AuthenticatedRequest).userId;
-  const { priceId, email, successUrl, cancelUrl } = req.body as {
+  const { priceId, email } = req.body as {
     priceId: string;
     email?: string;
-    successUrl?: string;
-    cancelUrl?: string;
   };
 
   if (!priceId) {
@@ -77,8 +75,8 @@ router.post("/stripe/checkout", requireAuth, async (req: Request, res: Response)
       payment_method_types: ["card"],
       line_items: [{ price: priceId, quantity: 1 }],
       mode: "subscription",
-      success_url: successUrl ?? `${baseUrl}/?checkout=success`,
-      cancel_url: cancelUrl ?? `${baseUrl}/?checkout=cancel`,
+      success_url: `${baseUrl}/?checkout=success`,
+      cancel_url: `${baseUrl}/?checkout=cancel`,
     });
 
     res.json({ url: session.url });
@@ -90,7 +88,6 @@ router.post("/stripe/checkout", requireAuth, async (req: Request, res: Response)
 
 router.post("/stripe/portal", requireAuth, async (req: Request, res: Response) => {
   const userId = (req as AuthenticatedRequest).userId;
-  const { returnUrl } = req.body as { returnUrl?: string };
 
   try {
     const user = await storage.getUser(userId);
@@ -103,7 +100,7 @@ router.post("/stripe/portal", requireAuth, async (req: Request, res: Response) =
     const baseUrl = `https://${process.env.REPLIT_DOMAINS?.split(",")[0]}`;
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: user.stripeCustomerId,
-      return_url: returnUrl ?? baseUrl,
+      return_url: baseUrl,
     });
 
     res.json({ url: portalSession.url });
