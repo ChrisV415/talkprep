@@ -1,4 +1,4 @@
-import { useSignUp } from "@clerk/expo";
+import { useClerk } from "@clerk/expo";
 import { Link, useRouter } from "expo-router";
 import React from "react";
 import {
@@ -25,7 +25,7 @@ const C = {
 
 export default function SignUpScreen() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { signUp, setActive } = useSignUp() as any;
+  const clerk = useClerk() as any;
   const router = useRouter();
 
   const [email, setEmail] = React.useState("");
@@ -36,8 +36,14 @@ export default function SignUpScreen() {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
 
+  const signUp = clerk?.client?.signUp;
+  const isLoaded = !!clerk?.loaded;
+
   const handleSignUp = async () => {
-    if (!signUp) return;
+    if (!isLoaded || !signUp) {
+      setError("Authentication is still loading. Please wait a moment.");
+      return;
+    }
     if (!email || !password || !confirmPassword) {
       setError("Please fill in all fields");
       return;
@@ -53,21 +59,13 @@ export default function SignUpScreen() {
     setLoading(true);
     setError("");
     try {
-      const created: any = await signUp.create({ emailAddress: email, password });
-      // created is the returned SignUp resource — use it directly (not window.Clerk.client.signUp
-      // which gets reset to blank after create()).
-      if (typeof created.prepareVerification === "function") {
-        await created.prepareVerification({ strategy: "email_code" });
-      } else if (typeof created.prepareEmailAddressVerification === "function") {
-        await created.prepareEmailAddressVerification({ strategy: "email_code" });
-      }
-      // If neither method exists, Clerk auto-sent the code on create().
+      await signUp.create({ emailAddress: email, password });
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setPendingVerification(true);
     } catch (err: any) {
       const clerkErr = err.errors?.[0];
-      const msg = clerkErr?.longMessage ?? clerkErr?.message ?? err.message ?? JSON.stringify(err);
-      const code = clerkErr?.code ?? "unknown";
-      setError(`[${code}] ${msg}`);
+      const msg = clerkErr?.longMessage ?? clerkErr?.message ?? err.message ?? "An error occurred";
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -78,9 +76,9 @@ export default function SignUpScreen() {
     setLoading(true);
     setError("");
     try {
-      const result: any = await signUp.attemptVerification({ code });
+      const result = await signUp.attemptEmailAddressVerification({ code });
       if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
+        await clerk.setActive({ session: result.createdSessionId });
         router.replace("/(tabs)");
       } else {
         setError("Verification incomplete. Please try again.");
@@ -94,15 +92,9 @@ export default function SignUpScreen() {
 
   const resendCode = async () => {
     if (!signUp) return;
+    setError("");
     try {
-      const live: any =
-        (typeof window !== "undefined" && (window as any).Clerk?.client?.signUp) ??
-        signUp;
-      if (typeof live.prepareVerification === "function") {
-        await live.prepareVerification({ strategy: "email_code" });
-      } else if (typeof live.prepareEmailAddressVerification === "function") {
-        await live.prepareEmailAddressVerification({ strategy: "email_code" });
-      }
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
     } catch (err: any) {
       setError(err.errors?.[0]?.message ?? "Could not resend code");
     }
@@ -206,12 +198,12 @@ export default function SignUpScreen() {
           <Pressable
             style={[
               styles.btn,
-              (!email || !password || !confirmPassword || loading) && styles.btnDisabled,
+              (!email || !password || !confirmPassword || loading || !isLoaded) && styles.btnDisabled,
             ]}
             onPress={handleSignUp}
           >
             <Text style={styles.btnText}>
-              {loading ? "Creating account…" : "Create account"}
+              {loading ? "Creating account…" : !isLoaded ? "Loading…" : "Create account"}
             </Text>
           </Pressable>
 

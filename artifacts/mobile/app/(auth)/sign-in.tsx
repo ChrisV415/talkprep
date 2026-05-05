@@ -1,6 +1,5 @@
-import { useSignIn } from "@clerk/expo";
+import { useClerk } from "@clerk/expo";
 import { Link, useRouter } from "expo-router";
-
 import React from "react";
 import {
   Image,
@@ -26,7 +25,7 @@ const C = {
 
 export default function SignInScreen() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { isLoaded, signIn, setActive } = useSignIn() as any;
+  const clerk = useClerk() as any;
   const router = useRouter();
 
   const [email, setEmail] = React.useState("");
@@ -34,24 +33,27 @@ export default function SignInScreen() {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
 
+  const signIn = clerk?.client?.signIn;
+  const isLoaded = !!clerk?.loaded;
+
   const handleSignIn = async () => {
-    if (!signIn) return;
+    if (!isLoaded || !signIn) {
+      setError("Authentication is still loading. Please wait a moment.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
-      const result: any = await signIn.create({
-        identifier: email,
-        password,
-      });
+      const result = await signIn.create({ identifier: email, password });
       if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
+        await clerk.setActive({ session: result.createdSessionId });
         router.replace("/(tabs)");
       } else {
         setError("Sign in could not be completed. Please try again.");
       }
     } catch (err: any) {
       const clerkMsg = err.errors?.[0]?.longMessage ?? err.errors?.[0]?.message;
-      setError(clerkMsg ?? err.message ?? JSON.stringify(err).slice(0, 200));
+      setError(clerkMsg ?? err.message ?? "An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -67,19 +69,6 @@ export default function SignInScreen() {
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
-          {!signIn && (
-            <View style={styles.iframeBanner}>
-              <Text style={styles.iframeBannerTitle}>⚠️ Open in a new tab to sign in</Text>
-              <Text style={styles.iframeBannerBody}>
-                Sign-in doesn't work inside an embedded preview. Copy this link and open it directly:
-              </Text>
-              <Text selectable style={styles.iframeBannerUrl}>
-                {process.env.EXPO_PUBLIC_DOMAIN
-                  ? `https://${process.env.EXPO_PUBLIC_DOMAIN}`
-                  : "Open TalkPrep in a new browser tab"}
-              </Text>
-            </View>
-          )}
           <Image
             source={require("../../assets/images/icon.png")}
             style={styles.logo}
@@ -109,6 +98,8 @@ export default function SignInScreen() {
             placeholderTextColor={C.ink4}
             secureTextEntry
             autoComplete="password"
+            onSubmitEditing={handleSignIn}
+            returnKeyType="go"
           />
 
           {!!error && <Text style={styles.error}>{error}</Text>}
@@ -116,13 +107,13 @@ export default function SignInScreen() {
           <Pressable
             style={[
               styles.btn,
-              (!email || !password || loading) && styles.btnDisabled,
+              (!email || !password || loading || !isLoaded) && styles.btnDisabled,
             ]}
             onPress={handleSignIn}
-            disabled={!email || !password || loading}
+            disabled={!email || !password || loading || !isLoaded}
           >
             <Text style={styles.btnText}>
-              {loading ? "Signing in…" : "Sign in"}
+              {loading ? "Signing in…" : !isLoaded ? "Loading…" : "Sign in"}
             </Text>
           </Pressable>
 
@@ -169,10 +160,6 @@ const styles = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.5 },
   btnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  iframeBanner: { backgroundColor: "#fff3cd", borderColor: "#ffc107", borderWidth: 1.5, borderRadius: 10, padding: 14, marginBottom: 20 },
-  iframeBannerTitle: { fontSize: 14, fontWeight: "700", color: "#856404", marginBottom: 4 },
-  iframeBannerBody: { fontSize: 13, color: "#856404", lineHeight: 18, marginBottom: 6 },
-  iframeBannerUrl: { fontSize: 12, color: "#495057", backgroundColor: "#fff", borderRadius: 6, padding: 8, fontFamily: "monospace" },
   error: { color: "#c0392b", fontSize: 13, marginBottom: 12 },
   forgotLink: { alignSelf: "center", marginBottom: 20 },
   forgotText: { color: C.ink4, fontSize: 14 },

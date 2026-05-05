@@ -1,4 +1,4 @@
-import { useClerk, useSignIn } from "@clerk/expo";
+import { useClerk } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
@@ -10,7 +10,6 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -25,8 +24,6 @@ const C = {
 
 export default function ForgotPasswordScreen() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { signIn } = useSignIn() as any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const clerk = useClerk() as any;
   const router = useRouter();
 
@@ -38,25 +35,24 @@ export default function ForgotPasswordScreen() {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
 
+  const signIn = clerk?.client?.signIn;
+
   const handleSendCode = async () => {
-    if (!signIn) return;
+    if (!signIn) {
+      setError("Authentication is still loading. Please wait.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
-      const result = await signIn.create({
+      await signIn.create({
         strategy: "reset_password_email_code",
         identifier: email,
       });
-      // New API returns { error } — old API returns SignInResource
-      // Handle both gracefully
-      if (result?.error) {
-        const e = result.error;
-        throw new Error(e.longMessage ?? e.message ?? JSON.stringify(e).slice(0, 200));
-      }
       setStep("reset");
     } catch (err: any) {
       const clerkMsg = err.errors?.[0]?.longMessage ?? err.errors?.[0]?.message;
-      setError(clerkMsg ?? err.message ?? JSON.stringify(err).slice(0, 200));
+      setError(clerkMsg ?? err.message ?? "Could not send reset code. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -71,64 +67,27 @@ export default function ForgotPasswordScreen() {
       setError("Password must be at least 8 characters");
       return;
     }
+    if (!signIn) {
+      setError("Authentication is still loading. Please wait.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
-      // ---- Clerk v6 "future" API (2025-11) ----
-      // signIn.resetPasswordEmailCode is the namespace for this strategy
-      if (signIn.resetPasswordEmailCode) {
-        const { error: codeError } = await signIn.resetPasswordEmailCode.verifyCode({ code });
-        if (codeError) {
-          throw new Error(codeError.longMessage ?? codeError.message ?? JSON.stringify(codeError).slice(0, 200));
-        }
-
-        const { error: passError } = await signIn.resetPasswordEmailCode.submitPassword({
-          password: newPassword,
-          signOutOfOtherSessions: true,
-        });
-        if (passError) {
-          throw new Error(passError.longMessage ?? passError.message ?? JSON.stringify(passError).slice(0, 200));
-        }
-
-        // Finalize creates and activates the session
-        if (signIn.finalize) {
-          const { error: finalError } = await signIn.finalize();
-          if (finalError) {
-            throw new Error(finalError.longMessage ?? finalError.message ?? JSON.stringify(finalError).slice(0, 200));
-          }
-        }
-
-        // Activate via setActive if we have a session ID
-        if (signIn.createdSessionId) {
-          await clerk.setActive({ session: signIn.createdSessionId });
-        }
-
+      const result = await signIn.attemptFirstFactor({
+        strategy: "reset_password_email_code",
+        code,
+        password: newPassword,
+      });
+      if (result.status === "complete") {
+        await clerk.setActive({ session: result.createdSessionId });
         router.replace("/(tabs)");
-        return;
+      } else {
+        setError("Reset could not be completed. Please try again.");
       }
-
-      // ---- Clerk legacy API fallback ----
-      // Uses attemptFirstFactor on the traditional SignIn class
-      const legacySignIn = clerk?.client?.signIn ?? signIn;
-      if (typeof legacySignIn?.attemptFirstFactor === "function") {
-        const result = await legacySignIn.attemptFirstFactor({
-          strategy: "reset_password_email_code",
-          code,
-          password: newPassword,
-        });
-        if (result.status === "complete") {
-          await clerk.setActive({ session: result.createdSessionId });
-          router.replace("/(tabs)");
-        } else {
-          setError("Reset could not be completed. Please try again.");
-        }
-        return;
-      }
-
-      setError("Password reset is not available. Please try again or contact support.");
     } catch (err: any) {
       const clerkMsg = err.errors?.[0]?.longMessage ?? err.errors?.[0]?.message;
-      setError(clerkMsg ?? err.message ?? JSON.stringify(err).slice(0, 200));
+      setError(clerkMsg ?? err.message ?? "An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
