@@ -2,6 +2,7 @@
 
 # compiled output
 dist
+!artifacts/mobile/dist
 tmp
 out-tsc
 *.tsbuildinfo
