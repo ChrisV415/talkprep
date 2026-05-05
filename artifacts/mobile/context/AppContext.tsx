@@ -70,9 +70,12 @@ interface AppState {
   currentSessionId?: string;
   sessions: Session[];
   sessionsLoaded: boolean;
+  isPro: boolean;
+  isProLoaded: boolean;
 }
 
 interface AppContextType extends AppState {
+  refreshProStatus: () => void;
   setScenario: (v: string) => void;
   setWho: (v: string) => void;
   setSituation: (v: string) => void;
@@ -140,6 +143,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     currentSessionId: undefined,
     sessions: [],
     sessionsLoaded: false,
+    isPro: false,
+    isProLoaded: false,
   });
 
   const authFetch = useCallback(
@@ -160,9 +165,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [getToken],
   );
 
+  const refreshProStatus = useCallback(() => {
+    if (!isSignedIn) return;
+    authFetch("api/stripe/subscription", "GET")
+      .then((data: { subscription: unknown }) => {
+        const sub = data?.subscription as Record<string, unknown> | null;
+        const active =
+          sub != null &&
+          (sub.status === "active" || sub.status === "trialing");
+        setState((s) => ({ ...s, isPro: active, isProLoaded: true }));
+      })
+      .catch(() => {
+        setState((s) => ({ ...s, isPro: false, isProLoaded: true }));
+      });
+  }, [isSignedIn, authFetch]);
+
   useEffect(() => {
     if (!isLoaded) return;
     if (isSignedIn) {
+      refreshProStatus();
       authFetch("api/sessions", "GET")
         .then((rows: Record<string, unknown>[]) => {
           const sessions = rows.map(dbRowToSession);
@@ -201,9 +222,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         currentSessionId: undefined,
         sessions: [],
         sessionsLoaded: true,
+        isPro: false,
+        isProLoaded: true,
       });
     }
-  }, [isLoaded, isSignedIn]);
+  }, [isLoaded, isSignedIn, refreshProStatus]);
 
   const saveSessions = useCallback(async (sessions: Session[]) => {
     await AsyncStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
@@ -312,6 +335,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const ctx: AppContextType = {
     ...state,
+    refreshProStatus,
     setScenario: (v) => setState((s) => ({ ...s, scenario: v })),
     setWho: (v) => setState((s) => ({ ...s, who: v })),
     setSituation: (v) => setState((s) => ({ ...s, situation: v })),

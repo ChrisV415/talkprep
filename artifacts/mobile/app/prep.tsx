@@ -94,11 +94,17 @@ export default function PrepScreen() {
       },
       (err) => {
         setIsGenerating(false);
-        const msg = err?.message || "Something went wrong. Please try again.";
+        const msg = err?.message || "";
+        // 429 = free prep already used → send to upgrade
+        if (msg.includes("429") || msg.toLowerCase().includes("upgrade") || msg.toLowerCase().includes("free prep")) {
+          router.replace("/upgrade");
+          return;
+        }
+        const display = msg || "Something went wrong. Please try again.";
         if (Platform.OS === "web") {
-          window.alert(msg);
+          window.alert(display);
         } else {
-          Alert.alert("Generation Failed", msg);
+          Alert.alert("Generation Failed", display);
         }
       },
       token,

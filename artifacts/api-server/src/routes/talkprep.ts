@@ -86,7 +86,7 @@ Generate their conversation prep guide.`;
   }
 });
 
-router.post("/talkprep/roleplay", requireAuth, rateLimiter, async (req, res) => {
+router.post("/talkprep/roleplay", requireAuth, async (req, res) => {
   startSSE(res);
   const { messages, systemContext } = req.body as {
     messages: { role: "user" | "assistant"; content: string }[];
@@ -118,7 +118,7 @@ router.post("/talkprep/roleplay", requireAuth, rateLimiter, async (req, res) => 
   }
 });
 
-router.post("/talkprep/nudge", requireAuth, rateLimiter, async (req, res) => {
+router.post("/talkprep/nudge", requireAuth, async (req, res) => {
   startSSE(res);
   const { scenario, outcome, userSaid, theySaid } = req.body as {
     scenario: string;
@@ -164,7 +164,7 @@ Format: Just the tip. No preamble. No labels.`;
   }
 });
 
-router.post("/talkprep/annotate", requireAuth, rateLimiter, async (req, res) => {
+router.post("/talkprep/annotate", requireAuth, async (req, res) => {
   startSSE(res);
   const { scenario, outcome, context, message } = req.body as {
     scenario: string;
@@ -216,7 +216,7 @@ ANNOTATION: One specific sentence explaining what was good or what the missed op
   }
 });
 
-router.post("/talkprep/debrief", requireAuth, rateLimiter, async (req, res) => {
+router.post("/talkprep/debrief", requireAuth, async (req, res) => {
   startSSE(res);
   const { scenario, who, situation, outcome, happened, different, scores } =
     req.body as {

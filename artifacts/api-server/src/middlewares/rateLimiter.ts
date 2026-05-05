@@ -5,12 +5,9 @@ import { and, eq, sql } from "drizzle-orm";
 import type { AuthenticatedRequest } from "./requireAuth";
 import { storage } from "../lib/storage";
 
-const FREE_TIER_LIMIT = 20;
-
-function getCurrentPeriod(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-}
+// Each free user gets exactly 1 lifetime prep generation.
+const FREE_PREP_LIMIT = 1;
+const ALL_TIME_PERIOD = "all-time";
 
 export async function rateLimiter(
   req: Request,
@@ -23,7 +20,7 @@ export async function rateLimiter(
     return;
   }
 
-  // Pro users have unlimited access
+  // Pro subscribers have unlimited access
   try {
     const isPro = await storage.isProUser(userId);
     if (isPro) {
@@ -31,15 +28,13 @@ export async function rateLimiter(
       return;
     }
   } catch {
-    // If subscription check fails (e.g. stripe schema not ready), fall through to count-based limit
+    // If subscription check fails, fall through to count-based limit
   }
-
-  const period = getCurrentPeriod();
 
   try {
     const result = await db
       .insert(usageCounts)
-      .values({ userId, period, aiCalls: 1 })
+      .values({ userId, period: ALL_TIME_PERIOD, aiCalls: 1 })
       .onConflictDoUpdate({
         target: [usageCounts.userId, usageCounts.period],
         set: { aiCalls: sql`${usageCounts.aiCalls} + 1` },
@@ -48,26 +43,30 @@ export async function rateLimiter(
 
     const current = result[0]?.aiCalls ?? 1;
 
-    if (current > FREE_TIER_LIMIT) {
+    if (current > FREE_PREP_LIMIT) {
+      // Roll back the increment so the count stays accurate
       await db
         .update(usageCounts)
         .set({ aiCalls: sql`${usageCounts.aiCalls} - 1` })
         .where(
-          and(eq(usageCounts.userId, userId), eq(usageCounts.period, period)),
+          and(
+            eq(usageCounts.userId, userId),
+            eq(usageCounts.period, ALL_TIME_PERIOD),
+          ),
         );
 
       res.status(429).json({
-        error: "Monthly AI limit reached",
-        message: `You've used all ${FREE_TIER_LIMIT} free AI calls for this month. Upgrade to Pro for unlimited access.`,
-        limit: FREE_TIER_LIMIT,
-        period,
+        error: "Free prep used",
+        message:
+          "You've used your free prep. Upgrade to Pro for unlimited access.",
         upgrade: true,
       });
       return;
     }
 
     next();
-  } catch (err) {
+  } catch {
+    // On DB error, allow through rather than blocking the user
     next();
   }
 }

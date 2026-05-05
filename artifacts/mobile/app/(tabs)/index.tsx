@@ -94,11 +94,16 @@ const SCENARIOS: ScenarioItem[] = [
 export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { sessions, setScenario, resetCurrentSession, loadSession } = useApp();
+  const { sessions, sessionsLoaded, isPro, isProLoaded, setScenario, resetCurrentSession, loadSession } = useApp();
   const recentSessions = sessions.slice(0, 3);
 
   function startWithScenario(scenario: string) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    // Gate free users who have already used their one free prep
+    if (sessionsLoaded && isProLoaded && sessions.length > 0 && !isPro) {
+      router.push("/upgrade");
+      return;
+    }
     resetCurrentSession();
     setScenario(scenario);
     router.push("/prep");
@@ -106,6 +111,11 @@ export default function HomeScreen() {
 
   function startFresh() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    // Gate free users who have already used their one free prep
+    if (sessionsLoaded && isProLoaded && sessions.length > 0 && !isPro) {
+      router.push("/upgrade");
+      return;
+    }
     resetCurrentSession();
     router.push("/prep");
   }
