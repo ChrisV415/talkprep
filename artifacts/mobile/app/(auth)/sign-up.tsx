@@ -2,6 +2,7 @@ import { useSignUp } from "@clerk/expo";
 import { Link, useRouter } from "expo-router";
 import React from "react";
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -111,10 +112,11 @@ export default function SignUpScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.container}>
-          <View style={styles.logoRow}>
-            <Text style={styles.logoTalk}>Talk</Text>
-            <Text style={styles.logoPrep}>Prep</Text>
-          </View>
+          <Image
+            source={require("../../assets/images/icon.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={styles.title}>Verify your email</Text>
           <Text style={styles.subtitle}>We sent a 6-digit code to {email}</Text>
           <Text style={styles.label}>Verification code</Text>
@@ -154,10 +156,11 @@ export default function SignUpScreen() {
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.logoRow}>
-            <Text style={styles.logoTalk}>Talk</Text>
-            <Text style={styles.logoPrep}>Prep</Text>
-          </View>
+          <Image
+            source={require("../../assets/images/icon.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={styles.title}>Create account</Text>
           <Text style={styles.subtitle}>Your sessions sync across devices</Text>
 
@@ -228,9 +231,7 @@ export default function SignUpScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.cream },
   container: { flexGrow: 1, padding: 28, justifyContent: "center" },
-  logoRow: { flexDirection: "row", marginBottom: 36 },
-  logoTalk: { fontSize: 28, fontWeight: "700", color: C.ink },
-  logoPrep: { fontSize: 28, fontWeight: "700", color: C.rust },
+  logo: { width: 80, height: 80, alignSelf: "center", marginBottom: 24 },
   title: { fontSize: 26, fontWeight: "700", color: C.ink, marginBottom: 6 },
   subtitle: { fontSize: 15, color: C.ink4, marginBottom: 28 },
   label: { fontSize: 13, fontWeight: "600", color: C.ink, marginBottom: 6 },

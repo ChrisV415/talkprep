@@ -3,6 +3,7 @@ import { Link, useRouter } from "expo-router";
 
 import React from "react";
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -78,10 +79,11 @@ export default function SignInScreen() {
               </Text>
             </View>
           )}
-          <View style={styles.logoRow}>
-            <Text style={styles.logoTalk}>Talk</Text>
-            <Text style={styles.logoPrep}>Prep</Text>
-          </View>
+          <Image
+            source={require("../../assets/images/icon.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={styles.title}>Welcome back</Text>
           <Text style={styles.subtitle}>Sign in to access your sessions</Text>
 
@@ -142,9 +144,7 @@ export default function SignInScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.cream },
   container: { flexGrow: 1, padding: 28, justifyContent: "center" },
-  logoRow: { flexDirection: "row", marginBottom: 36 },
-  logoTalk: { fontSize: 28, fontWeight: "700", color: C.ink },
-  logoPrep: { fontSize: 28, fontWeight: "700", color: C.rust },
+  logo: { width: 80, height: 80, alignSelf: "center", marginBottom: 24 },
   title: { fontSize: 26, fontWeight: "700", color: C.ink, marginBottom: 6 },
   subtitle: { fontSize: 15, color: C.ink4, marginBottom: 28 },
   label: { fontSize: 13, fontWeight: "600", color: C.ink, marginBottom: 6 },

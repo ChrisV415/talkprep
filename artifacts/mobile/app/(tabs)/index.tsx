@@ -122,9 +122,11 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={[styles.header, { paddingTop: topPad + 16 }]}>
         <View>
-          <Text style={styles.logoText}>
-            Talk<Text style={{ color: colors.rust }}>Prep</Text>
-          </Text>
+          <Image
+            source={require("../../assets/images/icon.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={styles.tagline}>Prepare for conversations that matter</Text>
         </View>
         <Pressable style={styles.newBtn} onPress={startFresh}>
@@ -265,13 +267,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       paddingHorizontal: 20,
       paddingBottom: 8,
     },
-    logoText: {
-      fontSize: 22,
-      fontWeight: "700",
-      color: colors.ink,
-      fontFamily: "Sora_700Bold",
-      letterSpacing: -0.5,
-    },
+    logo: { width: 44, height: 44, marginBottom: 2 },
     tagline: {
       fontSize: 11,
       color: colors.ink3,
