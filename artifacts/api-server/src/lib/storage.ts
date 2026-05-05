@@ -1,5 +1,5 @@
 import { db } from "@workspace/db";
-import { users } from "@workspace/db/schema";
+import { users, proOverrides } from "@workspace/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { getUncachableStripeClient } from "./stripeClient";
 
@@ -82,9 +82,39 @@ export class Storage {
   }
 
   async isProUser(userId: string): Promise<boolean> {
+    // Manual admin override takes priority
+    try {
+      const [override] = await db
+        .select()
+        .from(proOverrides)
+        .where(eq(proOverrides.userId, userId));
+      if (override) return true;
+    } catch {
+      // table may not exist yet; fall through
+    }
+    // Check Stripe subscription
     const sub = await this.getActiveSubscription(userId);
     if (!sub) return false;
     return sub.status === "active" || sub.status === "trialing";
+  }
+
+  async grantProOverride(userId: string, note = ""): Promise<void> {
+    await db
+      .insert(proOverrides)
+      .values({ userId, note })
+      .onConflictDoUpdate({ target: proOverrides.userId, set: { note } });
+  }
+
+  async revokeProOverride(userId: string): Promise<void> {
+    await db.delete(proOverrides).where(eq(proOverrides.userId, userId));
+  }
+
+  async hasProOverride(userId: string): Promise<boolean> {
+    const [row] = await db
+      .select()
+      .from(proOverrides)
+      .where(eq(proOverrides.userId, userId));
+    return !!row;
   }
 
   async listProductsWithPrices(): Promise<ProductWithPrices[]> {
