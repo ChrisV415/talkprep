@@ -36,15 +36,20 @@ export default function ForgotPasswordScreen() {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
 
+  // Persist the active sign-in attempt across re-renders caused by setStep()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const signInAttemptRef = React.useRef<any>(null);
+
   const handleSendCode = async () => {
     if (!signIn) return;
     setLoading(true);
     setError("");
     try {
-      await signIn.create({
+      const attempt = await signIn.create({
         strategy: "reset_password_email_code",
         identifier: email,
       });
+      signInAttemptRef.current = attempt;
       setStep("reset");
     } catch (err: any) {
       const clerkMsg = err.errors?.[0]?.longMessage ?? err.errors?.[0]?.message;
@@ -55,7 +60,6 @@ export default function ForgotPasswordScreen() {
   };
 
   const handleReset = async () => {
-    if (!signIn) return;
     if (newPassword !== confirmPassword) {
       setError("Passwords don't match");
       return;
@@ -67,7 +71,9 @@ export default function ForgotPasswordScreen() {
     setLoading(true);
     setError("");
     try {
-      const result = await signIn.attemptFirstFactor({
+      // Use the saved attempt ref; fall back to the hook's signIn if needed
+      const attempt = signInAttemptRef.current ?? signIn;
+      const result = await attempt.attemptFirstFactor({
         strategy: "reset_password_email_code",
         code,
         password: newPassword,
