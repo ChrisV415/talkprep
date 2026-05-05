@@ -161,3 +161,22 @@ overrides:
   # drizzle-kit uses esbuild internally on an older version that's vulnerable, this overrides it
   "@esbuild-kit/esm-loader": "npm:tsx@^4.21.0"
   esbuild: "0.27.3"
+  # Security vulnerability fixes — version-specific overrides stay within compatible major lines
+  # GHSA-c2c7-rcm5-vvqj, GHSA-3v7f-55p6-f55p: picomatch 2.3.1 and 4.0.3 vulnerable
+  "picomatch@2": "2.3.2"
+  "picomatch@4": "4.0.4"
+  # GHSA-j3q9-mxjg-w52f, GHSA-27v5-c462-wpq7: path-to-regexp 8.3.0 vulnerable
+  "path-to-regexp@8": "8.4.2"
+  # GHSA-r5fr-rjxr-66jc, GHSA-f23m-r3pf-42rh: lodash 4.17.23 vulnerable
+  "lodash@4": "4.18.1"
+  # GHSA-48c2-rrv3-qjmp: yaml 2.8.2 vulnerable (only 2.x is affected)
+  "yaml@2": "2.8.4"
+  # GHSA-f886-m6hf-6m8v: brace-expansion 2.0.2 vulnerable (only 2.x is affected)
+  "brace-expansion@2": "2.1.0"
+  # GHSA-qx2v-qp2m-jg93: postcss 8.4.49 and 8.5.8 vulnerable
+  "postcss@8": "8.5.13"
+  # GHSA-w5hq-g745-h8pq: uuid 3.4.0 and 7.0.3 vulnerable; patched versions require >=14.0.0.
+  # No patch exists in the v3 or v7 major lines. The only transitive consumer of uuid@7
+  # is xcode@3.0.1 (via Expo build tooling) which has no newer stable release.
+  # uuid v14 retains the same v1/v4/v5 named exports so xcode usage is compatible.
+  uuid: "14.0.0"
