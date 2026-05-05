@@ -4,8 +4,15 @@ import { StripeSync } from "stripe-replit-sync";
 async function getStripeCredentials(): Promise<{
   secretKey: string;
   publishableKey?: string;
-  webhookSecret?: string;
 }> {
+  // Prefer explicit secrets when set (live keys for production)
+  const envSecret = process.env.STRIPE_SECRET_KEY;
+  const envPublishable = process.env.STRIPE_PUBLISHABLE_KEY;
+  if (envSecret) {
+    return { secretKey: envSecret, publishableKey: envPublishable };
+  }
+
+  // Fall back to Replit connectors (test keys in development)
   const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
   const xReplitToken = process.env.REPL_IDENTITY
     ? "repl " + process.env.REPL_IDENTITY
@@ -14,7 +21,7 @@ async function getStripeCredentials(): Promise<{
       : null;
 
   if (!hostname || !xReplitToken) {
-    throw new Error("Stripe integration not configured");
+    throw new Error("Stripe not configured: set STRIPE_SECRET_KEY or connect via Replit integrations");
   }
 
   const isProduction = process.env.REPLIT_DEPLOYMENT === "1";
