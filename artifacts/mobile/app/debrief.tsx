@@ -29,7 +29,7 @@ const OUTCOME_CHIPS = [
 ];
 
 export default function DebriefScreen() {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded, getToken } = useAuth();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -57,6 +57,7 @@ export default function DebriefScreen() {
     debriefRef.current = "";
     setDebriefText("");
 
+    const token = await getToken();
     await streamRequest(
       "api/talkprep/debrief",
       { scenario, who, situation, outcome: selectedOutcome || "Not specified", happened, different, scores },
@@ -75,7 +76,8 @@ export default function DebriefScreen() {
           });
         }
       },
-      () => setIsGenerating(false)
+      () => setIsGenerating(false),
+      token,
     );
   }
 

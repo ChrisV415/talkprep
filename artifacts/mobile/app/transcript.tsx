@@ -26,7 +26,7 @@ interface AnnotatedMsg {
 }
 
 export default function TranscriptScreen() {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded, getToken } = useAuth();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -63,6 +63,7 @@ export default function TranscriptScreen() {
         .join("\n");
 
       let annotText = "";
+      const token = await getToken();
       await streamRequest(
         "api/talkprep/annotate",
         { scenario, outcome, context, message: msgs[i].content },
@@ -87,7 +88,8 @@ export default function TranscriptScreen() {
             }
             return updated;
           });
-        }
+        },
+        token,
       );
 
       await new Promise((r) => setTimeout(r, 200));

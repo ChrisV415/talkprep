@@ -65,7 +65,7 @@ IMPORTANT INSTRUCTIONS:
 }
 
 export default function RoleplayScreen() {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded, getToken } = useAuth();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -133,6 +133,7 @@ export default function RoleplayScreen() {
     let assistantAdded = false;
     const assistantId = newId();
 
+    const token = await getToken();
     await streamRequest(
       "api/talkprep/roleplay",
       { messages: newHistory, systemContext: sysCtx },
@@ -178,12 +179,14 @@ export default function RoleplayScreen() {
             { id: newId(), role: "system", content: "Couldn't get a response. Check your connection and try again." },
           ]);
         }
-      }
+      },
+      token,
     );
   }
 
   async function generateNudge(userSaid: string, theySaid: string) {
     let nudgeText = "";
+    const token = await getToken();
     await streamRequest(
       "api/talkprep/nudge",
       { scenario, outcome, userSaid, theySaid },
@@ -194,7 +197,8 @@ export default function RoleplayScreen() {
           setTimeout(() => setNudge(null), 12000);
         }
       },
-      () => {}
+      () => {},
+      token,
     );
   }
 

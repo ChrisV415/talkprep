@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "@clerk/expo";
 import { useApp } from "@/context/AppContext";
 import { streamRequest } from "@/lib/api";
 import { useColors } from "@/hooks/useColors";
@@ -42,6 +43,7 @@ const TONES = [
 ];
 
 export default function PrepScreen() {
+  const { getToken } = useAuth();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -76,6 +78,7 @@ export default function PrepScreen() {
     setIsGenerating(true);
     responseRef.current = "";
 
+    const token = await getToken();
     await streamRequest(
       "api/talkprep/generate",
       { scenario, who, situation, outcome, tone },
@@ -97,7 +100,8 @@ export default function PrepScreen() {
         } else {
           Alert.alert("Generation Failed", msg);
         }
-      }
+      },
+      token,
     );
   }
 

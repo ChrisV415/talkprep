@@ -12,27 +12,33 @@ export function setAuthTokenGetter(getter: () => Promise<string | null>) {
   authTokenGetter = getter;
 }
 
-async function getAuthHeaders(): Promise<Record<string, string>> {
-  if (!authTokenGetter) return {};
+async function resolveToken(token?: string | null): Promise<string | null> {
+  if (token !== undefined) return token ?? null;
+  if (!authTokenGetter) return null;
   try {
-    const token = await authTokenGetter();
-    if (token) return { Authorization: `Bearer ${token}` };
-  } catch {}
-  return {};
+    return await authTokenGetter();
+  } catch {
+    return null;
+  }
+}
+
+function buildAuthHeaders(token: string | null): Record<string, string> {
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 export async function apiRequest<T = unknown>(
   path: string,
   method: string,
   body?: object,
+  token?: string | null,
 ): Promise<T> {
   const baseUrl = getApiUrl();
-  const authHeaders = await getAuthHeaders();
+  const resolved = await resolveToken(token);
   const response = await fetch(`${baseUrl}${path}`, {
     method,
     headers: {
       "Content-Type": "application/json",
-      ...authHeaders,
+      ...buildAuthHeaders(resolved),
     },
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
@@ -49,16 +55,17 @@ export async function streamRequest(
   onChunk: (text: string) => void,
   onDone?: () => void,
   onError?: (err: Error) => void,
+  token?: string | null,
 ): Promise<void> {
   const baseUrl = getApiUrl();
-  const authHeaders = await getAuthHeaders();
+  const resolved = await resolveToken(token);
   try {
     const response = await fetch(`${baseUrl}${path}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Accept: "text/event-stream",
-        ...authHeaders,
+        ...buildAuthHeaders(resolved),
       },
       body: JSON.stringify(body),
     });
