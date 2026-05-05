@@ -554,8 +554,8 @@ export default function ProfileScreen() {
       <SectionHeader label="About" colors={colors} />
       <View style={ms.card}>
         <RowItem icon="info" label="Version" value={APP_VERSION} colors={colors} />
-        <RowItem icon="shield" label="Privacy policy" onPress={() => Linking.openURL("https://talkprep.app/privacy")} colors={colors} />
-        <RowItem icon="file-text" label="Terms of service" onPress={() => Linking.openURL("https://talkprep.app/terms")} colors={colors} />
+        <RowItem icon="shield" label="Privacy policy" onPress={() => Linking.openURL("https://talkprep-website.replit.app/privacy")} colors={colors} />
+        <RowItem icon="file-text" label="Terms of service" onPress={() => Linking.openURL("https://talkprep-website.replit.app/terms")} colors={colors} />
         <RowItem icon="star" label="Rate TalkPrep" onPress={() => Linking.openURL("https://apps.apple.com")} colors={colors} last />
       </View>
 
