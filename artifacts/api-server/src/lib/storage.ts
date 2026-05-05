@@ -36,6 +36,15 @@ export class Storage {
     return user;
   }
 
+  async savePhone(userId: string, phone: string) {
+    const [user] = await db
+      .update(users)
+      .set({ phone })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
   async updateUserStripeInfo(
     userId: string,
     stripeInfo: { stripeCustomerId?: string; stripeSubscriptionId?: string },

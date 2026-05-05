@@ -1,4 +1,4 @@
-import { useClerk, useUser } from "@clerk/expo";
+import { useAuth, useClerk, useUser } from "@clerk/expo";
 import { useApp } from "@/context/AppContext";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -188,17 +188,21 @@ function EditModal({
               autoCapitalize="none"
               autoFocus
             />
-            <Text style={[em.hint, { color: colors.ink4 }]}>
-              {keyboardType === "email-address"
-                ? "We'll send a verification code to your new email."
-                : "We'll send a verification code via SMS."}
-            </Text>
+            {keyboardType === "email-address" && (
+              <Text style={[em.hint, { color: colors.ink4 }]}>
+                We'll send a verification code to your new email.
+              </Text>
+            )}
             <Pressable
               style={[em.btn, { backgroundColor: colors.rust, opacity: value.trim() && !loading ? 1 : 0.4 }]}
               onPress={() => onSubmit(value.trim())}
               disabled={!value.trim() || loading}
             >
-              <Text style={em.btnText}>{loading ? "Sending…" : "Send verification code"}</Text>
+              <Text style={em.btnText}>
+                {loading
+                  ? keyboardType === "phone-pad" ? "Saving…" : "Sending…"
+                  : keyboardType === "phone-pad" ? "Save" : "Send verification code"}
+              </Text>
             </Pressable>
           </>
         ) : (
@@ -236,6 +240,7 @@ function EditModal({
 export default function ProfileScreen() {
   const { user } = useUser();
   const { signOut } = useClerk();
+  const { getToken } = useAuth();
   const { resetCurrentSession } = useApp();
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -254,16 +259,15 @@ export default function ProfileScreen() {
   const [pendingEmail, setPendingEmail] = useState<any>(null);
 
   const [phoneModalOpen, setPhoneModalOpen] = useState(false);
-  const [phoneStep, setPhoneStep] = useState<EditModalStep>("input");
   const [phoneLoading, setPhoneLoading] = useState(false);
-  const [pendingPhone, setPendingPhone] = useState<any>(null);
+  const [savedPhone, setSavedPhone] = useState("");
 
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const [signOutModalOpen, setSignOutModalOpen] = useState(false);
 
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const phone = user?.primaryPhoneNumber?.phoneNumber ?? "";
+  const phone = savedPhone || user?.primaryPhoneNumber?.phoneNumber || "";
   const initials = ((user?.firstName?.[0] ?? "") + (user?.lastName?.[0] ?? "")).toUpperCase()
     || email.slice(0, 2).toUpperCase() || "?";
   const avatarUrl = user?.imageUrl ?? null;
@@ -381,34 +385,26 @@ export default function ProfileScreen() {
   }
 
   async function handleSubmitPhone(newPhone: string) {
-    if (!user) return;
     const formatted = newPhone.startsWith("+") ? newPhone : `+1${newPhone.replace(/\D/g, "")}`;
     setPhoneLoading(true);
     try {
-      const obj = await user.createPhoneNumber({ phoneNumber: formatted });
-      await obj.prepareVerification();
-      setPendingPhone(obj);
-      setPhoneStep("verify");
-    } catch (e: any) {
-      Alert.alert("Error", e?.errors?.[0]?.message ?? "Could not add phone number. Please try again.");
-    } finally {
-      setPhoneLoading(false);
-    }
-  }
-
-  async function handleVerifyPhone(code: string) {
-    if (!pendingPhone) return;
-    setPhoneLoading(true);
-    try {
-      await pendingPhone.attemptVerification({ code });
-      await pendingPhone.makePrimary();
-      await user?.reload();
+      const token = await getToken();
+      const baseUrl = process.env.EXPO_PUBLIC_DOMAIN
+        ? `https://${process.env.EXPO_PUBLIC_DOMAIN}/`
+        : "http://localhost:80/";
+      const res = await fetch(`${baseUrl}api/user/phone`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ phone: formatted }),
+      });
+      if (!res.ok) throw new Error("Failed to save");
+      setSavedPhone(formatted);
       setPhoneModalOpen(false);
-      setPhoneStep("input");
-      setPendingPhone(null);
-      Alert.alert("Updated", "Your phone number has been updated.");
-    } catch (e: any) {
-      Alert.alert("Invalid code", e?.errors?.[0]?.message ?? "Incorrect code. Please try again.");
+    } catch {
+      Alert.alert("Error", "Could not save phone number. Please try again.");
     } finally {
       setPhoneLoading(false);
     }
@@ -619,13 +615,13 @@ export default function ProfileScreen() {
       {/* Phone edit modal */}
       <EditModal
         visible={phoneModalOpen}
-        onClose={() => { setPhoneModalOpen(false); setPhoneStep("input"); setPendingPhone(null); }}
-        title={phoneStep === "input" ? "Add phone number" : "Verify phone number"}
+        onClose={() => setPhoneModalOpen(false)}
+        title="Add phone number"
         placeholder="+1 555 000 0000"
         keyboardType="phone-pad"
         onSubmit={handleSubmitPhone}
-        onVerify={handleVerifyPhone}
-        step={phoneStep}
+        onVerify={() => {}}
+        step="input"
         loading={phoneLoading}
         colors={colors}
       />
