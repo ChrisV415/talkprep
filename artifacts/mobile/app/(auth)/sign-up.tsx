@@ -231,7 +231,7 @@ export default function SignUpScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.cream },
   container: { flexGrow: 1, padding: 28, justifyContent: "center" },
-  logo: { width: 80, height: 80, alignSelf: "center", marginBottom: 24 },
+  logo: { width: 120, height: 120, alignSelf: "center", marginBottom: 24 },
   title: { fontSize: 26, fontWeight: "700", color: C.ink, marginBottom: 6 },
   subtitle: { fontSize: 15, color: C.ink4, marginBottom: 28 },
   label: { fontSize: 13, fontWeight: "600", color: C.ink, marginBottom: 6 },
