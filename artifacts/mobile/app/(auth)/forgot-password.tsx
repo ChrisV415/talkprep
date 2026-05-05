@@ -47,7 +47,8 @@ export default function ForgotPasswordScreen() {
       });
       setStep("reset");
     } catch (err: any) {
-      setError(err.errors?.[0]?.longMessage ?? err.errors?.[0]?.message ?? "Could not send reset code");
+      const clerkMsg = err.errors?.[0]?.longMessage ?? err.errors?.[0]?.message;
+      setError(clerkMsg ?? err.message ?? JSON.stringify(err).slice(0, 200));
     } finally {
       setLoading(false);
     }
@@ -78,7 +79,8 @@ export default function ForgotPasswordScreen() {
         setError("Reset could not be completed. Please try again.");
       }
     } catch (err: any) {
-      setError(err.errors?.[0]?.longMessage ?? err.errors?.[0]?.message ?? "Reset failed");
+      const clerkMsg = err.errors?.[0]?.longMessage ?? err.errors?.[0]?.message;
+      setError(clerkMsg ?? err.message ?? JSON.stringify(err).slice(0, 200));
     } finally {
       setLoading(false);
     }

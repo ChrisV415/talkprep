@@ -50,7 +50,8 @@ export default function SignInScreen() {
         setError("Sign in could not be completed. Please try again.");
       }
     } catch (err: any) {
-      setError(err.errors?.[0]?.longMessage ?? err.errors?.[0]?.message ?? "Sign in failed");
+      const clerkMsg = err.errors?.[0]?.longMessage ?? err.errors?.[0]?.message;
+      setError(clerkMsg ?? err.message ?? JSON.stringify(err).slice(0, 200));
     } finally {
       setLoading(false);
     }
