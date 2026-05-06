@@ -65,7 +65,7 @@ export default function PersonaScreen() {
   }
 
   const styles = makeStyles(colors);
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const topPad = insets.top;
   const personName = who.split(/[,.]/ )[0]?.trim() || "the other person";
 
   return (
@@ -221,12 +221,12 @@ export default function PersonaScreen() {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
-        <Pressable style={styles.skipBtn} onPress={startRoleplay}>
-          <Text style={styles.skipBtnText}>Skip — use defaults</Text>
-        </Pressable>
         <Pressable style={styles.startBtn} onPress={startRoleplay}>
           <Feather name="play" size={16} color={colors.cream} />
           <Text style={styles.startBtnText}>Start Practice</Text>
+        </Pressable>
+        <Pressable style={styles.skipBtn} onPress={startRoleplay}>
+          <Text style={styles.skipBtnText}>Skip — use defaults</Text>
         </Pressable>
       </View>
     </View>
@@ -356,31 +356,15 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
     },
     textarea: { minHeight: 80, paddingTop: 14 },
     footer: {
-      flexDirection: "row",
-      gap: 10,
+      flexDirection: "column",
+      gap: 0,
       paddingHorizontal: 16,
       paddingTop: 12,
       borderTopWidth: 1,
       borderTopColor: colors.border,
       backgroundColor: colors.background,
     },
-    skipBtn: {
-      flex: 0,
-      paddingHorizontal: 18,
-      paddingVertical: 15,
-      borderRadius: 28,
-      borderWidth: 1,
-      borderColor: colors.border,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    skipBtnText: {
-      fontSize: 13,
-      color: colors.ink3,
-      fontFamily: "Sora_400Regular",
-    },
     startBtn: {
-      flex: 1,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
@@ -388,12 +372,23 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       backgroundColor: colors.rust,
       paddingVertical: 15,
       borderRadius: 28,
+      width: "100%",
     },
     startBtnText: {
       color: colors.cream,
-      fontSize: 14,
+      fontSize: 15,
       fontWeight: "600",
       fontFamily: "Sora_600SemiBold",
+    },
+    skipBtn: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 12,
+    },
+    skipBtnText: {
+      fontSize: 13,
+      color: colors.ink3,
+      fontFamily: "Sora_400Regular",
     },
   });
 }
