@@ -97,7 +97,7 @@ export default function TranscriptScreen() {
   }
 
   const styles = makeStyles(colors);
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const topPad = insets.top;
   const personName = who.split(/[,.]/ )[0]?.trim() || "Them";
 
   return (

@@ -113,7 +113,7 @@ export default function ResultScreen() {
   }
 
   const styles = makeStyles(colors);
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const topPad = insets.top;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
