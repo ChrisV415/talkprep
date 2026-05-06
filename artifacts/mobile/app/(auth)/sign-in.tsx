@@ -23,6 +23,81 @@ const C = {
   border: "#E3E3E3",
 };
 
+// On web, wrap children in a real <form> so the browser can detect the
+// password fields and offer to save / autofill credentials.
+function WebForm({
+  onSubmit,
+  children,
+}: {
+  onSubmit: () => void;
+  children: React.ReactNode;
+}) {
+  if (Platform.OS !== "web") return <>{children}</>;
+  return React.createElement(
+    "form",
+    {
+      onSubmit: (e: Event) => {
+        e.preventDefault();
+        onSubmit();
+      },
+      style: { display: "flex", flexDirection: "column" },
+    },
+    children
+  );
+}
+
+// On web render a real <button type="submit"> so clicking it fires the form's
+// submit event (which is what tells the browser to offer to save the password).
+// On native keep the standard Pressable.
+function SubmitBtn({
+  onPress,
+  disabled,
+  label,
+}: {
+  onPress: () => void;
+  disabled: boolean;
+  label: string;
+}) {
+  if (Platform.OS === "web") {
+    return React.createElement(
+      "button",
+      {
+        type: "submit",
+        disabled,
+        onClick: (e: Event) => {
+          e.preventDefault();
+          if (!disabled) onPress();
+        },
+        style: {
+          backgroundColor: C.rust,
+          borderRadius: 28,
+          paddingTop: 16,
+          paddingBottom: 16,
+          color: "#fff",
+          fontSize: 16,
+          fontWeight: "600",
+          border: "none",
+          cursor: disabled ? "default" : "pointer",
+          opacity: disabled ? 0.5 : 1,
+          marginTop: 4,
+          marginBottom: 20,
+          width: "100%",
+        },
+      },
+      label
+    );
+  }
+  return (
+    <Pressable
+      style={[styles.btn, disabled && styles.btnDisabled]}
+      onPress={onPress}
+      disabled={disabled}
+    >
+      <Text style={styles.btnText}>{label}</Text>
+    </Pressable>
+  );
+}
+
 export default function SignInScreen() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const clerk = useClerk() as any;
@@ -59,6 +134,8 @@ export default function SignInScreen() {
     }
   };
 
+  const btnDisabled = !email || !password || loading || !isLoaded;
+
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
@@ -79,45 +156,43 @@ export default function SignInScreen() {
           <Text style={styles.title}>Welcome back</Text>
           <Text style={styles.subtitle}>Sign in to access your sessions</Text>
 
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="you@example.com"
-            placeholderTextColor={C.ink4}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            autoComplete="email"
-          />
+          <WebForm onSubmit={handleSignIn}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="you@example.com"
+              placeholderTextColor={C.ink4}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              autoComplete="email"
+              textContentType="emailAddress"
+              returnKeyType="next"
+            />
 
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Your password"
-            placeholderTextColor={C.ink4}
-            secureTextEntry
-            autoComplete="password"
-            onSubmitEditing={handleSignIn}
-            returnKeyType="go"
-          />
+            <Text style={styles.label}>Password</Text>
+            <TextInput
+              style={styles.input}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Your password"
+              placeholderTextColor={C.ink4}
+              secureTextEntry
+              autoComplete="current-password"
+              textContentType="password"
+              onSubmitEditing={handleSignIn}
+              returnKeyType="go"
+            />
 
-          {!!error && <Text style={styles.error}>{error}</Text>}
+            {!!error && <Text style={styles.error}>{error}</Text>}
 
-          <Pressable
-            style={[
-              styles.btn,
-              (!email || !password || loading || !isLoaded) && styles.btnDisabled,
-            ]}
-            onPress={handleSignIn}
-            disabled={!email || !password || loading || !isLoaded}
-          >
-            <Text style={styles.btnText}>
-              {loading ? "Signing in…" : !isLoaded ? "Loading…" : "Sign in"}
-            </Text>
-          </Pressable>
+            <SubmitBtn
+              onPress={handleSignIn}
+              disabled={btnDisabled}
+              label={loading ? "Signing in…" : !isLoaded ? "Loading…" : "Sign in"}
+            />
+          </WebForm>
 
           <Link href="/(auth)/forgot-password" style={styles.forgotLink}>
             <Text style={styles.forgotText}>Forgot password?</Text>
