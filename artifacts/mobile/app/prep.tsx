@@ -15,9 +15,14 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/expo";
+import {
+  ExpoSpeechRecognitionModule,
+  useSpeechRecognitionEvent,
+} from "expo-speech-recognition";
 import { useApp } from "@/context/AppContext";
 import { streamRequest } from "@/lib/api";
 import { useColors } from "@/hooks/useColors";
+import { MicButton } from "@/components/MicButton";
 
 const SCENARIOS = [
   "Resignation",
@@ -65,6 +70,53 @@ export default function PrepScreen() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showScenarioPicker, setShowScenarioPicker] = useState(false);
   const responseRef = useRef("");
+
+  type MicField = "who" | "situation" | "outcome";
+  const [micField, setMicField] = useState<MicField | null>(null);
+  const micFieldRef = useRef<MicField | null>(null);
+
+  useSpeechRecognitionEvent("end", () => {
+    setMicField(null);
+    micFieldRef.current = null;
+  });
+  useSpeechRecognitionEvent("result", (event) => {
+    if (event.isFinal) {
+      const text = (event.results[0]?.transcript ?? "").trim();
+      if (!text) return;
+      const f = micFieldRef.current;
+      if (f === "who") setWho(who ? who + " " + text : text);
+      else if (f === "situation") setSituation(situation ? situation + " " + text : text);
+      else if (f === "outcome") setOutcome(outcome ? outcome + " " + text : text);
+    }
+  });
+  useSpeechRecognitionEvent("error", (event) => {
+    setMicField(null);
+    micFieldRef.current = null;
+    if (event.error === "audio-capture" || event.error === "service-not-allowed") {
+      Alert.alert("Microphone Access", "Allow microphone access in your device settings to use voice input.");
+    } else if (event.error !== "aborted" && event.error !== "no-speech") {
+      Alert.alert("Voice Input", "Could not recognise speech. Please try again.");
+    }
+  });
+
+  async function toggleMic(field: MicField) {
+    if (micFieldRef.current === field) {
+      ExpoSpeechRecognitionModule.abort();
+      setMicField(null);
+      micFieldRef.current = null;
+      return;
+    }
+    if (Platform.OS !== "web") {
+      const { status } = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Microphone Access", "Allow microphone access to use voice input.");
+        return;
+      }
+    }
+    micFieldRef.current = field;
+    setMicField(field);
+    ExpoSpeechRecognitionModule.start({ lang: "en-US", interimResults: false, continuous: false });
+  }
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
@@ -147,7 +199,7 @@ export default function PrepScreen() {
         </Text>
 
         <View style={styles.fieldGroup}>
-          <Text style={styles.fieldLabel}>SCENARIO</Text>
+          <Text style={[styles.fieldLabel, { marginBottom: 6 }]}>SCENARIO</Text>
           <Pressable
             style={styles.selectBtn}
             onPress={() => setShowScenarioPicker(!showScenarioPicker)}
@@ -196,7 +248,16 @@ export default function PrepScreen() {
         </View>
 
         <View style={styles.fieldGroup}>
-          <Text style={styles.fieldLabel}>WHO IS THIS WITH?</Text>
+          <View style={styles.labelRow}>
+            <Text style={styles.fieldLabel}>WHO IS THIS WITH?</Text>
+            <MicButton
+              isListening={micField === "who"}
+              onToggle={() => toggleMic("who")}
+              color={colors.ink4}
+              activeColor={colors.rust}
+              size={16}
+            />
+          </View>
           <TextInput
             style={styles.input}
             placeholder="e.g. My manager Sarah, My partner, My landlord"
@@ -207,7 +268,16 @@ export default function PrepScreen() {
         </View>
 
         <View style={styles.fieldGroup}>
-          <Text style={styles.fieldLabel}>YOUR SITUATION</Text>
+          <View style={styles.labelRow}>
+            <Text style={styles.fieldLabel}>YOUR SITUATION</Text>
+            <MicButton
+              isListening={micField === "situation"}
+              onToggle={() => toggleMic("situation")}
+              color={colors.ink4}
+              activeColor={colors.rust}
+              size={16}
+            />
+          </View>
           <Text style={styles.fieldSub}>
             What's happening? The more specific, the better your prep.
           </Text>
@@ -224,7 +294,16 @@ export default function PrepScreen() {
         </View>
 
         <View style={styles.fieldGroup}>
-          <Text style={styles.fieldLabel}>DESIRED OUTCOME</Text>
+          <View style={styles.labelRow}>
+            <Text style={styles.fieldLabel}>DESIRED OUTCOME</Text>
+            <MicButton
+              isListening={micField === "outcome"}
+              onToggle={() => toggleMic("outcome")}
+              color={colors.ink4}
+              activeColor={colors.rust}
+              size={16}
+            />
+          </View>
           <TextInput
             style={styles.input}
             placeholder="What does success look like? (optional)"
@@ -235,7 +314,7 @@ export default function PrepScreen() {
         </View>
 
         <View style={styles.fieldGroup}>
-          <Text style={styles.fieldLabel}>CONVERSATION TONE</Text>
+          <Text style={[styles.fieldLabel, { marginBottom: 6 }]}>CONVERSATION TONE</Text>
           <View style={styles.toneGrid}>
             {TONES.map((t) => (
               <Pressable
@@ -340,13 +419,18 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       marginBottom: 24,
     },
     fieldGroup: { marginBottom: 20 },
+    labelRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 6,
+    },
     fieldLabel: {
       fontSize: 10,
       fontWeight: "600",
       color: colors.ink2,
       letterSpacing: 1.2,
       fontFamily: "Sora_600SemiBold",
-      marginBottom: 6,
     },
     fieldSub: {
       fontSize: 11,

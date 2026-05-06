@@ -46,6 +46,13 @@
           "photosPermission": "TalkPrep needs access to your photos so you can set a profile picture.",
           "cameraPermission": "TalkPrep needs camera access so you can take a profile photo."
         }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "TalkPrep uses your microphone so you can speak your answers instead of typing.",
+          "speechRecognitionPermission": "TalkPrep uses speech recognition to convert your voice to text."
+        }
       ]
     ],
     "experiments": {
