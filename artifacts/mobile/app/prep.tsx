@@ -15,14 +15,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/expo";
-import {
-  ExpoSpeechRecognitionModule,
-  useSpeechRecognitionEvent,
-} from "expo-speech-recognition";
 import { useApp } from "@/context/AppContext";
 import { streamRequest } from "@/lib/api";
 import { useColors } from "@/hooks/useColors";
 import { MicButton } from "@/components/MicButton";
+import { useSpeechInput } from "@/hooks/useSpeechInput";
 
 const SCENARIOS = [
   "Resignation",
@@ -75,47 +72,40 @@ export default function PrepScreen() {
   const [micField, setMicField] = useState<MicField | null>(null);
   const micFieldRef = useRef<MicField | null>(null);
 
-  useSpeechRecognitionEvent("end", () => {
-    setMicField(null);
-    micFieldRef.current = null;
-  });
-  useSpeechRecognitionEvent("result", (event) => {
-    if (event.isFinal) {
-      const text = (event.results[0]?.transcript ?? "").trim();
-      if (!text) return;
-      const f = micFieldRef.current;
-      if (f === "who") setWho(who ? who + " " + text : text);
-      else if (f === "situation") setSituation(situation ? situation + " " + text : text);
-      else if (f === "outcome") setOutcome(outcome ? outcome + " " + text : text);
-    }
-  });
-  useSpeechRecognitionEvent("error", (event) => {
-    setMicField(null);
-    micFieldRef.current = null;
-    if (event.error === "audio-capture" || event.error === "service-not-allowed") {
-      Alert.alert("Microphone Access", "Allow microphone access in your device settings to use voice input.");
-    } else if (event.error !== "aborted" && event.error !== "no-speech") {
-      Alert.alert("Voice Input", "Could not recognise speech. Please try again.");
-    }
-  });
+  const { isListening: micListening, isSupported: micSupported, start: micStart, abort: micAbort } =
+    useSpeechInput({
+      onResult: (text) => {
+        const f = micFieldRef.current;
+        if (f === "who") setWho(who ? who + " " + text : text);
+        else if (f === "situation") setSituation(situation ? situation + " " + text : text);
+        else if (f === "outcome") setOutcome(outcome ? outcome + " " + text : text);
+      },
+      onError: (kind) => {
+        setMicField(null);
+        micFieldRef.current = null;
+        if (kind === "permission") {
+          Alert.alert("Microphone Access", "Allow microphone access in your browser settings to use voice input.");
+        } else if (kind === "other") {
+          Alert.alert("Voice Input", "Could not recognise speech. Please try again.");
+        }
+      },
+    });
 
-  async function toggleMic(field: MicField) {
-    if (micFieldRef.current === field) {
-      ExpoSpeechRecognitionModule.abort();
+  useEffect(() => {
+    if (!micListening) {
       setMicField(null);
       micFieldRef.current = null;
-      return;
     }
-    if (Platform.OS !== "web") {
-      const { status } = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("Microphone Access", "Allow microphone access to use voice input.");
-        return;
-      }
+  }, [micListening]);
+
+  function toggleMic(field: MicField) {
+    if (micListening) {
+      micAbort();
+      return;
     }
     micFieldRef.current = field;
     setMicField(field);
-    ExpoSpeechRecognitionModule.start({ lang: "en-US", interimResults: false, continuous: false });
+    micStart();
   }
 
   useEffect(() => {
@@ -253,6 +243,7 @@ export default function PrepScreen() {
             <MicButton
               isListening={micField === "who"}
               onToggle={() => toggleMic("who")}
+              disabled={!micSupported}
               color={colors.ink4}
               activeColor={colors.rust}
               size={16}
@@ -273,6 +264,7 @@ export default function PrepScreen() {
             <MicButton
               isListening={micField === "situation"}
               onToggle={() => toggleMic("situation")}
+              disabled={!micSupported}
               color={colors.ink4}
               activeColor={colors.rust}
               size={16}
@@ -299,6 +291,7 @@ export default function PrepScreen() {
             <MicButton
               isListening={micField === "outcome"}
               onToggle={() => toggleMic("outcome")}
+              disabled={!micSupported}
               color={colors.ink4}
               activeColor={colors.rust}
               size={16}

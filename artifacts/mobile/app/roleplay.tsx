@@ -13,11 +13,8 @@ import {
   TextInput,
   View,
 } from "react-native";
-import {
-  ExpoSpeechRecognitionModule,
-  useSpeechRecognitionEvent,
-} from "expo-speech-recognition";
 import { KeyboardAvoidingView as RNKeyboardAvoidingView } from "react-native";
+import { useSpeechInput } from "@/hooks/useSpeechInput";
 const KeyboardAvoidingView = RNKeyboardAvoidingView;
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/expo";
@@ -84,49 +81,30 @@ export default function RoleplayScreen() {
   const [nudge, setNudge] = useState<string | null>(null);
   const [exchangeCount, setExchangeCount] = useState(0);
   const [elapsedSecs, setElapsedSecs] = useState(0);
-  const [micListening, setMicListening] = useState(false);
-  const micListeningRef = useRef(false);
   const inputRef = useRef<TextInput>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const historyRef = useRef<RpMessage[]>([]);
 
-  useSpeechRecognitionEvent("end", () => {
-    setMicListening(false);
-    micListeningRef.current = false;
-  });
-  useSpeechRecognitionEvent("result", (event) => {
-    if (event.isFinal) {
-      const text = (event.results[0]?.transcript ?? "").trim();
-      if (text) setInput((prev) => (prev ? prev + " " + text : text));
-    }
-  });
-  useSpeechRecognitionEvent("error", (event) => {
-    setMicListening(false);
-    micListeningRef.current = false;
-    if (event.error === "audio-capture" || event.error === "service-not-allowed") {
-      Alert.alert("Microphone Access", "Allow microphone access in your device settings to use voice input.");
-    } else if (event.error !== "aborted" && event.error !== "no-speech") {
-      Alert.alert("Voice Input", "Could not recognise speech. Please try again.");
-    }
-  });
+  const { isListening: micListening, isSupported: micSupported, start: micStart, abort: micAbort } =
+    useSpeechInput({
+      onResult: (text) => {
+        setInput((prev) => (prev ? prev + " " + text : text));
+      },
+      onError: (kind) => {
+        if (kind === "permission") {
+          Alert.alert("Microphone Access", "Allow microphone access in your browser settings to use voice input.");
+        } else if (kind === "other") {
+          Alert.alert("Voice Input", "Could not recognise speech. Please try again.");
+        }
+      },
+    });
 
-  async function toggleMic() {
-    if (micListeningRef.current) {
-      ExpoSpeechRecognitionModule.abort();
-      setMicListening(false);
-      micListeningRef.current = false;
+  function toggleMic() {
+    if (micListening) {
+      micAbort();
       return;
     }
-    if (Platform.OS !== "web") {
-      const { status } = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("Microphone Access", "Allow microphone access to use voice input.");
-        return;
-      }
-    }
-    micListeningRef.current = true;
-    setMicListening(true);
-    ExpoSpeechRecognitionModule.start({ lang: "en-US", interimResults: false, continuous: false });
+    micStart();
   }
 
   useEffect(() => {
@@ -326,7 +304,7 @@ export default function RoleplayScreen() {
           <MicButton
             isListening={micListening}
             onToggle={toggleMic}
-            disabled={isStreaming}
+            disabled={isStreaming || !micSupported}
             color={colors.ink4}
             activeColor={colors.rust}
             size={20}
