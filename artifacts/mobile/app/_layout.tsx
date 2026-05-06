@@ -27,12 +27,17 @@ const domain = process.env.EXPO_PUBLIC_DOMAIN;
 
 // On web, derive the base URL and Clerk proxy URL from window.location at
 // runtime so the bundle is domain-agnostic and works without rebuilding.
+// Only trust window.location when it's the real production domain (.replit.app
+// or a custom domain). Expo dev-server previews use *.replit.dev hostnames
+// which don't have the /api/__clerk proxy, so we fall back to the build-time
+// EXPO_PUBLIC_DOMAIN in those cases.
 function getRuntimeOrigin(): string | null {
   if (
     Platform.OS === "web" &&
     typeof window !== "undefined" &&
     window.location?.hostname &&
-    window.location.hostname !== "localhost"
+    window.location.hostname !== "localhost" &&
+    !window.location.hostname.endsWith(".replit.dev")
   ) {
     return `${window.location.protocol}//${window.location.host}`;
   }
@@ -40,7 +45,22 @@ function getRuntimeOrigin(): string | null {
 }
 
 const runtimeOrigin = getRuntimeOrigin();
-if (runtimeOrigin) setBaseUrl(runtimeOrigin);
+
+// Always set API base URL — use production origin when available, otherwise
+// fall back to the build-time domain so dev API calls still work.
+const apiBaseUrl = runtimeOrigin ?? (domain ? `https://${domain}` : null);
+if (apiBaseUrl) setBaseUrl(apiBaseUrl);
+
+// Only use the Clerk proxy on a real production domain (*.replit.app or custom).
+// The proxy middleware is disabled in development and *.replit.dev domains don't
+// have the proxy route, so omit proxyUrl there and let Clerk load from its CDN.
+const isProductionDomain =
+  runtimeOrigin != null &&
+  !runtimeOrigin.endsWith(".replit.dev") &&
+  !runtimeOrigin.includes("localhost");
+const proxyUrl = isProductionDomain
+  ? `${runtimeOrigin}/api/__clerk`
+  : undefined;
 
 SplashScreen.preventAutoHideAsync();
 
@@ -48,7 +68,6 @@ const queryClient = new QueryClient();
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 const tokenCache = Platform.OS !== "web" ? nativeTokenCache : undefined;
-const proxyUrl = runtimeOrigin ? `${runtimeOrigin}/api/__clerk` : undefined;
 
 function AuthSync() {
   const { getToken } = useAuth();
