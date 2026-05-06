@@ -402,8 +402,19 @@ export default function ProfileScreen() {
   }, [user?.id]);
 
   const [editingName, setEditingName] = useState(false);
-  const [nameValue, setNameValue] = useState(user?.fullName ?? user?.firstName ?? "");
+  const [nameValue, setNameValue] = useState("");
   const [savingName, setSavingName] = useState(false);
+
+  // Sync nameValue whenever user loads or whenever edit mode opens
+  useEffect(() => {
+    setNameValue(user?.fullName ?? user?.firstName ?? "");
+  }, [user?.id, user?.fullName, user?.firstName]);
+
+  useEffect(() => {
+    if (editingName) {
+      setNameValue(user?.fullName ?? user?.firstName ?? "");
+    }
+  }, [editingName]);
 
   const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [emailStep, setEmailStep] = useState<EditModalStep>("input");
@@ -514,9 +525,10 @@ export default function ProfileScreen() {
     try {
       const parts = nameValue.trim().split(" ");
       await user.update({ firstName: parts[0], lastName: parts.slice(1).join(" ") || undefined });
+      await user.reload();
       setEditingName(false);
-    } catch {
-      Alert.alert("Error", "Could not update name. Please try again.");
+    } catch (e: any) {
+      Alert.alert("Error", e?.errors?.[0]?.message ?? "Could not update name. Please try again.");
     } finally {
       setSavingName(false);
     }
