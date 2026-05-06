@@ -253,7 +253,7 @@ export default function ProfileScreen() {
   const { resetCurrentSession } = useApp();
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const topPad = Platform.OS === "web" ? 67 : insets.top;
+  const topPad = insets.top;
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [remindersEnabled, setRemindersEnabled] = useState(false);
@@ -304,39 +304,55 @@ export default function ProfileScreen() {
     if (!user) return;
     try {
       let result: ImagePicker.ImagePickerResult;
+      const pickerOpts: ImagePicker.ImagePickerOptions = {
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+        base64: true,
+      };
+
       if (source === "camera") {
-        const { status } = await ImagePicker.requestCameraPermissionsAsync();
-        if (status !== "granted") {
-          Alert.alert("Permission needed", "Camera access is required to take a photo.");
-          return;
+        if (Platform.OS !== "web") {
+          const { status } = await ImagePicker.requestCameraPermissionsAsync();
+          if (status !== "granted") {
+            Alert.alert("Permission needed", "Camera access is required to take a photo.");
+            return;
+          }
         }
-        result = await ImagePicker.launchCameraAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          aspect: [1, 1],
-          quality: 0.8,
-        });
+        result = await ImagePicker.launchCameraAsync(pickerOpts);
       } else {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== "granted") {
-          Alert.alert("Permission needed", "Photo library access is required to choose a photo.");
-          return;
+        if (Platform.OS !== "web") {
+          const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          if (status !== "granted") {
+            Alert.alert("Permission needed", "Photo library access is required to choose a photo.");
+            return;
+          }
         }
-        result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          aspect: [1, 1],
-          quality: 0.8,
-        });
+        result = await ImagePicker.launchImageLibraryAsync(pickerOpts);
       }
-      if (result.canceled || !result.assets?.[0]?.uri) return;
+
+      if (result.canceled || !result.assets?.[0]) return;
       setUploadingAvatar(true);
-      const uri = result.assets[0].uri;
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      const ext = uri.split(".").pop()?.toLowerCase() ?? "jpg";
-      const mimeType = ext === "png" ? "image/png" : "image/jpeg";
-      const file = new File([blob], `avatar.${ext}`, { type: mimeType });
+
+      const asset = result.assets[0];
+      const mimeType = asset.mimeType ?? "image/jpeg";
+      const ext = mimeType.includes("png") ? "png" : "jpg";
+      let file: File;
+
+      if (asset.base64) {
+        // Reliable path: convert base64 → Blob → File (works on all platforms)
+        const byteChars = atob(asset.base64);
+        const bytes = new Uint8Array(byteChars.length);
+        for (let i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
+        file = new File([bytes], `avatar.${ext}`, { type: mimeType });
+      } else {
+        // Fallback: fetch the local URI as a blob
+        const response = await fetch(asset.uri);
+        const blob = await response.blob();
+        file = new File([blob], `avatar.${ext}`, { type: mimeType });
+      }
+
       await user.setProfileImage({ file });
       await user.reload();
     } catch (e: any) {

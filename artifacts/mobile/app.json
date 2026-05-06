@@ -39,7 +39,14 @@
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "TalkPrep needs access to your photos so you can set a profile picture.",
+          "cameraPermission": "TalkPrep needs camera access so you can take a profile photo."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
