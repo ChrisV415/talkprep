@@ -159,6 +159,130 @@ function RowItem({ icon, label, value, onPress, destructive, rightElement, color
   );
 }
 
+function PasswordModal({
+  visible, onClose, onSubmit, loading, colors,
+}: {
+  visible: boolean; onClose: () => void;
+  onSubmit: (current: string, next: string) => void;
+  loading: boolean; colors: any;
+}) {
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNext, setShowNext] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [error, setError] = useState("");
+
+  function reset() {
+    setCurrent(""); setNext(""); setConfirm("");
+    setShowCurrent(false); setShowNext(false); setShowConfirm(false);
+    setError(""); onClose();
+  }
+
+  function validate() {
+    if (!current) { setError("Enter your current password."); return false; }
+    if (next.length < 8) { setError("New password must be at least 8 characters."); return false; }
+    if (next !== confirm) { setError("New passwords don't match."); return false; }
+    setError("");
+    return true;
+  }
+
+  function handleSave() {
+    if (!validate()) return;
+    onSubmit(current, next);
+  }
+
+  useEffect(() => { if (!visible) { setCurrent(""); setNext(""); setConfirm(""); setError(""); } }, [visible]);
+
+  const canSave = current.length > 0 && next.length >= 8 && confirm.length >= 8 && !loading;
+
+  function PasswordField({
+    label, value, onChange, show, onToggle, placeholder, returnKeyType, onSubmitEditing,
+  }: {
+    label: string; value: string; onChange: (v: string) => void;
+    show: boolean; onToggle: () => void; placeholder: string;
+    returnKeyType?: "next" | "done"; onSubmitEditing?: () => void;
+  }) {
+    return (
+      <View style={{ marginBottom: 12 }}>
+        <Text style={{ fontSize: 12, fontWeight: "600", color: colors.ink4, marginBottom: 5, letterSpacing: 0.4 }}>
+          {label.toUpperCase()}
+        </Text>
+        <View style={{ position: "relative" }}>
+          <TextInput
+            style={[em.input, { borderColor: colors.border, color: colors.ink, backgroundColor: colors.cream3, marginBottom: 0, paddingRight: 44 }]}
+            placeholder={placeholder}
+            placeholderTextColor={colors.ink4}
+            value={value}
+            onChangeText={(t) => { onChange(t); setError(""); }}
+            secureTextEntry={!show}
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType={returnKeyType ?? "next"}
+            onSubmitEditing={onSubmitEditing}
+          />
+          <Pressable
+            onPress={onToggle}
+            style={{ position: "absolute", right: 12, top: 0, bottom: 0, justifyContent: "center" }}
+            accessibilityLabel={show ? "Hide password" : "Show password"}
+          >
+            <Feather name={show ? "eye-off" : "eye"} size={18} color={colors.ink4} />
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={reset}>
+      <Pressable style={em.backdrop} onPress={reset} />
+      <View style={[em.sheet, { backgroundColor: colors.background }]}>
+        <View style={em.handle} />
+        <Text style={[em.title, { color: colors.ink }]}>Change password</Text>
+
+        <PasswordField
+          label="Current password"
+          value={current} onChange={setCurrent}
+          show={showCurrent} onToggle={() => setShowCurrent((v) => !v)}
+          placeholder="Your current password"
+          returnKeyType="next"
+        />
+        <PasswordField
+          label="New password"
+          value={next} onChange={setNext}
+          show={showNext} onToggle={() => setShowNext((v) => !v)}
+          placeholder="At least 8 characters"
+          returnKeyType="next"
+        />
+        <PasswordField
+          label="Confirm new password"
+          value={confirm} onChange={setConfirm}
+          show={showConfirm} onToggle={() => setShowConfirm((v) => !v)}
+          placeholder="Repeat new password"
+          returnKeyType="done"
+          onSubmitEditing={handleSave}
+        />
+
+        {error ? (
+          <Text style={{ color: "#E05252", fontSize: 13, marginBottom: 12, marginTop: -4 }}>{error}</Text>
+        ) : null}
+
+        <Pressable
+          style={[em.btn, { backgroundColor: colors.rust, marginTop: 4, opacity: canSave ? 1 : 0.4 }]}
+          onPress={handleSave}
+          disabled={!canSave}
+        >
+          <Text style={em.btnText}>{loading ? "Saving…" : "Save password"}</Text>
+        </Pressable>
+        <Pressable onPress={reset} style={{ marginTop: 12, alignItems: "center" }}>
+          <Text style={{ color: colors.ink4, fontSize: 15 }}>Cancel</Text>
+        </Pressable>
+      </View>
+    </Modal>
+  );
+}
+
 type EditModalStep = "input" | "verify";
 
 function EditModal({
@@ -293,6 +417,9 @@ export default function ProfileScreen() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const [signOutModalOpen, setSignOutModalOpen] = useState(false);
+
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
   const phone = savedPhone || user?.primaryPhoneNumber?.phoneNumber || "";
@@ -454,6 +581,20 @@ export default function ProfileScreen() {
     }
   }
 
+  async function handleChangePassword(currentPassword: string, newPassword: string) {
+    if (!user) return;
+    setPasswordLoading(true);
+    try {
+      await user.updatePassword({ currentPassword, newPassword });
+      setPasswordModalOpen(false);
+      Alert.alert("Password updated", "Your password has been changed successfully.");
+    } catch (e: any) {
+      Alert.alert("Error", e?.errors?.[0]?.longMessage ?? e?.errors?.[0]?.message ?? "Could not update password. Please check your current password and try again.");
+    } finally {
+      setPasswordLoading(false);
+    }
+  }
+
   function handleSignOut() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSignOutModalOpen(true);
@@ -541,7 +682,7 @@ export default function ProfileScreen() {
           onPress={() => setPhoneModalOpen(true)}
           colors={colors}
         />
-        <RowItem icon="lock" label="Change password" onPress={() => router.push("/(auth)/forgot-password")} colors={colors} last />
+        <RowItem icon="lock" label="Change password" onPress={() => setPasswordModalOpen(true)} colors={colors} last />
       </View>
 
       {/* UPGRADE */}
@@ -691,6 +832,15 @@ export default function ProfileScreen() {
         loading={phoneLoading}
         colors={colors}
         initialValue={phone}
+      />
+
+      {/* Change password modal */}
+      <PasswordModal
+        visible={passwordModalOpen}
+        onClose={() => setPasswordModalOpen(false)}
+        onSubmit={handleChangePassword}
+        loading={passwordLoading}
+        colors={colors}
       />
     </ScrollView>
   );
