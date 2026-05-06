@@ -7,6 +7,7 @@ import {
   clerkProxyMiddleware,
 } from "./middlewares/clerkProxyMiddleware";
 import { WebhookHandlers } from "./lib/webhookHandlers";
+import { storage } from "./lib/storage";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
@@ -24,6 +25,34 @@ app.post(
     }
     try {
       const sig = Array.isArray(signature) ? signature[0] : signature;
+
+      // Handle one-time payment completions before passing to StripeSync
+      // (StripeSync only handles subscription lifecycle events)
+      try {
+        const event = JSON.parse((req.body as Buffer).toString()) as {
+          type: string;
+          data: { object: Record<string, unknown> };
+        };
+        if (event.type === "checkout.session.completed") {
+          const session = event.data.object;
+          if (session.mode === "payment") {
+            // Prefer userId from session metadata; fall back to customer lookup
+            const metaUserId = (session.metadata as Record<string, string> | null)?.userId;
+            let userId = metaUserId ?? null;
+            if (!userId && typeof session.customer === "string") {
+              const user = await storage.getUserByStripeCustomerId(session.customer);
+              userId = user?.id ?? null;
+            }
+            if (userId) {
+              await storage.grantProOverride(userId, "Single Session purchase");
+              logger.info({ userId }, "Granted pro override for single-session purchase");
+            }
+          }
+        }
+      } catch (parseErr) {
+        logger.warn({ parseErr }, "Could not parse webhook event for one-time payment check");
+      }
+
       await WebhookHandlers.processWebhook(req.body as Buffer, sig);
       res.status(200).json({ received: true });
     } catch (err: unknown) {

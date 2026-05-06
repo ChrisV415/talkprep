@@ -69,14 +69,20 @@ router.post("/stripe/checkout", requireAuth, async (req: Request, res: Response)
       customerId = customer.id;
     }
 
+    // Determine whether this is a one-time or recurring price
+    const priceObj = await stripe.prices.retrieve(priceId);
+    const mode = priceObj.recurring ? "subscription" : "payment";
+
     const baseUrl = `https://${process.env.REPLIT_DOMAINS?.split(",")[0]}`;
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ["card"],
       line_items: [{ price: priceId, quantity: 1 }],
-      mode: "subscription",
+      mode,
       success_url: `${baseUrl}/?checkout=success`,
       cancel_url: `${baseUrl}/?checkout=cancel`,
+      // Store userId in metadata so the webhook can grant access after payment
+      metadata: { userId },
     });
 
     res.json({ url: session.url });

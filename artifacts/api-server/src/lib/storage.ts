@@ -109,6 +109,14 @@ export class Storage {
     await db.delete(proOverrides).where(eq(proOverrides.userId, userId));
   }
 
+  async getUserByStripeCustomerId(customerId: string) {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.stripeCustomerId, customerId));
+    return user ?? null;
+  }
+
   async hasProOverride(userId: string): Promise<boolean> {
     const [row] = await db
       .select()

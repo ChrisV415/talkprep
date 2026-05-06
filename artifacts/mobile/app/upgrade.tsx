@@ -298,7 +298,7 @@ export default function UpgradeScreen() {
           <Text style={styles.heroTag}>Pricing</Text>
           <Text style={styles.heroTitle}>Less than one{"\n"}hour of coaching.</Text>
           <Text style={styles.heroSub}>
-            Start completely free — no credit card required{"\n"}for your first 3 sessions.
+            Your first prep is free.{"\n"}Upgrade anytime for unlimited access.
           </Text>
         </View>
 
