@@ -74,9 +74,9 @@ export default function TabLayout() {
           title: "Home",
           tabBarIcon: ({ color }) =>
             isIOS ? (
-              <SymbolView name="house" tintColor={color} size={22} />
+              <SymbolView name="house" tintColor={color} size={26} />
             ) : (
-              <Feather name="home" size={22} color={color} />
+              <Feather name="home" size={26} color={color} />
             ),
         }}
       />
@@ -86,9 +86,9 @@ export default function TabLayout() {
           title: "History",
           tabBarIcon: ({ color }) =>
             isIOS ? (
-              <SymbolView name="clock" tintColor={color} size={22} />
+              <SymbolView name="clock" tintColor={color} size={26} />
             ) : (
-              <Feather name="clock" size={22} color={color} />
+              <Feather name="clock" size={26} color={color} />
             ),
         }}
       />
@@ -98,9 +98,9 @@ export default function TabLayout() {
           title: "Progress",
           tabBarIcon: ({ color }) =>
             isIOS ? (
-              <SymbolView name="chart.bar" tintColor={color} size={22} />
+              <SymbolView name="chart.bar" tintColor={color} size={26} />
             ) : (
-              <Feather name="bar-chart-2" size={22} color={color} />
+              <Feather name="bar-chart-2" size={26} color={color} />
             ),
         }}
       />
@@ -110,9 +110,9 @@ export default function TabLayout() {
           title: "Profile",
           tabBarIcon: ({ color }) =>
             isIOS ? (
-              <SymbolView name="person.circle" tintColor={color} size={22} />
+              <SymbolView name="person.circle" tintColor={color} size={26} />
             ) : (
-              <Feather name="user" size={22} color={color} />
+              <Feather name="user" size={26} color={color} />
             ),
         }}
       />

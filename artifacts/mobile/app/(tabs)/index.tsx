@@ -279,7 +279,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       paddingHorizontal: 20,
       paddingBottom: 8,
     },
-    logo: { width: 44, height: 44, marginBottom: 2 },
+    logo: { width: 60, height: 60, marginBottom: 2 },
     tagline: {
       fontSize: 11,
       color: colors.ink3,
