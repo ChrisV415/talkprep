@@ -321,20 +321,13 @@ function EditModal({
               autoCapitalize="none"
               autoFocus
             />
-            {keyboardType === "email-address" && (
-              <Text style={[em.hint, { color: colors.ink4 }]}>
-                We'll send a verification code to your new email.
-              </Text>
-            )}
             <Pressable
               style={[em.btn, { backgroundColor: colors.rust, opacity: value.trim() && !loading ? 1 : 0.4 }]}
               onPress={() => onSubmit(value.trim())}
               disabled={!value.trim() || loading}
             >
               <Text style={em.btnText}>
-                {loading
-                  ? keyboardType === "phone-pad" ? "Saving…" : "Sending…"
-                  : keyboardType === "phone-pad" ? "Save" : "Send verification code"}
+                {loading ? "Saving…" : "Save"}
               </Text>
             </Pressable>
           </>
