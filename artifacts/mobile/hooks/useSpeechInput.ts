@@ -28,28 +28,39 @@ export function useSpeechInput({ onResult, onError }: Options) {
 
     const r = new SpeechRecognition();
     r.lang = "en-US";
-    r.interimResults = false;
+    // interimResults must be true on iOS Safari — with false, onresult often never fires
+    r.interimResults = true;
     r.continuous = false;
     r.maxAlternatives = 1;
+
+    // Accumulate transcript across all result events
+    let accumulated = "";
 
     r.onstart = () => setIsListening(true);
 
     r.onresult = (event: any) => {
-      const text = Array.from(event.results as any[])
-        .map((res: any) => res[0].transcript)
-        .join(" ")
-        .trim();
-      if (text) onResultRef.current(text);
+      // Use indexed loop — Array.from(event.results) is unreliable on iOS Safari
+      let text = "";
+      for (let i = 0; i < event.results.length; i++) {
+        text += event.results[i][0].transcript;
+      }
+      accumulated = text.trim();
     };
 
+    // Deliver the result on end — more reliable than delivering inside onresult on iOS
     r.onend = () => {
       recognitionRef.current = null;
       setIsListening(false);
+      if (accumulated) {
+        onResultRef.current(accumulated);
+        accumulated = "";
+      }
     };
 
     r.onerror = (event: any) => {
       recognitionRef.current = null;
       setIsListening(false);
+      accumulated = "";
       const err: string = event.error ?? "";
       if (err === "not-allowed" || err === "permission-denied") {
         onErrorRef.current?.("permission");

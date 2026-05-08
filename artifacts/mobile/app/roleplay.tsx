@@ -228,7 +228,6 @@ export default function RoleplayScreen() {
   }
 
   function endRoleplay() {
-    if (historyRef.current.length < 2) return;
     clearInterval(timerRef.current);
     router.push("/transcript");
   }
@@ -323,7 +322,7 @@ export default function RoleplayScreen() {
       </KeyboardAvoidingView>
 
       <Pressable
-        style={[styles.endBtn, { bottom: insets.bottom + 80 }]}
+        style={[styles.endBtn, { bottom: insets.bottom + 140 }]}
         onPress={endRoleplay}
       >
         <Text style={styles.endBtnText}>End Practice</Text>
