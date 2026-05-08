@@ -80,6 +80,14 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url || "/", `http://${req.headers.host}`);
   const pathname = url.pathname;
 
+  // Dedicated health check — instant inline response, no file I/O.
+  // Cloud Run startup probe hits this path; respond before anything else.
+  if (pathname === "/healthz") {
+    res.writeHead(200, { "content-type": "text/plain", "cache-control": "no-store" });
+    res.end("ok");
+    return;
+  }
+
   // Resolve to a file path inside dist/
   const safePath = path.normalize(pathname).replace(/^(\.\.(\/|\\|$))+/, "");
   const filePath = path.join(DIST_ROOT, safePath);
