@@ -172,7 +172,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setState((s) => ({ ...s, isPro: !!data?.isPro, isProLoaded: true }));
       })
       .catch(() => {
-        setState((s) => ({ ...s, isPro: false, isProLoaded: true }));
+        // Fallback: try the Stripe subscription endpoint if the primary one fails
+        return authFetch("api/stripe/subscription", "GET")
+          .then((data: { subscription: { status: string } | null }) => {
+            const sub = data?.subscription as { status: string } | null;
+            const active = sub != null && (sub.status === "active" || sub.status === "trialing");
+            setState((s) => ({ ...s, isPro: active, isProLoaded: true }));
+          })
+          .catch(() => {
+            setState((s) => ({ ...s, isPro: false, isProLoaded: true }));
+          });
       });
   }, [isSignedIn, authFetch]);
 

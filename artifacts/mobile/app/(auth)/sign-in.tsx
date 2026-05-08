@@ -1,4 +1,4 @@
-import { useSignIn } from "@clerk/expo";
+import { useClerk } from "@clerk/expo";
 import { Link, useRouter } from "expo-router";
 import React from "react";
 import {
@@ -94,13 +94,17 @@ function SubmitBtn({
 }
 
 export default function SignInScreen() {
-  const { signIn, setActive, isLoaded } = useSignIn();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const clerk = useClerk() as any;
   const router = useRouter();
 
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
+
+  const signIn = clerk?.client?.signIn;
+  const isLoaded = !!clerk?.loaded;
 
   const handleSignIn = async () => {
     if (!isLoaded || !signIn) {
@@ -116,14 +120,15 @@ export default function SignInScreen() {
         password,
       });
       if (result.status === "complete") {
-        await setActive!({ session: result.createdSessionId });
+        await clerk.setActive({ session: result.createdSessionId });
         router.replace("/(tabs)");
       } else {
         setError("Sign in could not be completed. Please try again.");
       }
-    } catch (err: any) {
-      const clerkMsg = err.errors?.[0]?.longMessage ?? err.errors?.[0]?.message;
-      setError(clerkMsg ?? err.message ?? "An error occurred. Please try again.");
+    } catch (err: unknown) {
+      const e = err as { errors?: { longMessage?: string; message?: string }[]; message?: string };
+      const clerkMsg = e.errors?.[0]?.longMessage ?? e.errors?.[0]?.message;
+      setError(clerkMsg ?? e.message ?? "An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }

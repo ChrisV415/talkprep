@@ -80,23 +80,46 @@ export default function UpgradeScreen() {
   useEffect(() => {
     const baseUrl = getApiUrl();
 
-    // Pro-status fetch is independent — if Pro, stop the spinner immediately
+    // Safety net: always stop spinner after 10s no matter what
+    const safetyTimer = setTimeout(() => setLoading(false), 10_000);
+
+    // Pro-status — try primary endpoint, fall back to Stripe subscription
+    const checkPro = (token: string | null) =>
+      fetch(`${baseUrl}api/user/pro-status`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+        .then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json() as Promise<{ isPro?: boolean }>;
+        })
+        .catch(() =>
+          fetch(`${baseUrl}api/stripe/subscription`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          })
+            .then((r) => r.json())
+            .then((d: { subscription?: { status: string } | null }) => ({
+              isPro:
+                d?.subscription != null &&
+                (d.subscription.status === "active" || d.subscription.status === "trialing"),
+            }))
+            .catch(() => ({ isPro: false })),
+        );
+
     getToken()
-      .then((token) =>
-        fetch(`${baseUrl}api/user/pro-status`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        }).then((r) => r.json()),
-      )
-      .then((proRes: { isPro?: boolean }) => {
+      .then((token) => checkPro(token))
+      .then((proRes) => {
         if (proRes?.isPro) {
           setCurrentSub({ status: "active" });
+          clearTimeout(safetyTimer);
           setLoading(false);
         }
       })
       .catch(() => {});
 
-    // Products fetch — failure shows a graceful error but doesn't block Pro state
-    fetch(`${baseUrl}api/stripe/products`)
+    // Products fetch — failure shows a graceful error, never blocks Pro state
+    const productsCtrl = new AbortController();
+    const productsTimeout = setTimeout(() => productsCtrl.abort(), 8_000);
+    fetch(`${baseUrl}api/stripe/products`, { signal: productsCtrl.signal })
       .then((r) => r.json())
       .then((productsRes: { data?: Product[] }) => {
         const sorted = ((productsRes.data ?? []) as Product[]).sort(
@@ -106,8 +129,18 @@ export default function UpgradeScreen() {
         const monthly = sorted.find((p) => p.name === "Monthly Pro");
         if (monthly?.prices[0]) setSelectedPriceId(monthly.prices[0].id);
       })
-      .catch(() => setError("Couldn't load plans. Please try again."))
-      .finally(() => setLoading(false));
+      .catch(() => setError("Plans unavailable. Contact support to upgrade."))
+      .finally(() => {
+        clearTimeout(productsTimeout);
+        clearTimeout(safetyTimer);
+        setLoading(false);
+      });
+
+    return () => {
+      clearTimeout(safetyTimer);
+      clearTimeout(productsTimeout);
+      productsCtrl.abort();
+    };
   }, []);
 
   const handleSubscribe = useCallback(async () => {
