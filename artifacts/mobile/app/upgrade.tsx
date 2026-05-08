@@ -80,7 +80,7 @@ export default function UpgradeScreen() {
   useEffect(() => {
     const baseUrl = getApiUrl();
 
-    // Pro-status fetch is independent — never let a Stripe failure block it
+    // Pro-status fetch is independent — if Pro, stop the spinner immediately
     getToken()
       .then((token) =>
         fetch(`${baseUrl}api/user/pro-status`, {
@@ -88,7 +88,10 @@ export default function UpgradeScreen() {
         }).then((r) => r.json()),
       )
       .then((proRes: { isPro?: boolean }) => {
-        if (proRes?.isPro) setCurrentSub({ status: "active" });
+        if (proRes?.isPro) {
+          setCurrentSub({ status: "active" });
+          setLoading(false);
+        }
       })
       .catch(() => {});
 
