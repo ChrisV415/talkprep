@@ -405,14 +405,20 @@ export default function ProfileScreen() {
   const [nameValue, setNameValue] = useState("");
   const [savingName, setSavingName] = useState(false);
 
+  const getDisplayName = (u: typeof user): string =>
+    (u?.unsafeMetadata?.displayName as string | undefined) ||
+    u?.fullName ||
+    u?.firstName ||
+    "";
+
   // Sync nameValue whenever user loads or whenever edit mode opens
   useEffect(() => {
-    setNameValue(user?.fullName ?? user?.firstName ?? "");
-  }, [user?.id, user?.fullName, user?.firstName]);
+    setNameValue(getDisplayName(user));
+  }, [user?.id, user?.fullName, user?.firstName, user?.unsafeMetadata?.displayName]);
 
   useEffect(() => {
     if (editingName) {
-      setNameValue(user?.fullName ?? user?.firstName ?? "");
+      setNameValue(getDisplayName(user));
     }
   }, [editingName]);
 
@@ -434,8 +440,10 @@ export default function ProfileScreen() {
 
   const email = user?.primaryEmailAddress?.emailAddress ?? "";
   const phone = savedPhone || user?.primaryPhoneNumber?.phoneNumber || "";
-  const initials = ((user?.firstName?.[0] ?? "") + (user?.lastName?.[0] ?? "")).toUpperCase()
-    || email.slice(0, 2).toUpperCase() || "?";
+  const displayName = getDisplayName(user);
+  const initials = displayName
+    ? displayName.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()
+    : email.slice(0, 2).toUpperCase() || "?";
   const avatarUrl = user?.imageUrl ?? null;
 
   async function pickAndUploadAvatar(source: "library" | "camera") {
@@ -523,8 +531,10 @@ export default function ProfileScreen() {
     if (!user || !nameValue.trim()) return;
     setSavingName(true);
     try {
-      const parts = nameValue.trim().split(" ");
-      await user.update({ firstName: parts[0], lastName: parts.slice(1).join(" ") || undefined });
+      const trimmed = nameValue.trim();
+      await user.update({
+        unsafeMetadata: { ...user.unsafeMetadata, displayName: trimmed },
+      });
       await user.reload();
       setEditingName(false);
     } catch (e: any) {
@@ -671,7 +681,7 @@ export default function ProfileScreen() {
             </View>
           ) : (
             <Pressable onPress={() => setEditingName(true)} style={ms.nameRow}>
-              <Text style={ms.nameText}>{user?.fullName || user?.firstName || "Your Name"}</Text>
+              <Text style={ms.nameText}>{displayName || "Your Name"}</Text>
               <Feather name="edit-2" size={14} color={colors.ink4} style={{ marginLeft: 6, marginTop: 2 }} />
             </Pressable>
           )}
@@ -683,7 +693,7 @@ export default function ProfileScreen() {
       {/* ACCOUNT */}
       <SectionHeader label="Account" colors={colors} />
       <View style={ms.card}>
-        <RowItem icon="user" label="Display name" value={user?.fullName || user?.firstName || "—"} onPress={() => setEditingName(true)} colors={colors} />
+        <RowItem icon="user" label="Display name" value={displayName || "—"} onPress={() => setEditingName(true)} colors={colors} />
         <RowItem
           icon="mail" label="Email address" value={email}
           onPress={() => { setEmailStep("input"); setEmailModalOpen(true); }}
