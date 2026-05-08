@@ -31,6 +31,11 @@ router.get("/stripe/products", async (_req: Request, res: Response) => {
 router.get("/stripe/subscription", requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = (req as AuthenticatedRequest).userId;
+    const hasOverride = await storage.hasProOverride(userId);
+    if (hasOverride) {
+      res.json({ subscription: { status: "active", source: "override" } });
+      return;
+    }
     const sub = await storage.getActiveSubscription(userId);
     res.json({ subscription: sub });
   } catch (err) {

@@ -80,24 +80,26 @@ export default function UpgradeScreen() {
   useEffect(() => {
     const baseUrl = getApiUrl();
 
-    Promise.all([
-      fetch(`${baseUrl}api/stripe/products`).then((r) => r.json()),
-      getToken()
-        .then((token) =>
-          fetch(`${baseUrl}api/user/pro-status`, {
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
-          }).then((r) => r.json()),
-        )
-        .catch(() => ({ isPro: false })),
-    ])
-      .then(([productsRes, proRes]) => {
-        const sorted = ((productsRes.data ?? []) as Product[]).sort((a, b) => {
-          return PLAN_ORDER.indexOf(a.name) - PLAN_ORDER.indexOf(b.name);
-        });
-        setProducts(sorted);
-
+    // Pro-status fetch is independent — never let a Stripe failure block it
+    getToken()
+      .then((token) =>
+        fetch(`${baseUrl}api/user/pro-status`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        }).then((r) => r.json()),
+      )
+      .then((proRes: { isPro?: boolean }) => {
         if (proRes?.isPro) setCurrentSub({ status: "active" });
+      })
+      .catch(() => {});
 
+    // Products fetch — failure shows a graceful error but doesn't block Pro state
+    fetch(`${baseUrl}api/stripe/products`)
+      .then((r) => r.json())
+      .then((productsRes: { data?: Product[] }) => {
+        const sorted = ((productsRes.data ?? []) as Product[]).sort(
+          (a, b) => PLAN_ORDER.indexOf(a.name) - PLAN_ORDER.indexOf(b.name),
+        );
+        setProducts(sorted);
         const monthly = sorted.find((p) => p.name === "Monthly Pro");
         if (monthly?.prices[0]) setSelectedPriceId(monthly.prices[0].id);
       })
