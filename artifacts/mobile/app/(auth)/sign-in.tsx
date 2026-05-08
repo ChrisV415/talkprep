@@ -1,4 +1,4 @@
-import { useClerk } from "@clerk/expo";
+import { useSignIn } from "@clerk/expo";
 import { Link, useRouter } from "expo-router";
 import React from "react";
 import {
@@ -23,8 +23,6 @@ const C = {
   border: "#E3E3E3",
 };
 
-// On web, wrap children in a real <form> so the browser can detect the
-// password fields and offer to save / autofill credentials.
 function WebForm({
   onSubmit,
   children,
@@ -46,9 +44,6 @@ function WebForm({
   );
 }
 
-// On web render a real <button type="submit"> so clicking it fires the form's
-// submit event (which is what tells the browser to offer to save the password).
-// On native keep the standard Pressable.
 function SubmitBtn({
   onPress,
   disabled,
@@ -99,17 +94,13 @@ function SubmitBtn({
 }
 
 export default function SignInScreen() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const clerk = useClerk() as any;
+  const { signIn, setActive, isLoaded } = useSignIn();
   const router = useRouter();
 
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
-
-  const signIn = clerk?.client?.signIn;
-  const isLoaded = !!clerk?.loaded;
 
   const handleSignIn = async () => {
     if (!isLoaded || !signIn) {
@@ -119,9 +110,13 @@ export default function SignInScreen() {
     setLoading(true);
     setError("");
     try {
-      const result = await signIn.create({ identifier: email, password });
+      const result = await signIn.create({
+        identifier: email.trim().toLowerCase(),
+        strategy: "password",
+        password,
+      });
       if (result.status === "complete") {
-        await clerk.setActive({ session: result.createdSessionId });
+        await setActive!({ session: result.createdSessionId });
         router.replace("/(tabs)");
       } else {
         setError("Sign in could not be completed. Please try again.");

@@ -84,19 +84,19 @@ export default function UpgradeScreen() {
       fetch(`${baseUrl}api/stripe/products`).then((r) => r.json()),
       getToken()
         .then((token) =>
-          fetch(`${baseUrl}api/stripe/subscription`, {
+          fetch(`${baseUrl}api/user/pro-status`, {
             headers: token ? { Authorization: `Bearer ${token}` } : {},
           }).then((r) => r.json()),
         )
-        .catch(() => ({ subscription: null })),
+        .catch(() => ({ isPro: false })),
     ])
-      .then(([productsRes, subRes]) => {
+      .then(([productsRes, proRes]) => {
         const sorted = ((productsRes.data ?? []) as Product[]).sort((a, b) => {
           return PLAN_ORDER.indexOf(a.name) - PLAN_ORDER.indexOf(b.name);
         });
         setProducts(sorted);
 
-        if (subRes.subscription) setCurrentSub(subRes.subscription);
+        if (proRes?.isPro) setCurrentSub({ status: "active" });
 
         const monthly = sorted.find((p) => p.name === "Monthly Pro");
         if (monthly?.prices[0]) setSelectedPriceId(monthly.prices[0].id);

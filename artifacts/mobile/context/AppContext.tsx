@@ -167,13 +167,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const refreshProStatus = useCallback(() => {
     if (!isSignedIn) return;
-    authFetch("api/stripe/subscription", "GET")
-      .then((data: { subscription: unknown }) => {
-        const sub = data?.subscription as Record<string, unknown> | null;
-        const active =
-          sub != null &&
-          (sub.status === "active" || sub.status === "trialing");
-        setState((s) => ({ ...s, isPro: active, isProLoaded: true }));
+    authFetch("api/user/pro-status", "GET")
+      .then((data: { isPro: boolean }) => {
+        setState((s) => ({ ...s, isPro: !!data?.isPro, isProLoaded: true }));
       })
       .catch(() => {
         setState((s) => ({ ...s, isPro: false, isProLoaded: true }));

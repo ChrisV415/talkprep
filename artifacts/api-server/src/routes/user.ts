@@ -12,6 +12,17 @@ router.get("/user/me", requireAuth, async (req: Request, res: Response) => {
   res.json({ user });
 });
 
+router.get("/user/pro-status", requireAuth, async (req: Request, res: Response) => {
+  const userId = (req as AuthenticatedRequest).userId;
+  try {
+    const isPro = await storage.isProUser(userId);
+    const hasOverride = isPro ? await storage.hasProOverride(userId) : false;
+    res.json({ isPro, source: hasOverride ? "override" : isPro ? "stripe" : "none" });
+  } catch {
+    res.json({ isPro: false, source: "none" });
+  }
+});
+
 router.post("/user/phone", requireAuth, async (req: Request, res: Response) => {
   const userId = (req as AuthenticatedRequest).userId;
   const { phone } = req.body as { phone: string };
@@ -20,10 +31,10 @@ router.post("/user/phone", requireAuth, async (req: Request, res: Response) => {
     return;
   }
   try {
-    const user = await storage.upsertUser(userId);
+    await storage.upsertUser(userId);
     await storage.savePhone(userId, phone);
     res.json({ ok: true });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Failed to save phone number" });
   }
 });
