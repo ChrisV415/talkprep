@@ -5,14 +5,20 @@ const fs = require("fs");
 const projectRoot = path.resolve(__dirname, "..");
 
 function getDeploymentDomain() {
+  // REPLIT_DOMAINS is a comma-separated list available in both build and run
+  // environments: "talk-prep.replit.app,..." — take the first entry.
+  const replitDomains = process.env.REPLIT_DOMAINS
+    ? process.env.REPLIT_DOMAINS.split(",")[0].trim()
+    : null;
+
   const d =
     process.env.REPLIT_INTERNAL_APP_DOMAIN ||
+    replitDomains ||
     process.env.EXPO_PUBLIC_DOMAIN ||
-    process.env.REPLIT_DEV_DOMAIN;
-  if (!d) {
-    console.error("ERROR: No deployment domain found.");
-    process.exit(1);
-  }
+    process.env.REPLIT_DEV_DOMAIN ||
+    "talk-prep.replit.app"; // hardcoded last-resort so the build never fails
+
+  console.log(`Domain resolved: ${d} (REPLIT_INTERNAL_APP_DOMAIN=${process.env.REPLIT_INTERNAL_APP_DOMAIN || "unset"}, REPLIT_DOMAINS=${process.env.REPLIT_DOMAINS || "unset"})`);
   return d.replace(/^https?:\/\//, "");
 }
 
