@@ -137,10 +137,6 @@ if (iconSrc) {
   console.warn("Warning: icon PNG not found in dist — splash not injected.");
 }
 
-// ── 6. Write patched HTML ─────────────────────────────────────────────────────
-fs.writeFileSync(indexPath, html, "utf8");
-console.log("Patched dist/index.html — done.");
-
 // ── 7. Write robots.txt ───────────────────────────────────────────────────────
 // Without this the SPA fallback serves index.html for /robots.txt, causing
 // Lighthouse to report 46 robots.txt syntax errors.
@@ -148,3 +144,58 @@ const robotsPath = path.join(projectRoot, "dist", "robots.txt");
 const robotsTxt = `User-agent: *\nAllow: /\n`;
 fs.writeFileSync(robotsPath, robotsTxt, "utf8");
 console.log("Written dist/robots.txt.");
+
+// ── 8. Font-display: swap for Sora ───────────────────────────────────────────
+// expo-font's useFonts() injects @font-face without font-display, causing FOIT
+// (Flash of Invisible Text) on slow connections. Pre-declare the @font-face
+// rules with font-display:swap + src so the browser uses a fallback font
+// immediately and swaps to Sora once it's loaded.
+const soraWeights = [
+  { name: "Sora_400Regular", weight: 400, dir: "400Regular" },
+  { name: "Sora_500Medium",  weight: 500, dir: "500Medium"  },
+  { name: "Sora_600SemiBold", weight: 600, dir: "600SemiBold" },
+  { name: "Sora_700Bold",    weight: 700, dir: "700Bold"    },
+];
+
+function findSoraTtf(weightDir) {
+  // Locate the versioned pnpm dir — e.g. ".pnpm/@expo-google-fonts+sora@0.4.2"
+  const pnpmRoot = path.join(projectRoot, "dist", "assets", "__node_modules", ".pnpm");
+  if (!fs.existsSync(pnpmRoot)) return null;
+  const soraEntry = fs.readdirSync(pnpmRoot).find((d) => d.startsWith("@expo-google-fonts+sora"));
+  if (!soraEntry) return null;
+  const dir = path.join(pnpmRoot, soraEntry, "node_modules", "@expo-google-fonts", "sora", weightDir);
+  if (!fs.existsSync(dir)) return null;
+  const file = fs.readdirSync(dir).find((f) => f.endsWith(".ttf"));
+  if (!file) return null;
+  return `/assets/__node_modules/.pnpm/${soraEntry}/node_modules/@expo-google-fonts/sora/${weightDir}/${file}`;
+}
+
+const fontFaceRules = [];
+let soraRegularSrc = null;
+for (const { name, weight, dir } of soraWeights) {
+  const src = findSoraTtf(dir);
+  if (src) {
+    if (name === "Sora_400Regular") soraRegularSrc = src;
+    fontFaceRules.push(
+      `  @font-face { font-family: '${name}'; src: url('${src}') format('truetype'); font-weight: ${weight}; font-style: normal; font-display: swap; }`
+    );
+  }
+}
+
+if (fontFaceRules.length > 0) {
+  const fontStyle = `<style id="font-display-swap">\n${fontFaceRules.join("\n")}\n</style>`;
+  html = html.replace("</head>", `${fontStyle}\n</head>`);
+  console.log(`Injected font-display:swap for ${fontFaceRules.length} Sora weights.`);
+}
+
+if (soraRegularSrc) {
+  html = html.replace(
+    "</head>",
+    `<link rel="preload" href="${soraRegularSrc}" as="font" type="font/ttf" crossorigin>\n</head>`
+  );
+  console.log(`Preloaded Sora_400Regular.`);
+}
+
+// ── 9. Final write ────────────────────────────────────────────────────────────
+fs.writeFileSync(indexPath, html, "utf8");
+console.log("Final index.html written.");
