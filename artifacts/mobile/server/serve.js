@@ -2,11 +2,13 @@
  * Production server for the TalkPrep PWA web build.
  * Serves the output of `expo export --platform web` (dist/).
  * All unknown paths fall back to index.html for SPA routing.
+ * Gzip compression is applied for all compressible content types.
  */
 
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const zlib = require("zlib");
 
 const DIST_ROOT = path.resolve(__dirname, "..", "dist");
 const INDEX_HTML = path.join(DIST_ROOT, "index.html");
@@ -33,6 +35,12 @@ const MIME_TYPES = {
   ".txt": "text/plain; charset=utf-8",
 };
 
+// File types that benefit from gzip compression
+const COMPRESSIBLE = new Set([
+  ".js", ".mjs", ".json", ".css", ".html", ".txt",
+  ".svg", ".webmanifest", ".map",
+]);
+
 if (!fs.existsSync(DIST_ROOT)) {
   console.error("ERROR: dist/ directory not found. Run the build first.");
   process.exit(1);
@@ -41,6 +49,27 @@ if (!fs.existsSync(DIST_ROOT)) {
 if (!fs.existsSync(INDEX_HTML)) {
   console.error("ERROR: dist/index.html not found.");
   process.exit(1);
+}
+
+function acceptsGzip(req) {
+  return (req.headers["accept-encoding"] || "").includes("gzip");
+}
+
+function serveFile(res, filePath, contentType, cacheControl, useGzip) {
+  const headers = {
+    "content-type": contentType,
+    "cache-control": cacheControl,
+    "vary": "Accept-Encoding",
+  };
+
+  if (useGzip) {
+    headers["content-encoding"] = "gzip";
+    res.writeHead(200, headers);
+    fs.createReadStream(filePath).pipe(zlib.createGzip({ level: 6 })).pipe(res);
+  } else {
+    res.writeHead(200, headers);
+    fs.createReadStream(filePath).pipe(res);
+  }
 }
 
 const server = http.createServer((req, res) => {
@@ -62,28 +91,34 @@ const server = http.createServer((req, res) => {
   if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
     const ext = path.extname(filePath).toLowerCase();
     const contentType = MIME_TYPES[ext] || "application/octet-stream";
-
-    // Cache static assets aggressively, HTML never
     const isHtml = ext === ".html";
-    res.writeHead(200, {
-      "content-type": contentType,
-      "cache-control": isHtml
-        ? "no-cache, no-store, must-revalidate"
-        : "public, max-age=31536000, immutable",
-    });
-    fs.createReadStream(filePath).pipe(res);
+    const cacheControl = isHtml
+      ? "no-cache, no-store, must-revalidate"
+      : "public, max-age=31536000, immutable";
+    const compress = COMPRESSIBLE.has(ext) && acceptsGzip(req);
+
+    serveFile(res, filePath, contentType, cacheControl, compress);
     return;
   }
 
   // SPA fallback — serve index.html for all unmatched routes
-  res.writeHead(200, {
+  const compress = acceptsGzip(req);
+  const headers = {
     "content-type": "text/html; charset=utf-8",
     "cache-control": "no-cache, no-store, must-revalidate",
-  });
-  fs.createReadStream(INDEX_HTML).pipe(res);
+    "vary": "Accept-Encoding",
+  };
+  if (compress) {
+    headers["content-encoding"] = "gzip";
+    res.writeHead(200, headers);
+    fs.createReadStream(INDEX_HTML).pipe(zlib.createGzip({ level: 6 })).pipe(res);
+  } else {
+    res.writeHead(200, headers);
+    fs.createReadStream(INDEX_HTML).pipe(res);
+  }
 });
 
 const port = parseInt(process.env.PORT || "3000", 10);
 server.listen(port, "0.0.0.0", () => {
-  console.log(`TalkPrep PWA serving from dist/ on port ${port}`);
+  console.log(`TalkPrep PWA serving from dist/ on port ${port} (gzip enabled)`);
 });

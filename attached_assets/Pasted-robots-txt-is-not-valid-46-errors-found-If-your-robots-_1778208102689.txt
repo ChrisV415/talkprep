@@ -1,0 +1,143 @@
+robots.txt is not valid 46 errors found
+If your robots.txt file is malformed, crawlers may not be able to understand how you want your website to be crawled or indexed. Learn more about robots.txt.
+Line #
+Content
+Error
+1
+<!DOCTYPE html>
+Syntax not understood
+2
+<html lang="en">
+Syntax not understood
+3
+<head>
+Syntax not understood
+4
+<meta charset="utf-8" />
+Syntax not understood
+5
+<meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+Syntax not understood
+6
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+Syntax not understood
+7
+<title>TalkPrep</title>
+Syntax not understood
+8
+<!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
+Unknown directive
+9
+<style id="expo-reset">
+Syntax not understood
+10
+/* Make body full-height */
+Syntax not understood
+11
+html,
+Syntax not understood
+12
+body {
+Syntax not understood
+13
+height: 100%;
+Unknown directive
+14
+/* Prevent rubber-band / elastic overscroll on the page */
+Syntax not understood
+15
+overscroll-behavior: none;
+Unknown directive
+16
+}
+Syntax not understood
+17
+/* Disable body scrolling when using <ScrollView>.
+Syntax not understood
+18
+position:fixed locks the layout so the mobile browser address-bar
+Unknown directive
+19
+appearing / disappearing never resizes the viewport and causes jitter. */
+Syntax not understood
+20
+body {
+Syntax not understood
+21
+overflow: hidden;
+Unknown directive
+22
+position: fixed;
+Unknown directive
+23
+top: 0;
+Unknown directive
+24
+left: 0;
+Unknown directive
+25
+width: 100%;
+Unknown directive
+26
+}
+Syntax not understood
+27
+/* Make root element full-height */
+Syntax not understood
+29
+display: flex;
+Unknown directive
+30
+height: 100%;
+Unknown directive
+31
+flex: 1;
+Unknown directive
+32
+overflow: hidden;
+Unknown directive
+33
+}
+Syntax not understood
+34
+</style>
+Syntax not understood
+35
+<meta name="theme-color" content="#C67C4E">
+Syntax not understood
+36
+<meta name="description" content="AI-powered conversation prep — practice interviews, pitches, and tough talks.">
+Syntax not understood
+37
+<link rel="icon" href="/favicon.ico" /></head>
+Syntax not understood
+39
+<body>
+Syntax not understood
+40
+<!-- Use static rendering with Expo Router to support running without JavaScript. -->
+Syntax not understood
+41
+<noscript>
+Syntax not understood
+42
+You need to enable JavaScript to run this app.
+Syntax not understood
+43
+</noscript>
+Syntax not understood
+44
+<!-- The root element for your Expo app. -->
+Syntax not understood
+45
+<div id="root"></div>
+Syntax not understood
+46
+<script src="/_expo/static/js/web/entry-bfd15ae4be81724ea558cf7ca2c4563b.js" defer></script>
+Syntax not understood
+47
+</body>
+Syntax not understood
+48
+</html>
+Syntax not understood

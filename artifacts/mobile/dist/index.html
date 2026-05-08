@@ -7,34 +7,42 @@
     <title>TalkPrep</title>
     <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
     <style id="expo-reset">
-      /* Make body full-height */
-      html,
-      body {
+      html, body {
         height: 100%;
-        /* Prevent rubber-band / elastic overscroll on the page */
         overscroll-behavior: none;
       }
-      /* Disable body scrolling when using <ScrollView>.
-         position:fixed locks the layout so the mobile browser address-bar
-         appearing / disappearing never resizes the viewport and causes jitter. */
       body {
         overflow: hidden;
         position: fixed;
-        top: 0;
-        left: 0;
+        top: 0; left: 0;
         width: 100%;
+        background: #F9F2ED;
       }
-      /* Make root element full-height */
       #root {
         display: flex;
         height: 100%;
         flex: 1;
         overflow: hidden;
       }
+      /* Splash fades out once React mounts */
+      #app-splash {
+        position: fixed;
+        inset: 0;
+        background: #F9F2ED;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.2s ease;
+      }
     </style>
   <meta name="theme-color" content="#C67C4E">
 <meta name="description" content="AI-powered conversation prep — practice interviews, pitches, and tough talks.">
-<link rel="icon" href="/favicon.ico" /></head>
+<link rel="icon" href="/favicon.ico" /><link rel="preload" href="/_expo/static/js/web/entry-6f497dc9915ab757b01f0da60a9a044f.js" as="script" crossorigin>
+<link rel="preload" href="/assets/assets/images/icon.e6a1742ae9d57f7036ab91d82d629b8a.png" as="image">
+<link rel="preconnect" href="https://clerk.accounts.dev" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
 
   <body>
     <!-- Use static rendering with Expo Router to support running without JavaScript. -->
@@ -42,7 +50,7 @@
       You need to enable JavaScript to run this app.
     </noscript>
     <!-- The root element for your Expo app. -->
-    <div id="root"></div>
+    <div id="root"><div id="app-splash"><img src="/assets/assets/images/icon.e6a1742ae9d57f7036ab91d82d629b8a.png" width="80" height="80" style="border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,0.10);" fetchpriority="high" alt="TalkPrep"/></div></div>
   <script src="/_expo/static/js/web/entry-6f497dc9915ab757b01f0da60a9a044f.js" defer></script>
 </body>
 </html>
