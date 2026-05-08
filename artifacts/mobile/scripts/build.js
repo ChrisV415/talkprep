@@ -140,3 +140,11 @@ if (iconSrc) {
 // ── 6. Write patched HTML ─────────────────────────────────────────────────────
 fs.writeFileSync(indexPath, html, "utf8");
 console.log("Patched dist/index.html — done.");
+
+// ── 7. Write robots.txt ───────────────────────────────────────────────────────
+// Without this the SPA fallback serves index.html for /robots.txt, causing
+// Lighthouse to report 46 robots.txt syntax errors.
+const robotsPath = path.join(projectRoot, "dist", "robots.txt");
+const robotsTxt = `User-agent: *\nAllow: /\n`;
+fs.writeFileSync(robotsPath, robotsTxt, "utf8");
+console.log("Written dist/robots.txt.");

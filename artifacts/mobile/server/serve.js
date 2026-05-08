@@ -72,6 +72,10 @@ function serveFile(res, filePath, contentType, cacheControl, useGzip) {
   }
 }
 
+// Well-known paths that must never fall through to the SPA index.html fallback.
+// Serving index.html for these causes crawlers / Lighthouse to report errors.
+const EXACT_FILES = new Set(["/robots.txt", "/sitemap.xml", "/favicon.ico", "/apple-touch-icon.png"]);
+
 const server = http.createServer((req, res) => {
   const url = new URL(req.url || "/", `http://${req.headers.host}`);
   const pathname = url.pathname;
@@ -98,6 +102,14 @@ const server = http.createServer((req, res) => {
     const compress = COMPRESSIBLE.has(ext) && acceptsGzip(req);
 
     serveFile(res, filePath, contentType, cacheControl, compress);
+    return;
+  }
+
+  // Well-known paths that are not SPA routes — return 404 rather than
+  // serving index.html, which would confuse crawlers (e.g. robots.txt).
+  if (EXACT_FILES.has(pathname)) {
+    res.writeHead(404, { "content-type": "text/plain" });
+    res.end("Not found");
     return;
   }
 
