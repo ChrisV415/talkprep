@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import {
   ActivityIndicator,
   Linking,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -66,24 +67,32 @@ const PLAN_FEATURES: Record<string, string[]> = {
   ],
 };
 
+// Navigate to a URL without triggering browser popup-blocker.
+// On web we do a same-tab redirect (window.location.href) so browsers never
+// classify it as an unsolicited popup — even when called after an async fetch.
+function openCheckoutUrl(url: string) {
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    window.location.href = url;
+  } else {
+    Linking.openURL(url);
+  }
+}
+
 export default function UpgradeScreen() {
   const colors = useColors();
   const router = useRouter();
   const { getToken } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPriceId, setSelectedPriceId] = useState<string | null>(null);
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutLoadingId, setCheckoutLoadingId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [currentSub, setCurrentSub] = useState<{ status: string } | null>(null);
 
   useEffect(() => {
     const baseUrl = getApiUrl();
 
-    // Safety net: always stop spinner after 10s no matter what
     const safetyTimer = setTimeout(() => setLoading(false), 10_000);
 
-    // Pro-status — try primary endpoint, fall back to Stripe subscription
     const checkPro = (token: string | null) =>
       fetch(`${baseUrl}api/user/pro-status`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -116,7 +125,6 @@ export default function UpgradeScreen() {
       })
       .catch(() => {});
 
-    // Products fetch — failure shows a graceful error, never blocks Pro state
     const productsCtrl = new AbortController();
     const productsTimeout = setTimeout(() => productsCtrl.abort(), 8_000);
     fetch(`${baseUrl}api/stripe/products`, { signal: productsCtrl.signal })
@@ -126,8 +134,6 @@ export default function UpgradeScreen() {
           (a, b) => PLAN_ORDER.indexOf(a.name) - PLAN_ORDER.indexOf(b.name),
         );
         setProducts(sorted);
-        const monthly = sorted.find((p) => p.name === "Monthly Pro");
-        if (monthly?.prices[0]) setSelectedPriceId(monthly.prices[0].id);
       })
       .catch(() => setError("Plans unavailable. Contact support to upgrade."))
       .finally(() => {
@@ -143,9 +149,10 @@ export default function UpgradeScreen() {
     };
   }, []);
 
-  const handleSubscribe = useCallback(async () => {
-    if (!selectedPriceId) return;
-    setCheckoutLoading(true);
+  // Each plan card taps directly into checkout for that price.
+  const handleSubscribe = useCallback(async (priceId: string) => {
+    if (checkoutLoadingId) return;
+    setCheckoutLoadingId(priceId);
     setError("");
     try {
       const token = await getToken();
@@ -156,23 +163,23 @@ export default function UpgradeScreen() {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ priceId: selectedPriceId }),
+        body: JSON.stringify({ priceId }),
       });
       const data = (await res.json()) as { url?: string; error?: string };
       if (data.url) {
-        await Linking.openURL(data.url);
+        openCheckoutUrl(data.url);
       } else {
-        setError(data.error ?? "Failed to start checkout");
+        setError(data.error ?? "Failed to start checkout. Please try again.");
       }
     } catch {
-      setError("Couldn't connect. Check your connection and try again.");
+      setError("Couldn't connect to checkout. Check your connection and try again.");
     } finally {
-      setCheckoutLoading(false);
+      setCheckoutLoadingId(null);
     }
-  }, [selectedPriceId, getToken]);
+  }, [checkoutLoadingId, getToken]);
 
   const handleManageBilling = useCallback(async () => {
-    setCheckoutLoading(true);
+    setCheckoutLoadingId("portal");
     try {
       const token = await getToken();
       const baseUrl = getApiUrl();
@@ -185,11 +192,11 @@ export default function UpgradeScreen() {
         body: JSON.stringify({}),
       });
       const data = (await res.json()) as { url?: string };
-      if (data.url) await Linking.openURL(data.url);
+      if (data.url) openCheckoutUrl(data.url);
     } catch {
       setError("Couldn't open billing portal.");
     } finally {
-      setCheckoutLoading(false);
+      setCheckoutLoadingId(null);
     }
   }, [getToken]);
 
@@ -238,11 +245,7 @@ export default function UpgradeScreen() {
       marginBottom: 12,
       borderWidth: 2,
     },
-    cardSelected: {
-      borderColor: colors.rust,
-      backgroundColor: colors.card,
-    },
-    cardUnselected: {
+    cardDefault: {
       borderColor: colors.border,
       backgroundColor: colors.background,
     },
@@ -273,32 +276,19 @@ export default function UpgradeScreen() {
     featureText: { fontSize: 14, flex: 1 },
     featureTextLight: { color: colors.ink },
     featureTextDark: { color: "#EDD6C8" },
-    radioRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      marginTop: 14,
-    },
-    radioLabel: { fontSize: 14, fontWeight: "600" },
-    radio: {
-      width: 22,
-      height: 22,
-      borderRadius: 11,
-      borderWidth: 2,
+    ctaBtn: {
+      borderRadius: 28,
+      paddingVertical: 14,
       alignItems: "center",
       justifyContent: "center",
+      marginTop: 16,
+      flexDirection: "row",
+      gap: 8,
     },
-    radioInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: colors.rust },
-    ctaBtn: {
-      backgroundColor: colors.rust,
-      borderRadius: 28,
-      paddingVertical: 16,
-      alignItems: "center",
-      marginTop: 24,
-      marginBottom: 12,
-    },
+    ctaBtnLight: { backgroundColor: colors.rust },
+    ctaBtnDark: { backgroundColor: colors.rust },
     ctaBtnDisabled: { opacity: 0.5 },
-    ctaText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+    ctaText: { color: "#fff", fontSize: 15, fontWeight: "700" },
     manageBtn: {
       borderWidth: 1.5,
       borderColor: colors.rust,
@@ -309,7 +299,7 @@ export default function UpgradeScreen() {
     },
     manageBtnText: { color: colors.rust, fontSize: 15, fontWeight: "600" },
     error: { color: "#c0392b", fontSize: 13, textAlign: "center", marginTop: 8 },
-    disclaimer: { fontSize: 11, color: colors.ink4, textAlign: "center", lineHeight: 16 },
+    disclaimer: { fontSize: 11, color: colors.ink4, textAlign: "center", lineHeight: 16, marginTop: 16 },
     proTag: {
       backgroundColor: colors.rust,
       borderRadius: 12,
@@ -351,12 +341,12 @@ export default function UpgradeScreen() {
               You have unlimited access to all TalkPrep features. Thank you for being a Pro member!
             </Text>
             <Pressable
-              style={[styles.manageBtn, checkoutLoading && styles.ctaBtnDisabled]}
+              style={[styles.manageBtn, checkoutLoadingId === "portal" && styles.ctaBtnDisabled]}
               onPress={handleManageBilling}
-              disabled={checkoutLoading}
+              disabled={checkoutLoadingId === "portal"}
             >
               <Text style={styles.manageBtnText}>
-                {checkoutLoading ? "Opening…" : "Manage Billing"}
+                {checkoutLoadingId === "portal" ? "Opening…" : "Manage Billing"}
               </Text>
             </Pressable>
           </>
@@ -365,51 +355,31 @@ export default function UpgradeScreen() {
             {products.map((product) => {
               const price = product.prices[0];
               const isMonthly = product.name === "Monthly Pro";
-              const isSelected = price && selectedPriceId === price.id;
-              const isHighlighted = isMonthly;
+              const isLoading = price && checkoutLoadingId === price.id;
+              const anyLoading = !!checkoutLoadingId;
 
               return (
-                <Pressable
+                <View
                   key={product.id}
                   style={[
                     styles.card,
-                    isHighlighted
-                      ? styles.cardHighlighted
-                      : isSelected
-                        ? styles.cardSelected
-                        : styles.cardUnselected,
+                    isMonthly ? styles.cardHighlighted : styles.cardDefault,
                   ]}
-                  onPress={() => price && setSelectedPriceId(price.id)}
                 >
                   {PLAN_BADGE[product.name] && (
                     <View style={styles.badge}>
                       <Text style={styles.badgeText}>{PLAN_BADGE[product.name]}</Text>
                     </View>
                   )}
-                  <Text
-                    style={[
-                      styles.planName,
-                      isHighlighted ? styles.planNameDark : styles.planNameLight,
-                    ]}
-                  >
+                  <Text style={[styles.planName, isMonthly ? styles.planNameDark : styles.planNameLight]}>
                     {product.name.replace(" Pro", "")}
                   </Text>
                   {price && (
-                    <Text
-                      style={[
-                        styles.planPrice,
-                        isHighlighted ? styles.planPriceDark : styles.planPriceLight,
-                      ]}
-                    >
+                    <Text style={[styles.planPrice, isMonthly ? styles.planPriceDark : styles.planPriceLight]}>
                       {formatPrice(price.unit_amount, price.recurring?.interval ?? null)}
                     </Text>
                   )}
-                  <Text
-                    style={[
-                      styles.planSub,
-                      isHighlighted ? styles.planSubDark : styles.planSubLight,
-                    ]}
-                  >
+                  <Text style={[styles.planSub, isMonthly ? styles.planSubDark : styles.planSubLight]}>
                     {price?.recurring
                       ? `per ${price.recurring.interval} · cancel anytime`
                       : "per conversation"}
@@ -420,55 +390,38 @@ export default function UpgradeScreen() {
                       <Feather
                         name="check"
                         size={14}
-                        color={isHighlighted ? colors.rust : colors.rust}
+                        color={colors.rust}
                         style={styles.featureCheck}
                       />
-                      <Text
-                        style={[
-                          styles.featureText,
-                          isHighlighted ? styles.featureTextDark : styles.featureTextLight,
-                        ]}
-                      >
+                      <Text style={[styles.featureText, isMonthly ? styles.featureTextDark : styles.featureTextLight]}>
                         {feat}
                       </Text>
                     </View>
                   ))}
 
-                  <View style={styles.radioRow}>
-                    <Text
-                      style={[
-                        styles.radioLabel,
-                        isHighlighted ? styles.planNameDark : styles.planNameLight,
-                      ]}
-                    >
-                      {isSelected ? "Selected" : "Select"}
-                    </Text>
-                    <View
-                      style={[
-                        styles.radio,
-                        {
-                          borderColor: isSelected ? colors.rust : colors.border,
-                        },
-                      ]}
-                    >
-                      {isSelected && <View style={styles.radioInner} />}
-                    </View>
-                  </View>
-                </Pressable>
+                  {/* Checkout button lives inside each card — no separate bottom button */}
+                  <Pressable
+                    style={[
+                      styles.ctaBtn,
+                      isMonthly ? styles.ctaBtnDark : styles.ctaBtnLight,
+                      (anyLoading) && styles.ctaBtnDisabled,
+                    ]}
+                    onPress={() => price && handleSubscribe(price.id)}
+                    disabled={anyLoading || !price}
+                  >
+                    {isLoading ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Text style={styles.ctaText}>
+                        {product.name === "Single Session" ? "Buy session →" : "Get started →"}
+                      </Text>
+                    )}
+                  </Pressable>
+                </View>
               );
             })}
 
             {error ? <Text style={styles.error}>{error}</Text> : null}
-
-            <Pressable
-              style={[styles.ctaBtn, (!selectedPriceId || checkoutLoading) && styles.ctaBtnDisabled]}
-              onPress={handleSubscribe}
-              disabled={!selectedPriceId || checkoutLoading}
-            >
-              <Text style={styles.ctaText}>
-                {checkoutLoading ? "Opening checkout…" : "Get started →"}
-              </Text>
-            </Pressable>
 
             <Text style={styles.disclaimer}>
               Payments processed securely by Stripe.{"\n"}
