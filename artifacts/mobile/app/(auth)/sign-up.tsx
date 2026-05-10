@@ -23,8 +23,6 @@ const C = {
   border: "#E3E3E3",
 };
 
-// On web, wrap children in a real <form> so the browser can detect the
-// password fields and offer to save / autofill credentials.
 function WebForm({
   onSubmit,
   children,
@@ -46,9 +44,6 @@ function WebForm({
   );
 }
 
-// On web render a real <button type="submit"> so clicking it fires the form's
-// submit event (which is what tells the browser to offer to save the password).
-// On native keep the standard Pressable.
 function SubmitBtn({
   onPress,
   disabled,
@@ -98,6 +93,8 @@ function SubmitBtn({
   );
 }
 
+const RESEND_COOLDOWN = 60;
+
 export default function SignUpScreen() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const clerk = useClerk() as any;
@@ -110,6 +107,31 @@ export default function SignUpScreen() {
   const [pendingVerification, setPendingVerification] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
+
+  // Resend countdown
+  const [resendCooldown, setResendCooldown] = React.useState(0);
+  const cooldownRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const startCooldown = React.useCallback(() => {
+    setResendCooldown(RESEND_COOLDOWN);
+    if (cooldownRef.current) clearInterval(cooldownRef.current);
+    cooldownRef.current = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(cooldownRef.current!);
+          cooldownRef.current = null;
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  React.useEffect(() => {
+    return () => {
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
+    };
+  }, []);
 
   const signUp = clerk?.client?.signUp;
   const isLoaded = !!clerk?.loaded;
@@ -134,9 +156,20 @@ export default function SignUpScreen() {
     setLoading(true);
     setError("");
     try {
-      await signUp.create({ emailAddress: email, password });
+      const result = await signUp.create({ emailAddress: email, password });
+
+      // If Clerk doesn't require email verification (configured in Clerk dashboard),
+      // the sign-up is immediately complete — skip the verification screen entirely.
+      if (result.status === "complete") {
+        await clerk.setActive({ session: result.createdSessionId });
+        router.replace("/(tabs)");
+        return;
+      }
+
+      // Verification required — send the code and show the verification screen.
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setPendingVerification(true);
+      startCooldown();
     } catch (err: any) {
       const clerkErr = err.errors?.[0];
       const msg = clerkErr?.longMessage ?? clerkErr?.message ?? err.message ?? "An error occurred";
@@ -166,10 +199,11 @@ export default function SignUpScreen() {
   };
 
   const resendCode = async () => {
-    if (!signUp) return;
+    if (!signUp || resendCooldown > 0) return;
     setError("");
     try {
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      startCooldown();
     } catch (err: any) {
       setError(err.errors?.[0]?.message ?? "Could not resend code");
     }
@@ -184,8 +218,14 @@ export default function SignUpScreen() {
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.title}>Verify your email</Text>
-          <Text style={styles.subtitle}>We sent a 6-digit code to {email}</Text>
+          <Text style={styles.title}>Check your email</Text>
+          <Text style={styles.subtitle}>
+            We sent a 6-digit code to{"\n"}
+            <Text style={styles.emailHighlight}>{email}</Text>
+          </Text>
+          <Text style={styles.hint}>
+            Delivery can take up to 2 minutes. Check your spam folder if it hasn't arrived.
+          </Text>
           <Text style={styles.label}>Verification code</Text>
           <TextInput
             style={styles.input}
@@ -208,8 +248,14 @@ export default function SignUpScreen() {
           >
             <Text style={styles.btnText}>{loading ? "Verifying…" : "Verify email"}</Text>
           </Pressable>
-          <Pressable onPress={resendCode}>
-            <Text style={styles.link}>Resend code</Text>
+          <Pressable
+            onPress={resendCode}
+            disabled={resendCooldown > 0}
+            style={resendCooldown > 0 && styles.resendDisabled}
+          >
+            <Text style={[styles.link, resendCooldown > 0 && styles.linkMuted]}>
+              {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : "Resend code"}
+            </Text>
           </Pressable>
         </View>
         <View nativeID="clerk-captcha" />
@@ -311,7 +357,17 @@ const styles = StyleSheet.create({
   container: { flexGrow: 1, padding: 28, justifyContent: "center" },
   logo: { width: 120, height: 120, alignSelf: "center", marginBottom: 24 },
   title: { fontSize: 26, fontWeight: "700", color: C.ink, marginBottom: 6 },
-  subtitle: { fontSize: 15, color: C.ink4, marginBottom: 28 },
+  subtitle: { fontSize: 15, color: C.ink4, marginBottom: 8, textAlign: "left" },
+  emailHighlight: { color: C.ink, fontWeight: "600" },
+  hint: {
+    fontSize: 13,
+    color: C.ink4,
+    marginBottom: 24,
+    lineHeight: 18,
+    backgroundColor: C.card,
+    padding: 12,
+    borderRadius: 10,
+  },
   label: { fontSize: 13, fontWeight: "600", color: C.ink, marginBottom: 6 },
   input: {
     backgroundColor: C.card,
@@ -338,4 +394,6 @@ const styles = StyleSheet.create({
   footer: { flexDirection: "row", justifyContent: "center", marginTop: 8 },
   footerText: { color: C.ink4, fontSize: 14 },
   link: { color: C.rust, fontSize: 14, fontWeight: "600", textAlign: "center", marginTop: 8 },
+  linkMuted: { color: C.ink4 },
+  resendDisabled: { opacity: 0.6 },
 });
