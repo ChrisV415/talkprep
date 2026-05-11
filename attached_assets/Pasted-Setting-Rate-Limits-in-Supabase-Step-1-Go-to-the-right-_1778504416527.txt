@@ -1,0 +1,28 @@
+Setting Rate Limits in Supabase
+Step 1 — Go to the right place in your dashboard
+
+Open your Supabase project dashboard
+Click Authentication in the left sidebar
+Click Rate Limits in the sub-menu
+
+You'll see a settings page with several configurable limits.
+
+Step 2 — The setting you want
+Look for "Rate limit for sign-ups and sign-ins"
+This controls the number of sign-up and sign-in requests that can be made in a 5-minute interval per IP address. IGotAnOffer
+Set it to something like 5–10 (meaning 5–10 signup attempts per IP address per 5 minutes). A real user signing up once will never hit this. A bot hammering your endpoint will be blocked immediately.
+
+Step 3 — Also consider enabling CAPTCHA (optional but easy)
+Supabase provides CAPTCHA protection on the signup, sign-in and password reset endpoints — and it's available directly in the dashboard. This is the most effective protection against bots and requires zero code changes on your end. The Interview Guys
+To enable it: in your Supabase dashboard go to Authentication → Sign In / Up → CAPTCHA protection and toggle it on. Supabase supports hCaptcha and Cloudflare Turnstile — both have a free tier.
+
+⚠️ One honest caveat from the research
+There's a known issue where the "Rate limit for sign-ups and sign-ins" setting configured via the Supabase Dashboard does not appear to be enforced correctly. Even when setting a very low limit (e.g. 5 requests per 5 minutes per IP), the Auth API allows significantly more sign-up/sign-in requests from the same IP before returning a rate limit error. IGotAnOffer
+This is an open bug on Supabase's GitHub as of early 2026. The rate limit setting exists and is documented, but may not enforce correctly at low values.
+The practical fix if you want guaranteed protection: Enable the CAPTCHA option instead. That one works reliably and is the method Supabase themselves recommends in their production checklist. It's one toggle in the dashboard, zero code, and stops bot signups completely.
+
+What To Actually Do — In Order
+
+Set the rate limit to 10 in Authentication → Rate Limits (takes 30 seconds — worth doing even with the bug, as it provides some protection)
+Enable CAPTCHA in Authentication → Sign In / Up (hCaptcha free tier is fine — takes 5 minutes to set up, stops bots reliably)
+Leave email verification off — the rate limit and CAPTCHA give you the protection without adding friction for real users
