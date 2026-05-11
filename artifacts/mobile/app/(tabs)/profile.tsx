@@ -427,6 +427,8 @@ export default function ProfileScreen() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false);
   const [signOutModalOpen, setSignOutModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
@@ -610,6 +612,32 @@ export default function ProfileScreen() {
     }
   }
 
+  async function handleDeleteAccount() {
+    setDeletingAccount(true);
+    try {
+      const token = await getToken();
+      const baseUrl = process.env.EXPO_PUBLIC_DOMAIN
+        ? `https://${process.env.EXPO_PUBLIC_DOMAIN}/`
+        : "http://localhost:80/";
+      const res = await fetch(`${baseUrl}api/user/me`, {
+        method: "DELETE",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(body.error ?? "Failed to delete account");
+      }
+      setDeleteModalOpen(false);
+      resetCurrentSession();
+      await signOut();
+      router.replace("/(auth)/sign-in");
+    } catch (e: any) {
+      Alert.alert("Error", e?.message ?? "Could not delete your account. Please try again.");
+    } finally {
+      setDeletingAccount(false);
+    }
+  }
+
   function handleSignOut() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSignOutModalOpen(true);
@@ -781,10 +809,21 @@ export default function ProfileScreen() {
         <RowItem icon="star" label="Rate TalkPrep" onPress={() => Linking.openURL("https://apps.apple.com")} colors={colors} last />
       </View>
 
-      {/* SIGN OUT */}
+      {/* SIGN OUT + DELETE */}
       <SectionHeader label="" colors={colors} />
       <View style={ms.card}>
-        <RowItem icon="log-out" label="Sign out" onPress={handleSignOut} destructive colors={colors} last />
+        <RowItem icon="log-out" label="Sign out" onPress={handleSignOut} destructive colors={colors} />
+        <RowItem
+          icon="trash-2"
+          label="Delete account"
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+            setDeleteModalOpen(true);
+          }}
+          destructive
+          colors={colors}
+          last
+        />
       </View>
 
       {/* Sign out confirmation modal */}
@@ -804,6 +843,43 @@ export default function ProfileScreen() {
             <Text style={em.btnText}>Sign out</Text>
           </Pressable>
           <Pressable onPress={() => setSignOutModalOpen(false)} style={{ marginTop: 12, alignItems: "center" }}>
+            <Text style={{ color: colors.ink4, fontSize: 15 }}>Cancel</Text>
+          </Pressable>
+        </View>
+      </Modal>
+
+      {/* Delete account confirmation modal */}
+      <Modal visible={deleteModalOpen} animationType="slide" transparent onRequestClose={() => !deletingAccount && setDeleteModalOpen(false)}>
+        <Pressable style={em.backdrop} onPress={() => !deletingAccount && setDeleteModalOpen(false)} />
+        <View style={[em.sheet, { backgroundColor: colors.background }]}>
+          <View style={em.handle} />
+          <View style={{ alignItems: "center", marginBottom: 16 }}>
+            <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: "#FEE2E2", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
+              <Feather name="trash-2" size={26} color="#E05252" />
+            </View>
+            <Text style={[em.title, { color: colors.ink, marginBottom: 0, textAlign: "center" }]}>Delete account</Text>
+          </View>
+          <Text style={[em.hint, { color: colors.ink4, marginTop: 0, marginBottom: 8, textAlign: "center" }]}>
+            This will permanently delete your account and all of your data, including:
+          </Text>
+          <View style={{ backgroundColor: "#FEE2E2", borderRadius: 12, padding: 14, marginBottom: 24 }}>
+            <Text style={{ color: "#C0392B", fontSize: 13, lineHeight: 20 }}>
+              {"• All conversation sessions and history\n• Your scores and progress data\n• Your profile and account settings\n\nThis action cannot be undone."}
+            </Text>
+          </View>
+          <Pressable
+            accessibilityLabel="Confirm delete account"
+            style={[em.btn, { backgroundColor: deletingAccount ? "#F09090" : "#E05252", opacity: deletingAccount ? 0.7 : 1 }]}
+            onPress={handleDeleteAccount}
+            disabled={deletingAccount}
+          >
+            <Text style={em.btnText}>{deletingAccount ? "Deleting…" : "Yes, delete my account"}</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setDeleteModalOpen(false)}
+            disabled={deletingAccount}
+            style={{ marginTop: 12, alignItems: "center" }}
+          >
             <Text style={{ color: colors.ink4, fontSize: 15 }}>Cancel</Text>
           </Pressable>
         </View>
