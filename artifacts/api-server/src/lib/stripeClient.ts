@@ -1,5 +1,4 @@
 import Stripe from "stripe";
-import { StripeSync } from "stripe-replit-sync";
 
 async function getStripeCredentials(): Promise<{
   secretKey: string;
@@ -63,16 +62,4 @@ export async function getStripePublishableKey(): Promise<string> {
   const { publishableKey } = await getStripeCredentials();
   if (!publishableKey) throw new Error("Stripe publishable key not found");
   return publishableKey;
-}
-
-export async function getStripeSync(): Promise<StripeSync> {
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) throw new Error("DATABASE_URL is required");
-
-  const { secretKey } = await getStripeCredentials();
-  return new StripeSync({
-    poolConfig: { connectionString: databaseUrl },
-    stripeSecretKey: secretKey,
-    stripeWebhookSecret: "",
-  });
 }

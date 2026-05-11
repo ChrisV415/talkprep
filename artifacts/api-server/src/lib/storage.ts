@@ -1,6 +1,6 @@
 import { db } from "@workspace/db";
 import { users, proOverrides } from "@workspace/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { getUncachableStripeClient } from "./stripeClient";
 
 type ProductWithPrices = {
@@ -57,27 +57,16 @@ export class Storage {
     return user;
   }
 
+  // Always use the Stripe API directly — no dependency on local stripe.* tables
   async getActiveSubscription(userId: string) {
     const user = await this.getUser(userId);
     if (!user?.stripeSubscriptionId) return null;
-
     try {
-      const result = await db.execute(
-        sql`SELECT id, status, current_period_end, cancel_at_period_end, metadata
-            FROM stripe.subscriptions
-            WHERE id = ${user.stripeSubscriptionId}
-            LIMIT 1`,
-      );
-      return (result.rows[0] as Record<string, unknown>) ?? null;
+      const stripe = await getUncachableStripeClient();
+      const sub = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+      return { id: sub.id, status: sub.status };
     } catch {
-      // stripe schema may not be ready; fall back to Stripe API
-      try {
-        const stripe = await getUncachableStripeClient();
-        const sub = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
-        return { id: sub.id, status: sub.status };
-      } catch {
-        return null;
-      }
+      return null;
     }
   }
 
@@ -92,7 +81,6 @@ export class Storage {
     } catch {
       // table may not exist yet; fall through
     }
-    // Check Stripe subscription
     const sub = await this.getActiveSubscription(userId);
     if (!sub) return false;
     return sub.status === "active" || sub.status === "trialing";
@@ -126,68 +114,8 @@ export class Storage {
   }
 
   async listProductsWithPrices(): Promise<ProductWithPrices[]> {
-    // Try stripe schema first (maintained by stripe-replit-sync)
-    try {
-      const result = await db.execute(sql`
-        SELECT COUNT(*) as cnt FROM stripe.products WHERE active = true
-      `);
-      const count = Number((result.rows[0] as Record<string, unknown>)?.cnt ?? 0);
-      if (count > 0) {
-        return this._listFromDb();
-      }
-    } catch {
-      // stripe schema not ready — fall through to API
-    }
-
-    // Fall back to Stripe API directly
+    // Always use the Stripe API directly — fast, accurate, no local table dependency
     return this._listFromStripeApi();
-  }
-
-  private async _listFromDb(): Promise<ProductWithPrices[]> {
-    const result = await db.execute(sql`
-      WITH paginated_products AS (
-        SELECT id, name, description, metadata, active
-        FROM stripe.products
-        WHERE active = true
-        ORDER BY name
-      )
-      SELECT
-        p.id as product_id,
-        p.name as product_name,
-        p.description as product_description,
-        p.metadata as product_metadata,
-        pr.id as price_id,
-        pr.unit_amount,
-        pr.currency,
-        pr.recurring,
-        pr.active as price_active
-      FROM paginated_products p
-      LEFT JOIN stripe.prices pr ON pr.product = p.id AND pr.active = true
-      ORDER BY p.name, pr.unit_amount
-    `);
-
-    const productsMap = new Map<string, ProductWithPrices>();
-    for (const row of result.rows as Record<string, unknown>[]) {
-      const pid = row.product_id as string;
-      if (!productsMap.has(pid)) {
-        productsMap.set(pid, {
-          id: pid,
-          name: row.product_name as string,
-          description: (row.product_description as string) ?? "",
-          metadata: (row.product_metadata as Record<string, string>) ?? {},
-          prices: [],
-        });
-      }
-      if (row.price_id) {
-        productsMap.get(pid)!.prices.push({
-          id: row.price_id as string,
-          unit_amount: row.unit_amount as number,
-          currency: row.currency as string,
-          recurring: (row.recurring as { interval: string } | null) ?? null,
-        });
-      }
-    }
-    return this._sortProducts(Array.from(productsMap.values()));
   }
 
   private async _listFromStripeApi(): Promise<ProductWithPrices[]> {
