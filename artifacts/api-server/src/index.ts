@@ -2,6 +2,36 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import { runMigrations } from "stripe-replit-sync";
 import { getStripeSync } from "./lib/stripeClient";
+import { Client } from "pg";
+
+async function ensureStripeAccountsTable(databaseUrl: string) {
+  const client = new Client({ connectionString: databaseUrl });
+  await client.connect();
+  try {
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS "stripe"."accounts" (
+        "id"               text NOT NULL,
+        "_raw_data"        jsonb NOT NULL,
+        "first_synced_at"  timestamptz NOT NULL DEFAULT now(),
+        "_last_synced_at"  timestamptz NOT NULL DEFAULT now(),
+        "_updated_at"      timestamptz NOT NULL DEFAULT now(),
+        "business_name"    text,
+        "email"            text,
+        "type"             text,
+        "charges_enabled"  boolean,
+        "payouts_enabled"  boolean,
+        "details_submitted" boolean,
+        "country"          text,
+        "default_currency" text,
+        "created"          integer,
+        "api_key_hashes"   text[],
+        PRIMARY KEY ("id")
+      )
+    `);
+  } finally {
+    await client.end();
+  }
+}
 
 async function initStripe() {
   const databaseUrl = process.env.DATABASE_URL;
@@ -13,6 +43,7 @@ async function initStripe() {
   try {
     logger.info("Running Stripe migrations...");
     await runMigrations({ databaseUrl });
+    await ensureStripeAccountsTable(databaseUrl);
     logger.info("Stripe schema ready");
 
     const stripeSync = await getStripeSync();
