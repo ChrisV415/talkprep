@@ -33,6 +33,73 @@ type PastSession = {
   debriefDifferent: string | null;
 };
 
+const VERTICAL_SCENARIOS: Record<string, string[]> = {
+  healthcare: [
+    "breaking bad news", "end-of-life care conversation", "addiction intervention",
+    "mental health crisis", "informed consent", "difficult patient or family",
+    "reporting a colleague error", "clinical team conflict",
+  ],
+  legal: [
+    "client deposition prep", "settlement negotiation", "delivering bad case news",
+    "workplace investigation interview", "client expectation reset",
+    "mediation session", "confidentiality concern",
+  ],
+  hr: [
+    "performance improvement plan", "termination conversation", "hard performance review",
+    "denying a raise or promotion", "team conflict resolution",
+    "layoff notification", "promotion conversation", "harassment complaint handling",
+  ],
+  sales: [
+    "price objection", "procurement pushback", "renewal at risk",
+    "stalled deal close", "executive sponsor conversation",
+    "lost deal debrief", "competitive displacement", "asking for a referral",
+  ],
+};
+
+const VERTICAL_CONTEXT: Record<string, string> = {
+  healthcare: `
+CLINICAL CONTEXT: The user is a healthcare professional (doctor, nurse, social worker, or allied health). Apply clinical communication best practices:
+- Reference frameworks where relevant: SPIKES (for bad news), NURSE (empathy), LEAP (motivational interviewing), shared decision-making.
+- Respect patient autonomy, dignity, and informed consent.
+- Acknowledge the emotional weight carried by clinicians — burnout, moral distress, institutional pressure.
+- Use clinical language naturally but keep advice immediately actionable.
+- Regulatory context (duty of candour, mandatory reporting) matters — flag if relevant.`,
+
+  legal: `
+LEGAL CONTEXT: The user is a legal professional (lawyer, mediator, HR investigator). Apply professional communication norms:
+- Emphasize managing client expectations honestly and early — avoid overpromising.
+- Be aware of attorney-client privilege, confidentiality, and professional ethics boundaries.
+- Frame negotiation advice around interests vs. positions (Fisher/Ury) and BATNA awareness.
+- Settlement and mediation contexts require face-saving language — acknowledge the other side's legitimate interests.
+- Deposition prep requires the user to be calm, precise, and non-reactive.`,
+
+  hr: `
+HR/MANAGEMENT CONTEXT: The user is a manager or HR professional preparing for a high-stakes people conversation. Apply employment best practices:
+- Emphasize documentation, specificity, and behaviour-based (not character-based) feedback.
+- Follow progressive discipline logic where applicable — be fair and consistent.
+- Preserve the employee's dignity throughout, regardless of the outcome.
+- For PIPs and terminations: be clear, direct, and legally defensible — avoid softening language that creates ambiguity.
+- For conflict: remain neutral, gather both sides, and focus on impact not intent.`,
+
+  sales: `
+SALES CONTEXT: The user is a sales professional preparing for a buyer conversation. Apply consultative selling frameworks:
+- Focus on understanding the buyer's real constraints (budget cycle, internal politics, risk aversion) before proposing solutions.
+- Emphasize listening over pitching — the goal is to surface the buyer's own logic for moving forward.
+- Objections are buying signals — coach the user to explore them rather than counter them.
+- Reference negotiation anchoring, value framing, and concession sequencing where relevant.
+- Long-term relationship > short-term close — never win the deal at the cost of trust.`,
+};
+
+function detectVertical(scenario: string): string | null {
+  const lower = scenario.toLowerCase().trim();
+  for (const [vertical, scenarios] of Object.entries(VERTICAL_SCENARIOS)) {
+    if (scenarios.some((s) => lower.includes(s) || s.includes(lower))) {
+      return vertical;
+    }
+  }
+  return null;
+}
+
 function buildMemoryContext(past: PastSession[]): string {
   if (!past.length) return "";
 
@@ -87,8 +154,10 @@ router.post("/talkprep/generate", requireAuth, rateLimiter, async (req: Request,
 
   const past = await getRecentSessions(userId);
   const memoryBlock = buildMemoryContext(past);
+  const vertical = detectVertical(scenario);
+  const verticalBlock = vertical ? VERTICAL_CONTEXT[vertical] : "";
 
-  const systemPrompt = `You are TalkPrep — a sharp, empathetic conversation coach. Your job is to help someone walk into a specific real conversation fully prepared, not with generic advice.
+  const systemPrompt = `You are TalkPrep — a sharp, empathetic conversation coach. Your job is to help someone walk into a specific real conversation fully prepared, not with generic advice.${verticalBlock}
 
 YOUR OUTPUT FORMAT — use these exact section headers, in this order:
 

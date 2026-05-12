@@ -22,6 +22,7 @@ import { MicButton } from "@/components/MicButton";
 import { useSpeechInput } from "@/hooks/useSpeechInput";
 
 const SCENARIOS = [
+  // General
   "Resignation",
   "Salary negotiation",
   "Difficult feedback",
@@ -32,6 +33,42 @@ const SCENARIOS = [
   "Setting a boundary",
   "Bad news to client",
   "Landlord dispute",
+  // Healthcare
+  "Breaking bad news",
+  "End-of-life care conversation",
+  "Addiction intervention",
+  "Mental health crisis",
+  "Informed consent",
+  "Difficult patient or family",
+  "Reporting a colleague error",
+  "Clinical team conflict",
+  // Legal
+  "Client deposition prep",
+  "Settlement negotiation",
+  "Delivering bad case news",
+  "Workplace investigation interview",
+  "Client expectation reset",
+  "Mediation session",
+  "Confidentiality concern",
+  // HR & Managers
+  "Performance improvement plan",
+  "Termination conversation",
+  "Hard performance review",
+  "Denying a raise or promotion",
+  "Team conflict resolution",
+  "Layoff notification",
+  "Promotion conversation",
+  "Harassment complaint handling",
+  // Sales
+  "Price objection",
+  "Procurement pushback",
+  "Renewal at risk",
+  "Stalled deal close",
+  "Executive sponsor conversation",
+  "Lost deal debrief",
+  "Competitive displacement",
+  "Asking for a referral",
+  // Custom
   "Other difficult conversation",
 ];
 
