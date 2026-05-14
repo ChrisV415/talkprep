@@ -322,7 +322,7 @@ export default function RoleplayScreen() {
       </KeyboardAvoidingView>
 
       <Pressable
-        style={[styles.endBtn, { bottom: insets.bottom + 140 }]}
+        style={[styles.endBtn, { bottom: insets.bottom + 66 }]}
         onPress={endRoleplay}
       >
         <Text style={styles.endBtnText}>End Practice</Text>
@@ -505,13 +505,13 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
     endBtn: {
       position: "absolute",
       right: 16,
-      backgroundColor: colors.cream3,
+      backgroundColor: "rgba(194, 40, 40, 0.08)",
       paddingHorizontal: 14,
       paddingVertical: 7,
       borderRadius: 20,
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: "rgba(194, 40, 40, 0.25)",
     },
-    endBtnText: { fontSize: 12, color: colors.ink2, fontFamily: "Sora_400Regular" },
+    endBtnText: { fontSize: 12, color: "#C22828", fontFamily: "Sora_600SemiBold" },
   });
 }
