@@ -322,7 +322,7 @@ export default function RoleplayScreen() {
       </KeyboardAvoidingView>
 
       <Pressable
-        style={[styles.endBtn, { bottom: insets.bottom + 66 }]}
+        style={[styles.endBtn, { bottom: insets.bottom + 80 }]}
         onPress={endRoleplay}
       >
         <Text style={styles.endBtnText}>End Practice</Text>
