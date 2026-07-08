@@ -212,33 +212,41 @@ Vary your emotional register. Let genuine moments land. End some turns with a qu
 
 router.post("/talkprep/nudge", requireAuth, async (req, res) => {
   startSSE(res);
-  const { scenario, outcome, userSaid, theySaid } = req.body as {
+  const { scenario, outcome, userSaid, theySaid, history } = req.body as {
     scenario: string;
     outcome?: string;
     userSaid: string;
     theySaid: string;
+    history?: { role: "user" | "assistant"; content: string }[];
   };
 
-  const prompt = `CONVERSATION CONTEXT:
-Scenario: ${scenario}
-Desired outcome: ${outcome || "not specified"}
-User's last message: "${userSaid}"
-Other person's response: "${theySaid}"
+  const transcript = (history && history.length ? history : [
+    { role: "user" as const, content: userSaid },
+    { role: "assistant" as const, content: theySaid },
+  ])
+    .slice(-10)
+    .map((m) => `${m.role === "user" ? "USER" : "THEM"}: ${m.content}`)
+    .join("\n");
+
+  const prompt = `Scenario: ${scenario} | Desired outcome: ${outcome || "not specified"}
+
+CONVERSATION SO FAR:
+${transcript}
 
 COACHING TASK:
-Give ONE sharp tactical tip for the user's NEXT move. Evaluate: Did they advance toward their outcome? Did they miss an opening? Is there unaddressed subtext in the other person's response they should engage with?
+Look across the whole exchange, not just the last line — spot a pattern (repeating a weak move, missing an opening, escalating unnecessarily) or the sharpest single opportunity right now. Give ONE tactical tip for the user's NEXT message.
 
-FORMAT: One to two sentences. Direct. Specific to what was just said. No preamble ("Great job!", "Consider...", etc.). Start with the insight or the action.`;
+FORMAT: One to two sentences. Direct. No preamble ("Great job!", "Consider...", etc.). Start with the insight or the action.`;
 
   try {
     const stream = await openai.chat.completions.create({
-      model: "gpt-4o",
-      max_tokens: 128,
+      model: "o4-mini",
+      max_completion_tokens: 600,
       messages: [
         {
           role: "system",
           content:
-            "You are a sharp conversation strategist. One tactical tip, 1–2 sentences, no preamble. Be specific to the exact exchange — no generic coaching.",
+            "You are a reasoning coach silently watching a live practice conversation. Analyze speech patterns across turns, not just the last line. One tactical tip, 1–2 sentences, no preamble.",
         },
         { role: "user", content: prompt },
       ],

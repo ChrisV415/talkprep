@@ -206,15 +206,18 @@ export default function PersonaScreen() {
         </View>
 
         <View style={styles.fieldGroup}>
-          <Text style={styles.fieldLabel}>EXTRA CONTEXT</Text>
+          <Text style={styles.fieldLabel}>RESEARCH & CONTEXT</Text>
+          <Text style={styles.fieldHint}>
+            Paste anything real you know about them — LinkedIn bio, recent company news, deal notes, past conversations. The more specific, the sharper the practice.
+          </Text>
           <TextInput
             style={[styles.input, styles.textarea]}
-            placeholder="Anything else about this person or situation..."
+            placeholder="e.g. VP of Procurement, 12yr at the company, publicly pushed back on vendor price hikes last quarter, values long-term relationships over lowest bid..."
             placeholderTextColor={colors.ink4}
             value={persona.extra}
             onChangeText={(v) => update("extra", v)}
             multiline
-            numberOfLines={3}
+            numberOfLines={6}
             textAlignVertical="top"
           />
         </View>
@@ -308,6 +311,14 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontFamily: "Sora_600SemiBold",
       marginBottom: 8,
     },
+    fieldHint: {
+      fontSize: 12,
+      color: colors.ink3,
+      lineHeight: 17,
+      fontFamily: "Sora_400Regular",
+      marginTop: -4,
+      marginBottom: 10,
+    },
     reactionGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
     reactionBtn: {
       paddingHorizontal: 14,
@@ -354,7 +365,7 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       backgroundColor: "white",
       fontFamily: "Sora_400Regular",
     },
-    textarea: { minHeight: 80, paddingTop: 14 },
+    textarea: { minHeight: 130, paddingTop: 14 },
     footer: {
       flexDirection: "column",
       gap: 0,

@@ -49,8 +49,11 @@ Defensiveness: ${persona.defensiveness}/100 (${persona.defensiveness > 60 ? "get
 Communication: ${persona.communication}/100 (${persona.communication > 60 ? "indirect" : "direct"}).
 Power dynamic: ${persona.power}/100 (${persona.power > 60 ? "has authority over the user" : "roughly equal"}).
 Typical reactions: ${persona.reaction || "varied"}.
-Additional context: ${persona.extra || "none"}.
 Difficulty: ${persona.difficulty}.`;
+
+  const researchBlock = persona.extra
+    ? `\nREAL RESEARCH ON THIS PERSON (this is the most important input — weave these specifics into how you talk, what you reference, and what you push back on; don't just generically apply it):\n${persona.extra}\n`
+    : "";
 
   return `You are roleplaying as this specific person: ${who}.
 Scenario: ${scenario}. Background: ${situation}.
@@ -58,7 +61,7 @@ ${outcome ? `The user wants: ${outcome}.` : ""}
 
 Their personality profile:
 ${traitDesc}
-
+${researchBlock}
 IMPORTANT INSTRUCTIONS:
 - Stay in character throughout. Be realistic — not artificially easy or difficult.
 - Match the personality profile closely.
@@ -189,7 +192,7 @@ export default function RoleplayScreen() {
         setShowTyping(false);
         inputRef.current?.focus();
         if (newExchanges % 2 === 0) {
-          generateNudge(text, fullContent);
+          generateNudge(text, fullContent, historyRef.current);
         }
       },
       (err) => {
@@ -209,12 +212,12 @@ export default function RoleplayScreen() {
     );
   }
 
-  async function generateNudge(userSaid: string, theySaid: string) {
+  async function generateNudge(userSaid: string, theySaid: string, history: RpMessage[]) {
     let nudgeText = "";
     const token = await getToken();
     await streamRequest(
       "api/talkprep/nudge",
-      { scenario, outcome, userSaid, theySaid },
+      { scenario, outcome, userSaid, theySaid, history },
       (chunk) => { nudgeText += chunk; },
       () => {
         if (nudgeText.trim()) {
