@@ -6,7 +6,11 @@ export function adminAuth(req: Request, res: Response, next: NextFunction) {
   const password = process.env.ADMIN_PASSWORD;
 
   if (!password) {
-    res.status(503).json({ error: "Admin panel not configured — set ADMIN_PASSWORD secret" });
+    res
+      .status(503)
+      .json({
+        error: "Admin panel not configured — set ADMIN_PASSWORD secret",
+      });
     return;
   }
 

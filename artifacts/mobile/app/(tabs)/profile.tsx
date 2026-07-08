@@ -33,81 +33,168 @@ const APP_VERSION = "1.0.0";
 const ONBOARDING_KEY = "@talkprep_onboarded";
 
 function Avatar({
-  initials, imageUrl, size = 72, uploading, colors, onPress,
+  initials,
+  imageUrl,
+  size = 72,
+  uploading,
+  colors,
+  onPress,
 }: {
-  initials: string; imageUrl?: string | null; size?: number;
-  uploading?: boolean; colors: any; onPress?: () => void;
+  initials: string;
+  imageUrl?: string | null;
+  size?: number;
+  uploading?: boolean;
+  colors: any;
+  onPress?: () => void;
 }) {
   return (
     <Pressable onPress={onPress} style={{ position: "relative" }}>
       {imageUrl ? (
         <Image
           source={{ uri: imageUrl }}
-          style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: colors.card }}
+          style={{
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            backgroundColor: colors.card,
+          }}
           contentFit="cover"
           transition={200}
         />
       ) : (
-        <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: colors.rust, alignItems: "center", justifyContent: "center" }}>
-          <Text style={{ color: "#fff", fontSize: size * 0.38, fontWeight: "700" }}>{initials}</Text>
+        <View
+          style={{
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            backgroundColor: colors.rust,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text
+            style={{ color: "#fff", fontSize: size * 0.38, fontWeight: "700" }}
+          >
+            {initials}
+          </Text>
         </View>
       )}
       {/* Camera badge */}
-      <View style={{
-        position: "absolute", bottom: 0, right: 0,
-        width: 26, height: 26, borderRadius: 13,
-        backgroundColor: colors.rust,
-        borderWidth: 2, borderColor: colors.background,
-        alignItems: "center", justifyContent: "center",
-      }}>
-        {uploading
-          ? <ActivityIndicator size="small" color="#fff" />
-          : <Feather name="camera" size={12} color="#fff" />}
+      <View
+        style={{
+          position: "absolute",
+          bottom: 0,
+          right: 0,
+          width: 26,
+          height: 26,
+          borderRadius: 13,
+          backgroundColor: colors.rust,
+          borderWidth: 2,
+          borderColor: colors.background,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {uploading ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <Feather name="camera" size={12} color="#fff" />
+        )}
       </View>
     </Pressable>
   );
 }
 
 function AvatarPhotoMenu({
-  visible, onClose, onLibrary, onCamera, onRemove, hasPhoto, colors,
+  visible,
+  onClose,
+  onLibrary,
+  onCamera,
+  onRemove,
+  hasPhoto,
+  colors,
 }: {
-  visible: boolean; onClose: () => void;
-  onLibrary: () => void; onCamera: () => void;
-  onRemove?: () => void; hasPhoto: boolean; colors: any;
+  visible: boolean;
+  onClose: () => void;
+  onLibrary: () => void;
+  onCamera: () => void;
+  onRemove?: () => void;
+  hasPhoto: boolean;
+  colors: any;
 }) {
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <Pressable style={em.backdrop} onPress={onClose} accessibilityLabel="Dismiss photo menu" />
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+    >
+      <Pressable
+        style={em.backdrop}
+        onPress={onClose}
+        accessibilityLabel="Dismiss photo menu"
+      />
       <View style={[em.sheet, { backgroundColor: colors.background }]}>
         <View style={em.handle} />
         <Text style={[em.title, { color: colors.ink }]}>Profile photo</Text>
         <Pressable
           accessibilityLabel="Choose from library"
           style={[pm.optionBtn, { borderColor: colors.border }]}
-          onPress={() => { onClose(); onLibrary(); }}
+          onPress={() => {
+            onClose();
+            onLibrary();
+          }}
         >
-          <Feather name="image" size={20} color={colors.rust} style={{ marginRight: 12 }} />
-          <Text style={[pm.optionText, { color: colors.ink }]}>Choose from library</Text>
+          <Feather
+            name="image"
+            size={20}
+            color={colors.rust}
+            style={{ marginRight: 12 }}
+          />
+          <Text style={[pm.optionText, { color: colors.ink }]}>
+            Choose from library
+          </Text>
         </Pressable>
         <Pressable
           accessibilityLabel="Take photo"
           style={[pm.optionBtn, { borderColor: colors.border }]}
-          onPress={() => { onClose(); onCamera(); }}
+          onPress={() => {
+            onClose();
+            onCamera();
+          }}
         >
-          <Feather name="camera" size={20} color={colors.rust} style={{ marginRight: 12 }} />
+          <Feather
+            name="camera"
+            size={20}
+            color={colors.rust}
+            style={{ marginRight: 12 }}
+          />
           <Text style={[pm.optionText, { color: colors.ink }]}>Take photo</Text>
         </Pressable>
         {hasPhoto && (
           <Pressable
             accessibilityLabel="Remove photo"
             style={[pm.optionBtn, { borderColor: colors.border }]}
-            onPress={() => { onClose(); onRemove?.(); }}
+            onPress={() => {
+              onClose();
+              onRemove?.();
+            }}
           >
-            <Feather name="trash-2" size={20} color="#E05252" style={{ marginRight: 12 }} />
-            <Text style={[pm.optionText, { color: "#E05252" }]}>Remove photo</Text>
+            <Feather
+              name="trash-2"
+              size={20}
+              color="#E05252"
+              style={{ marginRight: 12 }}
+            />
+            <Text style={[pm.optionText, { color: "#E05252" }]}>
+              Remove photo
+            </Text>
           </Pressable>
         )}
-        <Pressable onPress={onClose} style={{ marginTop: 16, alignItems: "center" }}>
+        <Pressable
+          onPress={onClose}
+          style={{ marginTop: 16, alignItems: "center" }}
+        >
           <Text style={{ color: colors.ink4, fontSize: 15 }}>Cancel</Text>
         </Pressable>
       </View>
@@ -117,9 +204,12 @@ function AvatarPhotoMenu({
 
 const pm = StyleSheet.create({
   optionBtn: {
-    flexDirection: "row", alignItems: "center",
-    borderWidth: 1, borderRadius: 12,
-    paddingHorizontal: 16, paddingVertical: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     marginBottom: 10,
   },
   optionText: { fontSize: 16, fontWeight: "500" },
@@ -128,43 +218,105 @@ const pm = StyleSheet.create({
 function SectionHeader({ label, colors }: { label: string; colors: any }) {
   if (!label) return <View style={{ height: 12 }} />;
   return (
-    <Text style={{ fontSize: 11, fontWeight: "700", color: colors.ink4, letterSpacing: 1.1, marginBottom: 6, marginTop: 24, marginLeft: 24 }}>
+    <Text
+      style={{
+        fontSize: 11,
+        fontWeight: "700",
+        color: colors.ink4,
+        letterSpacing: 1.1,
+        marginBottom: 6,
+        marginTop: 24,
+        marginLeft: 24,
+      }}
+    >
       {label.toUpperCase()}
     </Text>
   );
 }
 
-function RowItem({ icon, label, value, onPress, destructive, rightElement, colors, last }: {
-  icon: string; label: string; value?: string; onPress?: () => void;
-  destructive?: boolean; rightElement?: React.ReactNode; colors: any; last?: boolean;
+function RowItem({
+  icon,
+  label,
+  value,
+  onPress,
+  destructive,
+  rightElement,
+  colors,
+  last,
+}: {
+  icon: string;
+  label: string;
+  value?: string;
+  onPress?: () => void;
+  destructive?: boolean;
+  rightElement?: React.ReactNode;
+  colors: any;
+  last?: boolean;
 }) {
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [
         s.row,
-        { backgroundColor: colors.cream3, opacity: pressed && onPress ? 0.7 : 1 },
+        {
+          backgroundColor: colors.cream3,
+          opacity: pressed && onPress ? 0.7 : 1,
+        },
         !last && { borderBottomWidth: 1, borderBottomColor: colors.border },
       ]}
     >
       <View style={s.rowLeft}>
-        <Feather name={icon as any} size={18} color={destructive ? colors.destructive : colors.rust} style={{ marginRight: 12 }} />
-        <Text style={{ fontSize: 15, color: destructive ? colors.destructive : colors.ink, fontWeight: "500" }}>{label}</Text>
+        <Feather
+          name={icon as any}
+          size={18}
+          color={destructive ? colors.destructive : colors.rust}
+          style={{ marginRight: 12 }}
+        />
+        <Text
+          style={{
+            fontSize: 15,
+            color: destructive ? colors.destructive : colors.ink,
+            fontWeight: "500",
+          }}
+        >
+          {label}
+        </Text>
       </View>
       <View style={s.rowRight}>
-        {value ? <Text style={{ fontSize: 13, color: colors.ink4, marginRight: 6, maxWidth: 160 }} numberOfLines={1}>{value}</Text> : null}
-        {rightElement ?? (onPress ? <Feather name="chevron-right" size={16} color={colors.ink4} /> : null)}
+        {value ? (
+          <Text
+            style={{
+              fontSize: 13,
+              color: colors.ink4,
+              marginRight: 6,
+              maxWidth: 160,
+            }}
+            numberOfLines={1}
+          >
+            {value}
+          </Text>
+        ) : null}
+        {rightElement ??
+          (onPress ? (
+            <Feather name="chevron-right" size={16} color={colors.ink4} />
+          ) : null)}
       </View>
     </Pressable>
   );
 }
 
 function PasswordModal({
-  visible, onClose, onSubmit, loading, colors,
+  visible,
+  onClose,
+  onSubmit,
+  loading,
+  colors,
 }: {
-  visible: boolean; onClose: () => void;
+  visible: boolean;
+  onClose: () => void;
   onSubmit: (current: string, next: string) => void;
-  loading: boolean; colors: any;
+  loading: boolean;
+  colors: any;
 }) {
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
@@ -175,15 +327,29 @@ function PasswordModal({
   const [error, setError] = useState("");
 
   function reset() {
-    setCurrent(""); setNext(""); setConfirm("");
-    setShowCurrent(false); setShowNext(false); setShowConfirm(false);
-    setError(""); onClose();
+    setCurrent("");
+    setNext("");
+    setConfirm("");
+    setShowCurrent(false);
+    setShowNext(false);
+    setShowConfirm(false);
+    setError("");
+    onClose();
   }
 
   function validate() {
-    if (!current) { setError("Enter your current password."); return false; }
-    if (next.length < 8) { setError("New password must be at least 8 characters."); return false; }
-    if (next !== confirm) { setError("New passwords don't match."); return false; }
+    if (!current) {
+      setError("Enter your current password.");
+      return false;
+    }
+    if (next.length < 8) {
+      setError("New password must be at least 8 characters.");
+      return false;
+    }
+    if (next !== confirm) {
+      setError("New passwords don't match.");
+      return false;
+    }
     setError("");
     return true;
   }
@@ -193,29 +359,69 @@ function PasswordModal({
     onSubmit(current, next);
   }
 
-  useEffect(() => { if (!visible) { setCurrent(""); setNext(""); setConfirm(""); setError(""); } }, [visible]);
+  useEffect(() => {
+    if (!visible) {
+      setCurrent("");
+      setNext("");
+      setConfirm("");
+      setError("");
+    }
+  }, [visible]);
 
-  const canSave = current.length > 0 && next.length >= 8 && confirm.length >= 8 && !loading;
+  const canSave =
+    current.length > 0 && next.length >= 8 && confirm.length >= 8 && !loading;
 
   function PasswordField({
-    label, value, onChange, show, onToggle, placeholder, returnKeyType, onSubmitEditing,
+    label,
+    value,
+    onChange,
+    show,
+    onToggle,
+    placeholder,
+    returnKeyType,
+    onSubmitEditing,
   }: {
-    label: string; value: string; onChange: (v: string) => void;
-    show: boolean; onToggle: () => void; placeholder: string;
-    returnKeyType?: "next" | "done"; onSubmitEditing?: () => void;
+    label: string;
+    value: string;
+    onChange: (v: string) => void;
+    show: boolean;
+    onToggle: () => void;
+    placeholder: string;
+    returnKeyType?: "next" | "done";
+    onSubmitEditing?: () => void;
   }) {
     return (
       <View style={{ marginBottom: 12 }}>
-        <Text style={{ fontSize: 12, fontWeight: "600", color: colors.ink4, marginBottom: 5, letterSpacing: 0.4 }}>
+        <Text
+          style={{
+            fontSize: 12,
+            fontWeight: "600",
+            color: colors.ink4,
+            marginBottom: 5,
+            letterSpacing: 0.4,
+          }}
+        >
           {label.toUpperCase()}
         </Text>
         <View style={{ position: "relative" }}>
           <TextInput
-            style={[em.input, { borderColor: colors.border, color: colors.ink, backgroundColor: colors.cream3, marginBottom: 0, paddingRight: 44 }]}
+            style={[
+              em.input,
+              {
+                borderColor: colors.border,
+                color: colors.ink,
+                backgroundColor: colors.cream3,
+                marginBottom: 0,
+                paddingRight: 44,
+              },
+            ]}
             placeholder={placeholder}
             placeholderTextColor={colors.ink4}
             value={value}
-            onChangeText={(t) => { onChange(t); setError(""); }}
+            onChangeText={(t) => {
+              onChange(t);
+              setError("");
+            }}
             secureTextEntry={!show}
             autoCapitalize="none"
             autoCorrect={false}
@@ -224,10 +430,20 @@ function PasswordModal({
           />
           <Pressable
             onPress={onToggle}
-            style={{ position: "absolute", right: 12, top: 0, bottom: 0, justifyContent: "center" }}
+            style={{
+              position: "absolute",
+              right: 12,
+              top: 0,
+              bottom: 0,
+              justifyContent: "center",
+            }}
             accessibilityLabel={show ? "Hide password" : "Show password"}
           >
-            <Feather name={show ? "eye-off" : "eye"} size={18} color={colors.ink4} />
+            <Feather
+              name={show ? "eye-off" : "eye"}
+              size={18}
+              color={colors.ink4}
+            />
           </Pressable>
         </View>
       </View>
@@ -235,7 +451,12 @@ function PasswordModal({
   }
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={reset}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={reset}
+    >
       <Pressable style={em.backdrop} onPress={reset} />
       <View style={[em.sheet, { backgroundColor: colors.background }]}>
         <View style={em.handle} />
@@ -243,39 +464,66 @@ function PasswordModal({
 
         <PasswordField
           label="Current password"
-          value={current} onChange={setCurrent}
-          show={showCurrent} onToggle={() => setShowCurrent((v) => !v)}
+          value={current}
+          onChange={setCurrent}
+          show={showCurrent}
+          onToggle={() => setShowCurrent((v) => !v)}
           placeholder="Your current password"
           returnKeyType="next"
         />
         <PasswordField
           label="New password"
-          value={next} onChange={setNext}
-          show={showNext} onToggle={() => setShowNext((v) => !v)}
+          value={next}
+          onChange={setNext}
+          show={showNext}
+          onToggle={() => setShowNext((v) => !v)}
           placeholder="At least 8 characters"
           returnKeyType="next"
         />
         <PasswordField
           label="Confirm new password"
-          value={confirm} onChange={setConfirm}
-          show={showConfirm} onToggle={() => setShowConfirm((v) => !v)}
+          value={confirm}
+          onChange={setConfirm}
+          show={showConfirm}
+          onToggle={() => setShowConfirm((v) => !v)}
           placeholder="Repeat new password"
           returnKeyType="done"
           onSubmitEditing={handleSave}
         />
 
         {error ? (
-          <Text style={{ color: "#E05252", fontSize: 13, marginBottom: 12, marginTop: -4 }}>{error}</Text>
+          <Text
+            style={{
+              color: "#E05252",
+              fontSize: 13,
+              marginBottom: 12,
+              marginTop: -4,
+            }}
+          >
+            {error}
+          </Text>
         ) : null}
 
         <Pressable
-          style={[em.btn, { backgroundColor: colors.rust, marginTop: 4, opacity: canSave ? 1 : 0.4 }]}
+          style={[
+            em.btn,
+            {
+              backgroundColor: colors.rust,
+              marginTop: 4,
+              opacity: canSave ? 1 : 0.4,
+            },
+          ]}
           onPress={handleSave}
           disabled={!canSave}
         >
-          <Text style={em.btnText}>{loading ? "Saving…" : "Save password"}</Text>
+          <Text style={em.btnText}>
+            {loading ? "Saving…" : "Save password"}
+          </Text>
         </Pressable>
-        <Pressable onPress={reset} style={{ marginTop: 12, alignItems: "center" }}>
+        <Pressable
+          onPress={reset}
+          style={{ marginTop: 12, alignItems: "center" }}
+        >
           <Text style={{ color: colors.ink4, fontSize: 15 }}>Cancel</Text>
         </Pressable>
       </View>
@@ -286,12 +534,29 @@ function PasswordModal({
 type EditModalStep = "input" | "verify";
 
 function EditModal({
-  visible, onClose, title, placeholder, keyboardType, onSubmit, onVerify, step, loading, colors, initialValue,
+  visible,
+  onClose,
+  title,
+  placeholder,
+  keyboardType,
+  onSubmit,
+  onVerify,
+  step,
+  loading,
+  colors,
+  initialValue,
 }: {
-  visible: boolean; onClose: () => void; title: string; placeholder: string;
+  visible: boolean;
+  onClose: () => void;
+  title: string;
+  placeholder: string;
   keyboardType?: "email-address" | "phone-pad" | "default";
-  onSubmit: (val: string) => void; onVerify: (code: string) => void;
-  step: EditModalStep; loading: boolean; colors: any; initialValue?: string;
+  onSubmit: (val: string) => void;
+  onVerify: (code: string) => void;
+  step: EditModalStep;
+  loading: boolean;
+  colors: any;
+  initialValue?: string;
 }) {
   const [value, setValue] = useState(initialValue ?? "");
   const [code, setCode] = useState("");
@@ -300,10 +565,19 @@ function EditModal({
     if (visible) setValue(initialValue ?? "");
   }, [visible, initialValue]);
 
-  function reset() { setValue(""); setCode(""); onClose(); }
+  function reset() {
+    setValue("");
+    setCode("");
+    onClose();
+  }
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={reset}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={reset}
+    >
       <Pressable style={em.backdrop} onPress={reset} />
       <View style={[em.sheet, { backgroundColor: colors.background }]}>
         <View style={em.handle} />
@@ -312,7 +586,14 @@ function EditModal({
         {step === "input" ? (
           <>
             <TextInput
-              style={[em.input, { borderColor: colors.border, color: colors.ink, backgroundColor: colors.cream3 }]}
+              style={[
+                em.input,
+                {
+                  borderColor: colors.border,
+                  color: colors.ink,
+                  backgroundColor: colors.cream3,
+                },
+              ]}
               placeholder={placeholder}
               placeholderTextColor={colors.ink4}
               value={value}
@@ -322,22 +603,41 @@ function EditModal({
               autoFocus
             />
             <Pressable
-              style={[em.btn, { backgroundColor: colors.rust, opacity: value.trim() && !loading ? 1 : 0.4 }]}
+              style={[
+                em.btn,
+                {
+                  backgroundColor: colors.rust,
+                  opacity: value.trim() && !loading ? 1 : 0.4,
+                },
+              ]}
               onPress={() => onSubmit(value.trim())}
               disabled={!value.trim() || loading}
             >
-              <Text style={em.btnText}>
-                {loading ? "Saving…" : "Save"}
-              </Text>
+              <Text style={em.btnText}>{loading ? "Saving…" : "Save"}</Text>
             </Pressable>
           </>
         ) : (
           <>
-            <Text style={[em.hint, { color: colors.ink4, marginTop: 0, marginBottom: 12 }]}>
+            <Text
+              style={[
+                em.hint,
+                { color: colors.ink4, marginTop: 0, marginBottom: 12 },
+              ]}
+            >
               Enter the 6-digit code we sent to verify your new contact info.
             </Text>
             <TextInput
-              style={[em.input, { borderColor: colors.border, color: colors.ink, backgroundColor: colors.cream3, letterSpacing: 8, textAlign: "center", fontSize: 22 }]}
+              style={[
+                em.input,
+                {
+                  borderColor: colors.border,
+                  color: colors.ink,
+                  backgroundColor: colors.cream3,
+                  letterSpacing: 8,
+                  textAlign: "center",
+                  fontSize: 22,
+                },
+              ]}
               placeholder="000000"
               placeholderTextColor={colors.ink4}
               value={code}
@@ -347,15 +647,26 @@ function EditModal({
               maxLength={6}
             />
             <Pressable
-              style={[em.btn, { backgroundColor: colors.rust, opacity: code.length === 6 && !loading ? 1 : 0.4 }]}
+              style={[
+                em.btn,
+                {
+                  backgroundColor: colors.rust,
+                  opacity: code.length === 6 && !loading ? 1 : 0.4,
+                },
+              ]}
               onPress={() => onVerify(code)}
               disabled={code.length < 6 || loading}
             >
-              <Text style={em.btnText}>{loading ? "Verifying…" : "Confirm"}</Text>
+              <Text style={em.btnText}>
+                {loading ? "Verifying…" : "Confirm"}
+              </Text>
             </Pressable>
           </>
         )}
-        <Pressable onPress={reset} style={{ marginTop: 12, alignItems: "center" }}>
+        <Pressable
+          onPress={reset}
+          style={{ marginTop: 12, alignItems: "center" }}
+        >
           <Text style={{ color: colors.ink4, fontSize: 14 }}>Cancel</Text>
         </Pressable>
       </View>
@@ -389,7 +700,9 @@ export default function ProfileScreen() {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       })
         .then((r) => r.json())
-        .then((data) => { if (data?.user?.phone) setSavedPhone(data.user.phone); })
+        .then((data) => {
+          if (data?.user?.phone) setSavedPhone(data.user.phone);
+        })
         .catch(() => {});
     });
   }, [user?.id]);
@@ -407,7 +720,12 @@ export default function ProfileScreen() {
   // Sync nameValue whenever user loads or whenever edit mode opens
   useEffect(() => {
     setNameValue(getDisplayName(user));
-  }, [user?.id, user?.fullName, user?.firstName, user?.unsafeMetadata?.displayName]);
+  }, [
+    user?.id,
+    user?.fullName,
+    user?.firstName,
+    user?.unsafeMetadata?.displayName,
+  ]);
 
   useEffect(() => {
     if (editingName) {
@@ -437,7 +755,12 @@ export default function ProfileScreen() {
   const phone = savedPhone || user?.primaryPhoneNumber?.phoneNumber || "";
   const displayName = getDisplayName(user);
   const initials = displayName
-    ? displayName.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()
+    ? displayName
+        .split(" ")
+        .map((w) => w[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
     : email.slice(0, 2).toUpperCase() || "?";
   const avatarUrl = user?.imageUrl ?? null;
 
@@ -457,16 +780,23 @@ export default function ProfileScreen() {
         if (Platform.OS !== "web") {
           const { status } = await ImagePicker.requestCameraPermissionsAsync();
           if (status !== "granted") {
-            Alert.alert("Permission needed", "Camera access is required to take a photo.");
+            Alert.alert(
+              "Permission needed",
+              "Camera access is required to take a photo.",
+            );
             return;
           }
         }
         result = await ImagePicker.launchCameraAsync(pickerOpts);
       } else {
         if (Platform.OS !== "web") {
-          const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          const { status } =
+            await ImagePicker.requestMediaLibraryPermissionsAsync();
           if (status !== "granted") {
-            Alert.alert("Permission needed", "Photo library access is required to choose a photo.");
+            Alert.alert(
+              "Permission needed",
+              "Photo library access is required to choose a photo.",
+            );
             return;
           }
         }
@@ -485,7 +815,8 @@ export default function ProfileScreen() {
         // Reliable path: convert base64 → Blob → File (works on all platforms)
         const byteChars = atob(asset.base64);
         const bytes = new Uint8Array(byteChars.length);
-        for (let i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
+        for (let i = 0; i < byteChars.length; i++)
+          bytes[i] = byteChars.charCodeAt(i);
         file = new File([bytes], `avatar.${ext}`, { type: mimeType });
       } else {
         // Fallback: fetch the local URI as a blob
@@ -497,7 +828,10 @@ export default function ProfileScreen() {
       await user.setProfileImage({ file });
       await user.reload();
     } catch (e: any) {
-      Alert.alert("Upload failed", e?.errors?.[0]?.message ?? "Could not upload photo. Please try again.");
+      Alert.alert(
+        "Upload failed",
+        e?.errors?.[0]?.message ?? "Could not upload photo. Please try again.",
+      );
     } finally {
       setUploadingAvatar(false);
     }
@@ -512,7 +846,9 @@ export default function ProfileScreen() {
     setUploadingAvatar(true);
     try {
       const emptyBlob = new Blob([], { type: "image/png" });
-      const emptyFile = new File([emptyBlob], "remove.png", { type: "image/png" });
+      const emptyFile = new File([emptyBlob], "remove.png", {
+        type: "image/png",
+      });
       await user?.setProfileImage({ file: emptyFile });
       await user?.reload();
     } catch {
@@ -533,7 +869,10 @@ export default function ProfileScreen() {
       await user.reload();
       setEditingName(false);
     } catch (e: any) {
-      Alert.alert("Error", e?.errors?.[0]?.message ?? "Could not update name. Please try again.");
+      Alert.alert(
+        "Error",
+        e?.errors?.[0]?.message ?? "Could not update name. Please try again.",
+      );
     } finally {
       setSavingName(false);
     }
@@ -548,7 +887,10 @@ export default function ProfileScreen() {
       setPendingEmail(obj);
       setEmailStep("verify");
     } catch (e: any) {
-      Alert.alert("Error", e?.errors?.[0]?.message ?? "Could not add email. Please try again.");
+      Alert.alert(
+        "Error",
+        e?.errors?.[0]?.message ?? "Could not add email. Please try again.",
+      );
     } finally {
       setEmailLoading(false);
     }
@@ -566,14 +908,19 @@ export default function ProfileScreen() {
       setPendingEmail(null);
       Alert.alert("Updated", "Your email address has been updated.");
     } catch (e: any) {
-      Alert.alert("Invalid code", e?.errors?.[0]?.message ?? "Incorrect code. Please try again.");
+      Alert.alert(
+        "Invalid code",
+        e?.errors?.[0]?.message ?? "Incorrect code. Please try again.",
+      );
     } finally {
       setEmailLoading(false);
     }
   }
 
   async function handleSubmitPhone(newPhone: string) {
-    const formatted = newPhone.startsWith("+") ? newPhone : `+1${newPhone.replace(/\D/g, "")}`;
+    const formatted = newPhone.startsWith("+")
+      ? newPhone
+      : `+1${newPhone.replace(/\D/g, "")}`;
     setPhoneLoading(true);
     try {
       const token = await getToken();
@@ -598,15 +945,26 @@ export default function ProfileScreen() {
     }
   }
 
-  async function handleChangePassword(currentPassword: string, newPassword: string) {
+  async function handleChangePassword(
+    currentPassword: string,
+    newPassword: string,
+  ) {
     if (!user) return;
     setPasswordLoading(true);
     try {
       await user.updatePassword({ currentPassword, newPassword });
       setPasswordModalOpen(false);
-      Alert.alert("Password updated", "Your password has been changed successfully.");
+      Alert.alert(
+        "Password updated",
+        "Your password has been changed successfully.",
+      );
     } catch (e: any) {
-      Alert.alert("Error", e?.errors?.[0]?.longMessage ?? e?.errors?.[0]?.message ?? "Could not update password. Please check your current password and try again.");
+      Alert.alert(
+        "Error",
+        e?.errors?.[0]?.longMessage ??
+          e?.errors?.[0]?.message ??
+          "Could not update password. Please check your current password and try again.",
+      );
     } finally {
       setPasswordLoading(false);
     }
@@ -632,7 +990,10 @@ export default function ProfileScreen() {
       await signOut();
       router.replace("/(auth)/sign-in");
     } catch (e: any) {
-      Alert.alert("Error", e?.message ?? "Could not delete your account. Please try again.");
+      Alert.alert(
+        "Error",
+        e?.message ?? "Could not delete your account. Please try again.",
+      );
     } finally {
       setDeletingAccount(false);
     }
@@ -686,66 +1047,122 @@ export default function ProfileScreen() {
               <TextInput
                 value={nameValue}
                 onChangeText={setNameValue}
-                style={[ms.nameInput, { borderColor: colors.rust, color: colors.ink }]}
+                style={[
+                  ms.nameInput,
+                  { borderColor: colors.rust, color: colors.ink },
+                ]}
                 autoFocus
                 returnKeyType="done"
                 onSubmitEditing={handleSaveName}
               />
-              <Pressable onPress={handleSaveName} disabled={savingName} style={ms.saveBtn}>
-                <Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>
+              <Pressable
+                onPress={handleSaveName}
+                disabled={savingName}
+                style={ms.saveBtn}
+              >
+                <Text
+                  style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}
+                >
                   {savingName ? "Saving…" : "Save"}
                 </Text>
               </Pressable>
-              <Pressable onPress={() => setEditingName(false)} style={{ marginLeft: 8 }}>
+              <Pressable
+                onPress={() => setEditingName(false)}
+                style={{ marginLeft: 8 }}
+              >
                 <Feather name="x" size={20} color={colors.ink4} />
               </Pressable>
             </View>
           ) : (
             <Pressable onPress={() => setEditingName(true)} style={ms.nameRow}>
               <Text style={ms.nameText}>{displayName || "Your Name"}</Text>
-              <Feather name="edit-2" size={14} color={colors.ink4} style={{ marginLeft: 6, marginTop: 2 }} />
+              <Feather
+                name="edit-2"
+                size={14}
+                color={colors.ink4}
+                style={{ marginLeft: 6, marginTop: 2 }}
+              />
             </Pressable>
           )}
           <Text style={ms.emailText}>{email}</Text>
-          {phone ? <Text style={[ms.emailText, { marginTop: 2 }]}>{phone}</Text> : null}
+          {phone ? (
+            <Text style={[ms.emailText, { marginTop: 2 }]}>{phone}</Text>
+          ) : null}
         </View>
       </View>
 
       {/* ACCOUNT */}
       <SectionHeader label="Account" colors={colors} />
       <View style={ms.card}>
-        <RowItem icon="user" label="Display name" value={displayName || "—"} onPress={() => setEditingName(true)} colors={colors} />
         <RowItem
-          icon="mail" label="Email address" value={email}
-          onPress={() => { setEmailStep("input"); setEmailModalOpen(true); }}
+          icon="user"
+          label="Display name"
+          value={displayName || "—"}
+          onPress={() => setEditingName(true)}
           colors={colors}
         />
         <RowItem
-          icon="phone" label="Phone number" value={phone || "Add phone"}
+          icon="mail"
+          label="Email address"
+          value={email}
+          onPress={() => {
+            setEmailStep("input");
+            setEmailModalOpen(true);
+          }}
+          colors={colors}
+        />
+        <RowItem
+          icon="phone"
+          label="Phone number"
+          value={phone || "Add phone"}
           onPress={() => setPhoneModalOpen(true)}
           colors={colors}
         />
-        <RowItem icon="lock" label="Change password" onPress={() => setPasswordModalOpen(true)} colors={colors} last />
+        <RowItem
+          icon="lock"
+          label="Change password"
+          onPress={() => setPasswordModalOpen(true)}
+          colors={colors}
+          last
+        />
       </View>
 
       {/* UPGRADE */}
       <SectionHeader label="Subscription" colors={colors} />
       <View style={ms.card}>
-        <RowItem icon="zap" label="Upgrade to Pro" value="Unlimited AI" onPress={() => router.push("/upgrade")} colors={colors} last />
+        <RowItem
+          icon="zap"
+          label="Upgrade to Pro"
+          value="Unlimited AI"
+          onPress={() => router.push("/upgrade")}
+          colors={colors}
+          last
+        />
       </View>
 
       {/* SETTINGS */}
       <SectionHeader label="Settings" colors={colors} />
       <View style={ms.card}>
         <RowItem
-          icon="bell" label="Push notifications" colors={colors}
+          icon="bell"
+          label="Push notifications"
+          colors={colors}
           rightElement={
-            <Switch value={notificationsEnabled} onValueChange={(v) => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); setNotificationsEnabled(v); }}
-              trackColor={{ false: colors.border, true: colors.rust }} thumbColor="#fff" />
+            <Switch
+              value={notificationsEnabled}
+              onValueChange={(v) => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setNotificationsEnabled(v);
+              }}
+              trackColor={{ false: colors.border, true: colors.rust }}
+              thumbColor="#fff"
+            />
           }
         />
         <RowItem
-          icon="calendar" label="Practice reminders" colors={colors}
+          icon="calendar"
+          label="Practice reminders"
+          colors={colors}
           rightElement={
             <Switch
               value={remindersEnabled}
@@ -771,48 +1188,105 @@ export default function ProfileScreen() {
             />
           }
         />
-        <RowItem icon="clock" label="Session history" onPress={() => router.push("/(tabs)/history")} colors={colors} />
-        <RowItem icon="bar-chart-2" label="Progress & scores" onPress={() => router.push("/(tabs)/dashboard")} colors={colors} last />
+        <RowItem
+          icon="clock"
+          label="Session history"
+          onPress={() => router.push("/(tabs)/history")}
+          colors={colors}
+        />
+        <RowItem
+          icon="bar-chart-2"
+          label="Progress & scores"
+          onPress={() => router.push("/(tabs)/dashboard")}
+          colors={colors}
+          last
+        />
       </View>
 
       {/* HELP & SUPPORT */}
       <SectionHeader label="Help & Support" colors={colors} />
       <View style={ms.card}>
         <RowItem
-          icon="message-square" label="Contact support"
-          onPress={() => Linking.openURL("mailto:support@talkprep.app?subject=TalkPrep%20Support")}
+          icon="message-square"
+          label="Contact support"
+          onPress={() =>
+            Linking.openURL(
+              "mailto:support@talkprep.app?subject=TalkPrep%20Support",
+            )
+          }
           colors={colors}
         />
         <RowItem
-          icon="book-open" label="FAQ & guides"
-          onPress={() => Linking.openURL("https://talkprep-website.replit.app/faq-and-guides")}
+          icon="book-open"
+          label="FAQ & guides"
+          onPress={() =>
+            Linking.openURL(
+              "https://talkprep-website.replit.app/faq-and-guides",
+            )
+          }
           colors={colors}
         />
         <RowItem
-          icon="alert-circle" label="Report a bug"
-          onPress={() => Linking.openURL("mailto:support@talkprep.app?subject=Bug%20Report")}
+          icon="alert-circle"
+          label="Report a bug"
+          onPress={() =>
+            Linking.openURL("mailto:support@talkprep.app?subject=Bug%20Report")
+          }
           colors={colors}
         />
         <RowItem
-          icon="play-circle" label="Replay intro tutorial"
+          icon="play-circle"
+          label="Replay intro tutorial"
           onPress={handleReplayOnboarding}
-          colors={colors} last
+          colors={colors}
+          last
         />
       </View>
 
       {/* ABOUT */}
       <SectionHeader label="About" colors={colors} />
       <View style={ms.card}>
-        <RowItem icon="info" label="Version" value={APP_VERSION} colors={colors} />
-        <RowItem icon="shield" label="Privacy policy" onPress={() => Linking.openURL("https://talkprep-website.replit.app/privacy")} colors={colors} />
-        <RowItem icon="file-text" label="Terms of service" onPress={() => Linking.openURL("https://talkprep-website.replit.app/terms")} colors={colors} />
-        <RowItem icon="star" label="Rate TalkPrep" onPress={() => Linking.openURL("https://apps.apple.com")} colors={colors} last />
+        <RowItem
+          icon="info"
+          label="Version"
+          value={APP_VERSION}
+          colors={colors}
+        />
+        <RowItem
+          icon="shield"
+          label="Privacy policy"
+          onPress={() =>
+            Linking.openURL("https://talkprep-website.replit.app/privacy")
+          }
+          colors={colors}
+        />
+        <RowItem
+          icon="file-text"
+          label="Terms of service"
+          onPress={() =>
+            Linking.openURL("https://talkprep-website.replit.app/terms")
+          }
+          colors={colors}
+        />
+        <RowItem
+          icon="star"
+          label="Rate TalkPrep"
+          onPress={() => Linking.openURL("https://apps.apple.com")}
+          colors={colors}
+          last
+        />
       </View>
 
       {/* SIGN OUT + DELETE */}
       <SectionHeader label="" colors={colors} />
       <View style={ms.card}>
-        <RowItem icon="log-out" label="Sign out" onPress={handleSignOut} destructive colors={colors} />
+        <RowItem
+          icon="log-out"
+          label="Sign out"
+          onPress={handleSignOut}
+          destructive
+          colors={colors}
+        />
         <RowItem
           icon="trash-2"
           label="Delete account"
@@ -827,12 +1301,25 @@ export default function ProfileScreen() {
       </View>
 
       {/* Sign out confirmation modal */}
-      <Modal visible={signOutModalOpen} animationType="slide" transparent onRequestClose={() => setSignOutModalOpen(false)}>
-        <Pressable style={em.backdrop} onPress={() => setSignOutModalOpen(false)} />
+      <Modal
+        visible={signOutModalOpen}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setSignOutModalOpen(false)}
+      >
+        <Pressable
+          style={em.backdrop}
+          onPress={() => setSignOutModalOpen(false)}
+        />
         <View style={[em.sheet, { backgroundColor: colors.background }]}>
           <View style={em.handle} />
           <Text style={[em.title, { color: colors.ink }]}>Sign out</Text>
-          <Text style={[em.hint, { color: colors.ink4, marginTop: 0, marginBottom: 24 }]}>
+          <Text
+            style={[
+              em.hint,
+              { color: colors.ink4, marginTop: 0, marginBottom: 24 },
+            ]}
+          >
             Are you sure you want to sign out of TalkPrep?
           </Text>
           <Pressable
@@ -842,38 +1329,94 @@ export default function ProfileScreen() {
           >
             <Text style={em.btnText}>Sign out</Text>
           </Pressable>
-          <Pressable onPress={() => setSignOutModalOpen(false)} style={{ marginTop: 12, alignItems: "center" }}>
+          <Pressable
+            onPress={() => setSignOutModalOpen(false)}
+            style={{ marginTop: 12, alignItems: "center" }}
+          >
             <Text style={{ color: colors.ink4, fontSize: 15 }}>Cancel</Text>
           </Pressable>
         </View>
       </Modal>
 
       {/* Delete account confirmation modal */}
-      <Modal visible={deleteModalOpen} animationType="slide" transparent onRequestClose={() => !deletingAccount && setDeleteModalOpen(false)}>
-        <Pressable style={em.backdrop} onPress={() => !deletingAccount && setDeleteModalOpen(false)} />
+      <Modal
+        visible={deleteModalOpen}
+        animationType="slide"
+        transparent
+        onRequestClose={() => !deletingAccount && setDeleteModalOpen(false)}
+      >
+        <Pressable
+          style={em.backdrop}
+          onPress={() => !deletingAccount && setDeleteModalOpen(false)}
+        />
         <View style={[em.sheet, { backgroundColor: colors.background }]}>
           <View style={em.handle} />
           <View style={{ alignItems: "center", marginBottom: 16 }}>
-            <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: "#FEE2E2", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
+            <View
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 28,
+                backgroundColor: "#FEE2E2",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 12,
+              }}
+            >
               <Feather name="trash-2" size={26} color="#E05252" />
             </View>
-            <Text style={[em.title, { color: colors.ink, marginBottom: 0, textAlign: "center" }]}>Delete account</Text>
+            <Text
+              style={[
+                em.title,
+                { color: colors.ink, marginBottom: 0, textAlign: "center" },
+              ]}
+            >
+              Delete account
+            </Text>
           </View>
-          <Text style={[em.hint, { color: colors.ink4, marginTop: 0, marginBottom: 8, textAlign: "center" }]}>
-            This will permanently delete your account and all of your data, including:
+          <Text
+            style={[
+              em.hint,
+              {
+                color: colors.ink4,
+                marginTop: 0,
+                marginBottom: 8,
+                textAlign: "center",
+              },
+            ]}
+          >
+            This will permanently delete your account and all of your data,
+            including:
           </Text>
-          <View style={{ backgroundColor: "#FEE2E2", borderRadius: 12, padding: 14, marginBottom: 24 }}>
+          <View
+            style={{
+              backgroundColor: "#FEE2E2",
+              borderRadius: 12,
+              padding: 14,
+              marginBottom: 24,
+            }}
+          >
             <Text style={{ color: "#C0392B", fontSize: 13, lineHeight: 20 }}>
-              {"• All conversation sessions and history\n• Your scores and progress data\n• Your profile and account settings\n\nThis action cannot be undone."}
+              {
+                "• All conversation sessions and history\n• Your scores and progress data\n• Your profile and account settings\n\nThis action cannot be undone."
+              }
             </Text>
           </View>
           <Pressable
             accessibilityLabel="Confirm delete account"
-            style={[em.btn, { backgroundColor: deletingAccount ? "#F09090" : "#E05252", opacity: deletingAccount ? 0.7 : 1 }]}
+            style={[
+              em.btn,
+              {
+                backgroundColor: deletingAccount ? "#F09090" : "#E05252",
+                opacity: deletingAccount ? 0.7 : 1,
+              },
+            ]}
             onPress={handleDeleteAccount}
             disabled={deletingAccount}
           >
-            <Text style={em.btnText}>{deletingAccount ? "Deleting…" : "Yes, delete my account"}</Text>
+            <Text style={em.btnText}>
+              {deletingAccount ? "Deleting…" : "Yes, delete my account"}
+            </Text>
           </Pressable>
           <Pressable
             onPress={() => setDeleteModalOpen(false)}
@@ -899,8 +1442,14 @@ export default function ProfileScreen() {
       {/* Email edit modal */}
       <EditModal
         visible={emailModalOpen}
-        onClose={() => { setEmailModalOpen(false); setEmailStep("input"); setPendingEmail(null); }}
-        title={emailStep === "input" ? "Update email address" : "Verify new email"}
+        onClose={() => {
+          setEmailModalOpen(false);
+          setEmailStep("input");
+          setPendingEmail(null);
+        }}
+        title={
+          emailStep === "input" ? "Update email address" : "Verify new email"
+        }
         placeholder="new@example.com"
         keyboardType="email-address"
         onSubmit={handleSubmitEmail}
@@ -951,16 +1500,21 @@ const em = StyleSheet.create({
     elevation: 10,
   },
   handle: {
-    width: 40, height: 4, borderRadius: 2,
+    width: 40,
+    height: 4,
+    borderRadius: 2,
     backgroundColor: "#D0C8C0",
     alignSelf: "center",
     marginBottom: 20,
   },
   title: { fontSize: 19, fontWeight: "700", marginBottom: 20 },
   input: {
-    borderWidth: 1.5, borderRadius: 12,
-    paddingHorizontal: 14, paddingVertical: 12,
-    fontSize: 16, marginBottom: 10,
+    borderWidth: 1.5,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+    marginBottom: 10,
   },
   hint: { fontSize: 13, lineHeight: 19, marginBottom: 20, marginTop: 4 },
   btn: { borderRadius: 28, paddingVertical: 15, alignItems: "center" },
@@ -968,7 +1522,13 @@ const em = StyleSheet.create({
 });
 
 const s = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 14 },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
   rowLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
   rowRight: { flexDirection: "row", alignItems: "center" },
 });
@@ -977,18 +1537,61 @@ function makeSStyles(colors: any) {
   return StyleSheet.create({
     container: { flex: 1 },
     header: { paddingHorizontal: 20, paddingBottom: 8 },
-    pageTitle: { fontSize: 28, fontWeight: "700", color: colors.ink, fontFamily: "Sora_700Bold" },
-    avatarSection: {
-      alignItems: "center", paddingVertical: 24,
-      borderBottomWidth: 1, borderBottomColor: colors.border,
-      marginHorizontal: 20, marginBottom: 4,
+    pageTitle: {
+      fontSize: 28,
+      fontWeight: "700",
+      color: colors.ink,
+      fontFamily: "Sora_700Bold",
     },
-    nameText: { fontSize: 20, fontWeight: "700", color: colors.ink, fontFamily: "Sora_700Bold" },
-    emailText: { fontSize: 14, color: colors.ink4, marginTop: 4, fontFamily: "Sora_400Regular" },
-    card: { marginHorizontal: 16, borderRadius: 14, overflow: "hidden", borderWidth: 1, borderColor: colors.border, backgroundColor: colors.cream3 },
-    nameInput: { borderWidth: 1.5, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, fontSize: 16, minWidth: 160, color: colors.ink },
-    saveBtn: { backgroundColor: colors.rust, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7, marginLeft: 8 },
+    avatarSection: {
+      alignItems: "center",
+      paddingVertical: 24,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      marginHorizontal: 20,
+      marginBottom: 4,
+    },
+    nameText: {
+      fontSize: 20,
+      fontWeight: "700",
+      color: colors.ink,
+      fontFamily: "Sora_700Bold",
+    },
+    emailText: {
+      fontSize: 14,
+      color: colors.ink4,
+      marginTop: 4,
+      fontFamily: "Sora_400Regular",
+    },
+    card: {
+      marginHorizontal: 16,
+      borderRadius: 14,
+      overflow: "hidden",
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.cream3,
+    },
+    nameInput: {
+      borderWidth: 1.5,
+      borderRadius: 8,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      fontSize: 16,
+      minWidth: 160,
+      color: colors.ink,
+    },
+    saveBtn: {
+      backgroundColor: colors.rust,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 7,
+      marginLeft: 8,
+    },
     nameRow: { flexDirection: "row", alignItems: "center" },
-    nameEditRow: { flexDirection: "row", alignItems: "center", marginBottom: 4 },
+    nameEditRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 4,
+    },
   });
 }

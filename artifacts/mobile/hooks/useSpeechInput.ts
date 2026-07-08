@@ -18,13 +18,17 @@ export function useSpeechInput({ onResult, onError }: Options) {
   const isSupported =
     Platform.OS === "web" &&
     typeof window !== "undefined" &&
-    !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+    !!(
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition
+    );
 
   const start = useCallback(() => {
     if (!isSupported) return;
 
     const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
 
     const r = new SpeechRecognition();
     r.lang = "en-US";

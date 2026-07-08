@@ -37,8 +37,15 @@ const MIME_TYPES = {
 
 // File types that benefit from gzip compression
 const COMPRESSIBLE = new Set([
-  ".js", ".mjs", ".json", ".css", ".html", ".txt",
-  ".svg", ".webmanifest", ".map",
+  ".js",
+  ".mjs",
+  ".json",
+  ".css",
+  ".html",
+  ".txt",
+  ".svg",
+  ".webmanifest",
+  ".map",
 ]);
 
 if (!fs.existsSync(DIST_ROOT)) {
@@ -59,13 +66,15 @@ function serveFile(res, filePath, contentType, cacheControl, useGzip) {
   const headers = {
     "content-type": contentType,
     "cache-control": cacheControl,
-    "vary": "Accept-Encoding",
+    vary: "Accept-Encoding",
   };
 
   if (useGzip) {
     headers["content-encoding"] = "gzip";
     res.writeHead(200, headers);
-    fs.createReadStream(filePath).pipe(zlib.createGzip({ level: 6 })).pipe(res);
+    fs.createReadStream(filePath)
+      .pipe(zlib.createGzip({ level: 6 }))
+      .pipe(res);
   } else {
     res.writeHead(200, headers);
     fs.createReadStream(filePath).pipe(res);
@@ -74,7 +83,12 @@ function serveFile(res, filePath, contentType, cacheControl, useGzip) {
 
 // Well-known paths that must never fall through to the SPA index.html fallback.
 // Serving index.html for these causes crawlers / Lighthouse to report errors.
-const EXACT_FILES = new Set(["/robots.txt", "/sitemap.xml", "/favicon.ico", "/apple-touch-icon.png"]);
+const EXACT_FILES = new Set([
+  "/robots.txt",
+  "/sitemap.xml",
+  "/favicon.ico",
+  "/apple-touch-icon.png",
+]);
 
 const server = http.createServer((req, res) => {
   const url = new URL(req.url || "/", `http://${req.headers.host}`);
@@ -83,7 +97,10 @@ const server = http.createServer((req, res) => {
   // Dedicated health check — instant inline response, no file I/O.
   // Cloud Run startup probe hits this path; respond before anything else.
   if (pathname === "/healthz") {
-    res.writeHead(200, { "content-type": "text/plain", "cache-control": "no-store" });
+    res.writeHead(200, {
+      "content-type": "text/plain",
+      "cache-control": "no-store",
+    });
     res.end("ok");
     return;
   }
@@ -126,12 +143,14 @@ const server = http.createServer((req, res) => {
   const headers = {
     "content-type": "text/html; charset=utf-8",
     "cache-control": "no-cache, no-store, must-revalidate",
-    "vary": "Accept-Encoding",
+    vary: "Accept-Encoding",
   };
   if (compress) {
     headers["content-encoding"] = "gzip";
     res.writeHead(200, headers);
-    fs.createReadStream(INDEX_HTML).pipe(zlib.createGzip({ level: 6 })).pipe(res);
+    fs.createReadStream(INDEX_HTML)
+      .pipe(zlib.createGzip({ level: 6 }))
+      .pipe(res);
   } else {
     res.writeHead(200, headers);
     fs.createReadStream(INDEX_HTML).pipe(res);

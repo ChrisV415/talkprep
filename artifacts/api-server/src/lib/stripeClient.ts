@@ -20,7 +20,9 @@ async function getStripeCredentials(): Promise<{
       : null;
 
   if (!hostname || !xReplitToken) {
-    throw new Error("Stripe not configured: set STRIPE_SECRET_KEY or connect via Replit integrations");
+    throw new Error(
+      "Stripe not configured: set STRIPE_SECRET_KEY or connect via Replit integrations",
+    );
   }
 
   const isProduction = process.env.REPLIT_DEPLOYMENT === "1";

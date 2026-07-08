@@ -33,7 +33,14 @@ export default function DebriefScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { scenario, who, situation, scores, currentSessionId, updateSessionDebrief } = useApp();
+  const {
+    scenario,
+    who,
+    situation,
+    scores,
+    currentSessionId,
+    updateSessionDebrief,
+  } = useApp();
 
   const [happened, setHappened] = useState("");
   const [different, setDifferent] = useState("");
@@ -60,7 +67,15 @@ export default function DebriefScreen() {
     const token = await getToken();
     await streamRequest(
       "api/talkprep/debrief",
-      { scenario, who, situation, outcome: selectedOutcome || "Not specified", happened, different, scores },
+      {
+        scenario,
+        who,
+        situation,
+        outcome: selectedOutcome || "Not specified",
+        happened,
+        different,
+        scores,
+      },
       (chunk) => {
         debriefRef.current += chunk;
         setDebriefText(debriefRef.current);
@@ -135,14 +150,21 @@ export default function DebriefScreen() {
           {copied ? (
             <Text style={styles.copiedText}>Copied!</Text>
           ) : (
-            <Feather name="share" size={19} color={debriefText ? colors.ink3 : colors.border} />
+            <Feather
+              name="share"
+              size={19}
+              color={debriefText ? colors.ink3 : colors.border}
+            />
           )}
         </Pressable>
       </View>
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: insets.bottom + 100 },
+        ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         bounces={false}
@@ -151,7 +173,8 @@ export default function DebriefScreen() {
         <Text style={styles.sectionTag}>POST-CONVERSATION</Text>
         <Text style={styles.sectionTitle}>How did it actually go?</Text>
         <Text style={styles.sectionHint}>
-          If you've had the real conversation, reflect on what happened. If not, skip this for later.
+          If you've had the real conversation, reflect on what happened. If not,
+          skip this for later.
         </Text>
 
         <View style={styles.fieldGroup}>
@@ -255,7 +278,9 @@ export default function DebriefScreen() {
           <Pressable
             style={styles.doneBtn}
             onPress={() => {
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              Haptics.notificationAsync(
+                Haptics.NotificationFeedbackType.Success,
+              );
               router.dismissAll();
             }}
           >
@@ -279,9 +304,23 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    backBtn: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
-    shareBtn: { width: 52, height: 36, alignItems: "center", justifyContent: "center" },
-    copiedText: { fontSize: 11, color: colors.rust, fontFamily: "Sora_600SemiBold" },
+    backBtn: {
+      width: 36,
+      height: 36,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    shareBtn: {
+      width: 52,
+      height: 36,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    copiedText: {
+      fontSize: 11,
+      color: colors.rust,
+      fontFamily: "Sora_600SemiBold",
+    },
     topTitle: {
       fontSize: 16,
       fontWeight: "600",
@@ -329,7 +368,11 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       borderRadius: 20,
       backgroundColor: "white",
     },
-    chipText: { fontSize: 13, color: colors.ink2, fontFamily: "Sora_400Regular" },
+    chipText: {
+      fontSize: 13,
+      color: colors.ink2,
+      fontFamily: "Sora_400Regular",
+    },
     input: {
       borderWidth: 1,
       borderColor: colors.input,

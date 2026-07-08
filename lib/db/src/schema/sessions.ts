@@ -5,7 +5,9 @@ import { z } from "zod/v4";
 export const sessions = pgTable("tp_sessions", {
   id: text("id").primaryKey(),
   userId: text("user_id").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
   sessionDate: text("session_date").notNull().default(""),
   scenario: text("scenario").notNull().default(""),
   who: text("who").notNull().default(""),

@@ -3,7 +3,6 @@ import { router, useNavigation } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -67,7 +66,9 @@ export default function TranscriptScreen() {
       await streamRequest(
         "api/talkprep/annotate",
         { scenario, outcome, context, message: msgs[i].content },
-        (chunk) => { annotText += chunk; },
+        (chunk) => {
+          annotText += chunk;
+        },
         () => {
           const isGood = annotText.toUpperCase().includes("RATING: GOOD");
           const match = annotText.match(/ANNOTATION:\s*([\s\S]*)/);
@@ -75,7 +76,12 @@ export default function TranscriptScreen() {
           setMessages((prev) => {
             const updated = [...prev];
             if (updated[i]) {
-              updated[i] = { ...updated[i], annotation: note, isGood, annotating: false };
+              updated[i] = {
+                ...updated[i],
+                annotation: note,
+                isGood,
+                annotating: false,
+              };
             }
             return updated;
           });
@@ -98,7 +104,7 @@ export default function TranscriptScreen() {
 
   const styles = makeStyles(colors);
   const topPad = insets.top;
-  const personName = who.split(/[,.]/ )[0]?.trim() || "Them";
+  const personName = who.split(/[,.]/)[0]?.trim() || "Them";
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -112,7 +118,10 @@ export default function TranscriptScreen() {
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: insets.bottom + 100 },
+        ]}
         showsVerticalScrollIndicator={false}
         bounces={false}
         overScrollMode="never"
@@ -120,17 +129,16 @@ export default function TranscriptScreen() {
         {messages.map((msg, idx) => (
           <View
             key={idx}
-            style={[
-              styles.messageRow,
-              { borderBottomColor: colors.border },
-            ]}
+            style={[styles.messageRow, { borderBottomColor: colors.border }]}
           >
             <View style={styles.msgHeader}>
               <Text style={[styles.speaker, { color: colors.ink3 }]}>
                 {msg.role === "user" ? "YOU" : personName.toUpperCase()}
               </Text>
               {msg.role === "user" && (
-                <View style={[styles.tag, { backgroundColor: colors.rustLight }]}>
+                <View
+                  style={[styles.tag, { backgroundColor: colors.rustLight }]}
+                >
                   <Text style={[styles.tagText, { color: colors.rustDim }]}>
                     YOUR MESSAGE
                   </Text>
@@ -143,8 +151,14 @@ export default function TranscriptScreen() {
                 style={[
                   styles.annotationBox,
                   msg.isGood
-                    ? { backgroundColor: colors.sageLight, borderLeftColor: colors.sage }
-                    : { backgroundColor: colors.rustLight, borderLeftColor: colors.rust },
+                    ? {
+                        backgroundColor: colors.sageLight,
+                        borderLeftColor: colors.sage,
+                      }
+                    : {
+                        backgroundColor: colors.rustLight,
+                        borderLeftColor: colors.rust,
+                      },
                 ]}
               >
                 {msg.annotating ? (
@@ -162,7 +176,9 @@ export default function TranscriptScreen() {
                     <Text
                       style={[
                         styles.annotationText,
-                        { color: msg.isGood ? colors.sageDark : colors.rustDim },
+                        {
+                          color: msg.isGood ? colors.sageDark : colors.rustDim,
+                        },
                       ]}
                     >
                       {msg.annotation}
@@ -199,7 +215,12 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    backBtn: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
+    backBtn: {
+      width: 36,
+      height: 36,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     topTitle: {
       fontSize: 16,
       fontWeight: "600",
@@ -225,7 +246,11 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontWeight: "600",
     },
     tag: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 3 },
-    tagText: { fontSize: 8, fontFamily: "Sora_600SemiBold", letterSpacing: 0.5 },
+    tagText: {
+      fontSize: 8,
+      fontFamily: "Sora_600SemiBold",
+      letterSpacing: 0.5,
+    },
     msgText: {
       fontSize: 14,
       color: colors.ink2,
@@ -241,9 +266,22 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       borderBottomLeftRadius: 0,
     },
     annotatingRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-    annotatingText: { fontSize: 11, color: colors.rust, fontFamily: "Sora_400Regular" },
-    annotationContent: { flexDirection: "row", alignItems: "flex-start", gap: 6 },
-    annotationText: { flex: 1, fontSize: 12, lineHeight: 18, fontFamily: "Sora_400Regular" },
+    annotatingText: {
+      fontSize: 11,
+      color: colors.rust,
+      fontFamily: "Sora_400Regular",
+    },
+    annotationContent: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: 6,
+    },
+    annotationText: {
+      flex: 1,
+      fontSize: 12,
+      lineHeight: 18,
+      fontFamily: "Sora_400Regular",
+    },
     footer: {
       paddingHorizontal: 16,
       paddingTop: 12,

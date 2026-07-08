@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Image, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Image,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 const SESSION_KEY = "talkprep_sessions";
 const DISMISSED_KEY = "talkprep_pwa_dismissed";
@@ -21,7 +28,7 @@ export function PWAInstallPrompt() {
 function PWAInstallPromptWeb() {
   const [show, setShow] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
@@ -29,7 +36,7 @@ function PWAInstallPromptWeb() {
 
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       (window.navigator as any).standalone === true;
     if (isStandalone) return;
 
@@ -41,7 +48,7 @@ function PWAInstallPromptWeb() {
 
     const ios =
       /iPad|iPhone|iPod/.test(navigator.userAgent) &&
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       !(window as any).MSStream;
     setIsIOS(ios);
 
@@ -50,7 +57,7 @@ function PWAInstallPromptWeb() {
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const handler = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -99,8 +106,7 @@ function PWAInstallPromptWeb() {
         {isIOS ? (
           <View style={styles.iosRow}>
             <Text style={styles.iosText}>
-              Tap{" "}
-              <Text style={styles.bold}>Share</Text>
+              Tap <Text style={styles.bold}>Share</Text>
               {"  ⬆︎  then  "}
               <Text style={styles.bold}>"Add to Home Screen"</Text>
             </Text>

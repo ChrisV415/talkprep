@@ -1,7 +1,12 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { users, usageCounts, sessions, proOverrides } from "@workspace/db/schema";
-import { eq, sql, desc } from "drizzle-orm";
+import {
+  users,
+  usageCounts,
+  sessions,
+  proOverrides,
+} from "@workspace/db/schema";
+import { eq, sql } from "drizzle-orm";
 import { adminAuth } from "../middlewares/adminAuth";
 import { storage } from "../lib/storage";
 import { logger } from "../lib/logger";
@@ -87,15 +92,22 @@ router.get("/admin/users", adminAuth, async (_req, res) => {
       FROM usage_counts
       GROUP BY user_id
     `);
-    const prepMap = new Map(prepRows.rows.map((r) => [r.user_id, Number(r.total)]));
+    const prepMap = new Map(
+      prepRows.rows.map((r) => [r.user_id, Number(r.total)]),
+    );
 
     // Earliest session date per user (fallback join date when tp_users row absent)
-    const firstSeenRows = await db.execute<{ user_id: string; first_seen: string }>(sql`
+    const firstSeenRows = await db.execute<{
+      user_id: string;
+      first_seen: string;
+    }>(sql`
       SELECT user_id, min(created_at) AS first_seen
       FROM tp_sessions
       GROUP BY user_id
     `);
-    const firstSeenMap = new Map(firstSeenRows.rows.map((r) => [r.user_id, r.first_seen]));
+    const firstSeenMap = new Map(
+      firstSeenRows.rows.map((r) => [r.user_id, r.first_seen]),
+    );
 
     // Session counts per user
     const sessionRows = await db
@@ -111,32 +123,33 @@ router.get("/admin/users", adminAuth, async (_req, res) => {
     // Fetch all emails from Clerk in one request
     const clerkEmailMap = await fetchClerkEmails(allUserIds);
 
-    const result = allUserIds.map((id) => {
-      const profile = profileMap.get(id);
-      const hasOverride = overrideMap.has(id);
-      const hasStripe = !!profile?.stripeSubscriptionId;
-      let proSource: "stripe" | "override" | "none" = "none";
-      if (hasOverride) proSource = "override";
-      else if (hasStripe) proSource = "stripe";
+    const result = allUserIds
+      .map((id) => {
+        const profile = profileMap.get(id);
+        const hasOverride = overrideMap.has(id);
+        const hasStripe = !!profile?.stripeSubscriptionId;
+        let proSource: "stripe" | "override" | "none" = "none";
+        if (hasOverride) proSource = "override";
+        else if (hasStripe) proSource = "stripe";
 
-      const joinedAt =
-        profile?.createdAt?.toISOString() ??
-        firstSeenMap.get(id) ??
-        null;
+        const joinedAt =
+          profile?.createdAt?.toISOString() ?? firstSeenMap.get(id) ?? null;
 
-      return {
-        userId: id,
-        email: clerkEmailMap.get(id) ?? profile?.email ?? "",
-        joinedAt,
-        prepsUsed: prepMap.get(id) ?? 0,
-        sessionCount: sessionMap.get(id) ?? 0,
-        proSource,
-        overrideNote: overrideMap.get(id)?.note ?? "",
-        stripeSubscriptionId: profile?.stripeSubscriptionId ?? null,
-      };
-    })
-    // Sort: most active first
-    .sort((a, b) => (b.prepsUsed + b.sessionCount) - (a.prepsUsed + a.sessionCount));
+        return {
+          userId: id,
+          email: clerkEmailMap.get(id) ?? profile?.email ?? "",
+          joinedAt,
+          prepsUsed: prepMap.get(id) ?? 0,
+          sessionCount: sessionMap.get(id) ?? 0,
+          proSource,
+          overrideNote: overrideMap.get(id)?.note ?? "",
+          stripeSubscriptionId: profile?.stripeSubscriptionId ?? null,
+        };
+      })
+      // Sort: most active first
+      .sort(
+        (a, b) => b.prepsUsed + b.sessionCount - (a.prepsUsed + a.sessionCount),
+      );
 
     res.json(result);
   } catch (err) {
@@ -177,9 +190,7 @@ router.delete("/admin/users/:userId/grant", adminAuth, async (req, res) => {
 router.post("/admin/users/:userId/reset-preps", adminAuth, async (req, res) => {
   try {
     const userId = req.params.userId as string;
-    await db
-      .delete(usageCounts)
-      .where(eq(usageCounts.userId, userId));
+    await db.delete(usageCounts).where(eq(usageCounts.userId, userId));
     res.json({ ok: true });
   } catch (err) {
     logger.error({ err }, "admin/reset-preps error");
@@ -189,7 +200,9 @@ router.post("/admin/users/:userId/reset-preps", adminAuth, async (req, res) => {
 
 // ─── Clerk email helper ────────────────────────────────────────────────────────
 
-async function fetchClerkEmails(userIds: string[]): Promise<Map<string, string>> {
+async function fetchClerkEmails(
+  userIds: string[],
+): Promise<Map<string, string>> {
   const map = new Map<string, string>();
   const secret = process.env.CLERK_SECRET_KEY;
   if (!secret || userIds.length === 0) return map;

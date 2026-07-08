@@ -2,7 +2,6 @@ import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useMemo } from "react";
 import {
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -22,23 +21,45 @@ export default function DashboardScreen() {
     const withScores = sessions.filter((s) => s.scores);
     const total = sessions.length;
     const avgClarity = withScores.length
-      ? (withScores.reduce((a, s) => a + (s.scores!.clarity || 0), 0) / withScores.length).toFixed(1)
+      ? (
+          withScores.reduce((a, s) => a + (s.scores!.clarity || 0), 0) /
+          withScores.length
+        ).toFixed(1)
       : "—";
     const avgComposure = withScores.length
-      ? (withScores.reduce((a, s) => a + (s.scores!.composure || 0), 0) / withScores.length).toFixed(1)
+      ? (
+          withScores.reduce((a, s) => a + (s.scores!.composure || 0), 0) /
+          withScores.length
+        ).toFixed(1)
       : "—";
     const avgOutcome = withScores.length
-      ? (withScores.reduce((a, s) => a + (s.scores!.outcome_score || 0), 0) / withScores.length).toFixed(1)
+      ? (
+          withScores.reduce((a, s) => a + (s.scores!.outcome_score || 0), 0) /
+          withScores.length
+        ).toFixed(1)
       : "—";
 
     const scenDist: Record<string, number> = {};
-    sessions.forEach((s) => { scenDist[s.scenario] = (scenDist[s.scenario] || 0) + 1; });
-    const topScenarios = Object.entries(scenDist).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    sessions.forEach((s) => {
+      scenDist[s.scenario] = (scenDist[s.scenario] || 0) + 1;
+    });
+    const topScenarios = Object.entries(scenDist)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
 
     const recent = sessions.slice(0, 6).reverse();
     const maxScore = 5;
 
-    return { total, avgClarity, avgComposure, avgOutcome, withScores, topScenarios, recent, maxScore };
+    return {
+      total,
+      avgClarity,
+      avgComposure,
+      avgOutcome,
+      withScores,
+      topScenarios,
+      recent,
+      maxScore,
+    };
   }, [sessions]);
 
   const styles = makeStyles(colors);
@@ -61,8 +82,13 @@ export default function DashboardScreen() {
         <View style={styles.empty}>
           <Feather name="bar-chart-2" size={32} color={colors.ink4} />
           <Text style={styles.emptyTitle}>No data yet</Text>
-          <Text style={styles.emptyHint}>Complete sessions and score them to see your progress</Text>
-          <Pressable style={styles.emptyBtn} onPress={() => router.push("/prep")}>
+          <Text style={styles.emptyHint}>
+            Complete sessions and score them to see your progress
+          </Text>
+          <Pressable
+            style={styles.emptyBtn}
+            onPress={() => router.push("/prep")}
+          >
             <Text style={styles.emptyBtnText}>Start a prep session</Text>
           </Pressable>
         </View>
@@ -86,16 +112,21 @@ export default function DashboardScreen() {
             <View style={styles.card}>
               <View style={styles.cardHeader}>
                 <Text style={styles.cardTitle}>Progress Trend</Text>
-                <View style={[styles.badge, { backgroundColor: colors.rustLight }]}>
+                <View
+                  style={[styles.badge, { backgroundColor: colors.rustLight }]}
+                >
                   <Text style={[styles.badgeText, { color: colors.rustDim }]}>
                     LAST {stats.recent.length}
                   </Text>
                 </View>
               </View>
               <View style={styles.trendChart}>
-                {stats.recent.map((s, i) => {
+                {stats.recent.map((s) => {
                   const avg = s.scores
-                    ? ((s.scores.clarity || 0) + (s.scores.composure || 0) + (s.scores.outcome_score || 0)) / 3
+                    ? ((s.scores.clarity || 0) +
+                        (s.scores.composure || 0) +
+                        (s.scores.outcome_score || 0)) /
+                      3
                     : 0;
                   const heightPct = s.scores ? Math.max(0.06, avg / 5) : 0.05;
                   return (
@@ -105,8 +136,11 @@ export default function DashboardScreen() {
                           styles.trendBar,
                           {
                             height: heightPct * 60,
-                            backgroundColor:
-                              !s.scores ? colors.cream3 : avg >= 4 ? colors.sage : colors.rust,
+                            backgroundColor: !s.scores
+                              ? colors.cream3
+                              : avg >= 4
+                                ? colors.sage
+                                : colors.rust,
                             opacity: s.scores ? 0.85 : 0.35,
                           },
                         ]}
@@ -119,7 +153,8 @@ export default function DashboardScreen() {
                 })}
               </View>
               <Text style={styles.trendNote}>
-                Green = avg score ≥ 4 · Orange = needs work · Faded = not yet scored
+                Green = avg score ≥ 4 · Orange = needs work · Faded = not yet
+                scored
               </Text>
             </View>
           )}
@@ -144,9 +179,18 @@ export default function DashboardScreen() {
                 <Text style={styles.cardTitle}>Score Breakdown</Text>
               </View>
               {[
-                { label: "Clarity", value: parseFloat(String(stats.avgClarity)) || 0 },
-                { label: "Composure", value: parseFloat(String(stats.avgComposure)) || 0 },
-                { label: "Outcome", value: parseFloat(String(stats.avgOutcome)) || 0 },
+                {
+                  label: "Clarity",
+                  value: parseFloat(String(stats.avgClarity)) || 0,
+                },
+                {
+                  label: "Composure",
+                  value: parseFloat(String(stats.avgComposure)) || 0,
+                },
+                {
+                  label: "Outcome",
+                  value: parseFloat(String(stats.avgOutcome)) || 0,
+                },
               ].map((s) => (
                 <View key={s.label} style={styles.barRow}>
                   <Text style={styles.barLabel}>{s.label}</Text>
@@ -156,7 +200,8 @@ export default function DashboardScreen() {
                         styles.barFill,
                         {
                           width: `${(s.value / 5) * 100}%` as any,
-                          backgroundColor: s.label === "Composure" ? colors.sage : colors.rust,
+                          backgroundColor:
+                            s.label === "Composure" ? colors.sage : colors.rust,
                         },
                       ]}
                     />
@@ -276,7 +321,12 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontFamily: "Sora_600SemiBold",
     },
     badge: { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 3 },
-    badgeText: { fontSize: 9, fontWeight: "600", letterSpacing: 0.5, fontFamily: "Sora_600SemiBold" },
+    badgeText: {
+      fontSize: 9,
+      fontWeight: "600",
+      letterSpacing: 0.5,
+      fontFamily: "Sora_600SemiBold",
+    },
     trendChart: {
       flexDirection: "row",
       alignItems: "flex-end",
@@ -310,8 +360,17 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    scenLabel: { fontSize: 13, color: colors.ink2, fontFamily: "Sora_400Regular", flex: 1 },
-    scenCount: { fontSize: 12, color: colors.rust, fontFamily: "Sora_600SemiBold" },
+    scenLabel: {
+      fontSize: 13,
+      color: colors.ink2,
+      fontFamily: "Sora_400Regular",
+      flex: 1,
+    },
+    scenCount: {
+      fontSize: 12,
+      color: colors.rust,
+      fontFamily: "Sora_600SemiBold",
+    },
     barRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -319,7 +378,12 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       paddingHorizontal: 14,
       paddingVertical: 10,
     },
-    barLabel: { fontSize: 12, color: colors.ink3, fontFamily: "Sora_400Regular", width: 70 },
+    barLabel: {
+      fontSize: 12,
+      color: colors.ink3,
+      fontFamily: "Sora_400Regular",
+      width: 70,
+    },
     barTrack: {
       flex: 1,
       height: 8,
@@ -328,6 +392,12 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       overflow: "hidden",
     },
     barFill: { height: "100%", borderRadius: 4 },
-    barVal: { fontSize: 11, color: colors.ink3, fontFamily: "Sora_500Medium", width: 28, textAlign: "right" },
+    barVal: {
+      fontSize: 11,
+      color: colors.ink3,
+      fontFamily: "Sora_500Medium",
+      width: 28,
+      textAlign: "right",
+    },
   });
 }

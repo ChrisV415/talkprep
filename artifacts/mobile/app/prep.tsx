@@ -109,24 +109,36 @@ export default function PrepScreen() {
   const [micField, setMicField] = useState<MicField | null>(null);
   const micFieldRef = useRef<MicField | null>(null);
 
-  const { isListening: micListening, isSupported: micSupported, start: micStart, abort: micAbort } =
-    useSpeechInput({
-      onResult: (text) => {
-        const f = micFieldRef.current;
-        if (f === "who") setWho(who ? who + " " + text : text);
-        else if (f === "situation") setSituation(situation ? situation + " " + text : text);
-        else if (f === "outcome") setOutcome(outcome ? outcome + " " + text : text);
-      },
-      onError: (kind) => {
-        setMicField(null);
-        micFieldRef.current = null;
-        if (kind === "permission") {
-          Alert.alert("Microphone Access", "Allow microphone access in your browser settings to use voice input.");
-        } else if (kind === "other") {
-          Alert.alert("Voice Input", "Could not recognise speech. Please try again.");
-        }
-      },
-    });
+  const {
+    isListening: micListening,
+    isSupported: micSupported,
+    start: micStart,
+    abort: micAbort,
+  } = useSpeechInput({
+    onResult: (text) => {
+      const f = micFieldRef.current;
+      if (f === "who") setWho(who ? who + " " + text : text);
+      else if (f === "situation")
+        setSituation(situation ? situation + " " + text : text);
+      else if (f === "outcome")
+        setOutcome(outcome ? outcome + " " + text : text);
+    },
+    onError: (kind) => {
+      setMicField(null);
+      micFieldRef.current = null;
+      if (kind === "permission") {
+        Alert.alert(
+          "Microphone Access",
+          "Allow microphone access in your browser settings to use voice input.",
+        );
+      } else if (kind === "other") {
+        Alert.alert(
+          "Voice Input",
+          "Could not recognise speech. Please try again.",
+        );
+      }
+    },
+  });
 
   useEffect(() => {
     if (!micListening) {
@@ -167,7 +179,7 @@ export default function PrepScreen() {
       async () => {
         const response = responseRef.current;
         setFullResponse(response);
-        const id = await saveSession(response);
+        await saveSession(response);
         setIsGenerating(false);
         router.push("/result");
       },
@@ -175,7 +187,11 @@ export default function PrepScreen() {
         setIsGenerating(false);
         const msg = err?.message || "";
         // 429 = free prep already used → send to upgrade
-        if (msg.includes("429") || msg.toLowerCase().includes("upgrade") || msg.toLowerCase().includes("free prep")) {
+        if (
+          msg.includes("429") ||
+          msg.toLowerCase().includes("upgrade") ||
+          msg.toLowerCase().includes("free prep")
+        ) {
           router.replace("/upgrade");
           return;
         }
@@ -195,12 +211,7 @@ export default function PrepScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <View
-        style={[
-          styles.topBar,
-          { paddingTop: topPad + 8 },
-        ]}
-      >
+      <View style={[styles.topBar, { paddingTop: topPad + 8 }]}>
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
           <Feather name="arrow-left" size={20} color={colors.ink3} />
         </Pressable>
@@ -263,7 +274,10 @@ export default function PrepScreen() {
                   <Text
                     style={[
                       styles.pickerItemText,
-                      scenario === sc && { color: colors.rust, fontFamily: "Sora_600SemiBold" },
+                      scenario === sc && {
+                        color: colors.rust,
+                        fontFamily: "Sora_600SemiBold",
+                      },
                     ]}
                   >
                     {sc}
@@ -344,7 +358,9 @@ export default function PrepScreen() {
         </View>
 
         <View style={styles.fieldGroup}>
-          <Text style={[styles.fieldLabel, { marginBottom: 6 }]}>CONVERSATION TONE</Text>
+          <Text style={[styles.fieldLabel, { marginBottom: 6 }]}>
+            CONVERSATION TONE
+          </Text>
           <View style={styles.toneGrid}>
             {TONES.map((t) => (
               <Pressable
@@ -393,7 +409,9 @@ export default function PrepScreen() {
           {isGenerating ? (
             <>
               <ActivityIndicator color={colors.cream} size="small" />
-              <Text style={styles.generateBtnText}>Preparing your guide...</Text>
+              <Text style={styles.generateBtnText}>
+                Preparing your guide...
+              </Text>
             </>
           ) : (
             <>
@@ -418,7 +436,12 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    backBtn: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
+    backBtn: {
+      width: 36,
+      height: 36,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     topTitle: {
       fontSize: 16,
       fontWeight: "600",

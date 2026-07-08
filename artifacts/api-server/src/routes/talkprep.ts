@@ -35,24 +35,43 @@ type PastSession = {
 
 const VERTICAL_SCENARIOS: Record<string, string[]> = {
   healthcare: [
-    "breaking bad news", "end-of-life care conversation", "addiction intervention",
-    "mental health crisis", "informed consent", "difficult patient or family",
-    "reporting a colleague error", "clinical team conflict",
+    "breaking bad news",
+    "end-of-life care conversation",
+    "addiction intervention",
+    "mental health crisis",
+    "informed consent",
+    "difficult patient or family",
+    "reporting a colleague error",
+    "clinical team conflict",
   ],
   legal: [
-    "client deposition prep", "settlement negotiation", "delivering bad case news",
-    "workplace investigation interview", "client expectation reset",
-    "mediation session", "confidentiality concern",
+    "client deposition prep",
+    "settlement negotiation",
+    "delivering bad case news",
+    "workplace investigation interview",
+    "client expectation reset",
+    "mediation session",
+    "confidentiality concern",
   ],
   hr: [
-    "performance improvement plan", "termination conversation", "hard performance review",
-    "denying a raise or promotion", "team conflict resolution",
-    "layoff notification", "promotion conversation", "harassment complaint handling",
+    "performance improvement plan",
+    "termination conversation",
+    "hard performance review",
+    "denying a raise or promotion",
+    "team conflict resolution",
+    "layoff notification",
+    "promotion conversation",
+    "harassment complaint handling",
   ],
   sales: [
-    "price objection", "procurement pushback", "renewal at risk",
-    "stalled deal close", "executive sponsor conversation",
-    "lost deal debrief", "competitive displacement", "asking for a referral",
+    "price objection",
+    "procurement pushback",
+    "renewal at risk",
+    "stalled deal close",
+    "executive sponsor conversation",
+    "lost deal debrief",
+    "competitive displacement",
+    "asking for a referral",
   ],
 };
 
@@ -84,15 +103,22 @@ function buildMemoryContext(past: PastSession[]): string {
     ]
       .filter(Boolean)
       .join(", ");
-    const happened = s.debriefHappened ? ` What happened: "${s.debriefHappened.slice(0, 120)}${s.debriefHappened.length > 120 ? "…" : ""}"` : "";
-    const different = s.debriefDifferent ? ` Would do differently: "${s.debriefDifferent.slice(0, 80)}${s.debriefDifferent.length > 80 ? "…" : ""}"` : "";
+    const happened = s.debriefHappened
+      ? ` What happened: "${s.debriefHappened.slice(0, 120)}${s.debriefHappened.length > 120 ? "…" : ""}"`
+      : "";
+    const different = s.debriefDifferent
+      ? ` Would do differently: "${s.debriefDifferent.slice(0, 80)}${s.debriefDifferent.length > 80 ? "…" : ""}"`
+      : "";
     return `  [${i + 1}] ${s.scenario} with ${s.who}${s.situation ? ` — ${s.situation.slice(0, 80)}` : ""}. ${scores ? `Scores: ${scores}.` : ""}${happened}${different}`;
   });
 
   return `\nUSER'S RECENT PREP HISTORY (use to personalise advice — spot patterns, acknowledge growth, reference relevant past experience):\n${lines.join("\n")}\n`;
 }
 
-async function getRecentSessions(userId: string, limit = 5): Promise<PastSession[]> {
+async function getRecentSessions(
+  userId: string,
+  limit = 5,
+): Promise<PastSession[]> {
   try {
     return await db
       .select({
@@ -114,23 +140,27 @@ async function getRecentSessions(userId: string, limit = 5): Promise<PastSession
   }
 }
 
-router.post("/talkprep/generate", requireAuth, rateLimiter, async (req: Request, res) => {
-  startSSE(res);
-  const userId = (req as AuthenticatedRequest).userId;
-  const { scenario, who, situation, outcome, tone } = req.body as {
-    scenario: string;
-    who: string;
-    situation: string;
-    outcome?: string;
-    tone?: string;
-  };
+router.post(
+  "/talkprep/generate",
+  requireAuth,
+  rateLimiter,
+  async (req: Request, res) => {
+    startSSE(res);
+    const userId = (req as AuthenticatedRequest).userId;
+    const { scenario, who, situation, outcome, tone } = req.body as {
+      scenario: string;
+      who: string;
+      situation: string;
+      outcome?: string;
+      tone?: string;
+    };
 
-  const past = await getRecentSessions(userId);
-  const memoryBlock = buildMemoryContext(past);
-  const vertical = detectVertical(scenario);
-  const verticalBlock = vertical ? VERTICAL_CONTEXT[vertical] : "";
+    const past = await getRecentSessions(userId);
+    const memoryBlock = buildMemoryContext(past);
+    const vertical = detectVertical(scenario);
+    const verticalBlock = vertical ? VERTICAL_CONTEXT[vertical] : "";
 
-  const systemPrompt = `You are TalkPrep — a conversation coach. Prep this person for their exact conversation. Word-for-word specific. No generic advice.${verticalBlock}
+    const systemPrompt = `You are TalkPrep — a conversation coach. Prep this person for their exact conversation. Word-for-word specific. No generic advice.${verticalBlock}
 
 ## OPENING — 3 opening lines (A/B/C), note when each works best
 ## KEY POINTS — 4 points phrased as the user would actually say them
@@ -141,7 +171,7 @@ router.post("/talkprep/generate", requireAuth, rateLimiter, async (req: Request,
 
 Under 200 words per section. Match the tone requested. Never invent facts.${memoryBlock}`;
 
-  const userPrompt = `Scenario type: ${scenario}
+    const userPrompt = `Scenario type: ${scenario}
 Who they're talking to: ${who}
 Situation: ${situation}
 Desired outcome: ${outcome || "not specified"}
@@ -149,30 +179,33 @@ Preferred tone: ${tone || "balanced"}
 
 Generate their full conversation prep guide.`;
 
-  try {
-    const stream = await openai.chat.completions.create({
-      model: "gpt-4o",
-      max_tokens: 4096,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      stream: true,
-    });
+    try {
+      const stream = await openai.chat.completions.create({
+        model: "gpt-4o",
+        max_tokens: 4096,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        stream: true,
+      });
 
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content || "";
-      if (content) {
-        res.write(`data: ${JSON.stringify({ content })}\n\n`);
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content || "";
+        if (content) {
+          res.write(`data: ${JSON.stringify({ content })}\n\n`);
+        }
       }
+      res.write("data: [DONE]\n\n");
+      res.end();
+    } catch {
+      res.write(
+        `data: ${JSON.stringify({ error: "Failed to generate prep" })}\n\n`,
+      );
+      res.end();
     }
-    res.write("data: [DONE]\n\n");
-    res.end();
-  } catch {
-    res.write(`data: ${JSON.stringify({ error: "Failed to generate prep" })}\n\n`);
-    res.end();
-  }
-});
+  },
+);
 
 router.post("/talkprep/roleplay", requireAuth, async (req, res) => {
   startSSE(res);
@@ -189,10 +222,7 @@ Vary your emotional register. Let genuine moments land. End some turns with a qu
     const stream = await openai.chat.completions.create({
       model: "gpt-4o",
       max_tokens: 2048,
-      messages: [
-        { role: "system", content: enhancedSystem },
-        ...messages,
-      ],
+      messages: [{ role: "system", content: enhancedSystem }, ...messages],
       stream: true,
     });
 
@@ -220,10 +250,14 @@ router.post("/talkprep/nudge", requireAuth, async (req, res) => {
     history?: { role: "user" | "assistant"; content: string }[];
   };
 
-  const transcript = (history && history.length ? history : [
-    { role: "user" as const, content: userSaid },
-    { role: "assistant" as const, content: theySaid },
-  ])
+  const transcript = (
+    history && history.length
+      ? history
+      : [
+          { role: "user" as const, content: userSaid },
+          { role: "assistant" as const, content: theySaid },
+        ]
+  )
     .slice(-10)
     .map((m) => `${m.role === "user" ? "USER" : "THEM"}: ${m.content}`)
     .join("\n");
@@ -263,7 +297,9 @@ FORMAT: One to two sentences. Direct. No preamble ("Great job!", "Consider...", 
     res.write("data: [DONE]\n\n");
     res.end();
   } catch {
-    res.write(`data: ${JSON.stringify({ error: "Failed to generate nudge" })}\n\n`);
+    res.write(
+      `data: ${JSON.stringify({ error: "Failed to generate nudge" })}\n\n`,
+    );
     res.end();
   }
 });
@@ -390,7 +426,9 @@ Tone: honest, warm, direct. Like a coach who respects them enough not to be soft
     res.write("data: [DONE]\n\n");
     res.end();
   } catch {
-    res.write(`data: ${JSON.stringify({ error: "Failed to generate debrief" })}\n\n`);
+    res.write(
+      `data: ${JSON.stringify({ error: "Failed to generate debrief" })}\n\n`,
+    );
     res.end();
   }
 });

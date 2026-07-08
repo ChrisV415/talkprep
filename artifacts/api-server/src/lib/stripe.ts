@@ -1,6 +1,9 @@
 import Stripe from "stripe";
 
-async function getCredentials(): Promise<{ secretKey: string; publishableKey: string }> {
+async function getCredentials(): Promise<{
+  secretKey: string;
+  publishableKey: string;
+}> {
   const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
   const xReplitToken = process.env.REPL_IDENTITY
     ? "repl " + process.env.REPL_IDENTITY

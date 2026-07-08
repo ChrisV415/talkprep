@@ -1,9 +1,8 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router, useNavigation } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -66,7 +65,7 @@ export default function PersonaScreen() {
 
   const styles = makeStyles(colors);
   const topPad = insets.top;
-  const personName = who.split(/[,.]/ )[0]?.trim() || "the other person";
+  const personName = who.split(/[,.]/)[0]?.trim() || "the other person";
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -80,16 +79,22 @@ export default function PersonaScreen() {
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: insets.bottom + 100 },
+        ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         bounces={false}
         overScrollMode="never"
       >
         <Text style={styles.sectionTag}>PRACTICE PARTNER</Text>
-        <Text style={styles.sectionTitle}>How does {personName} tend to behave?</Text>
+        <Text style={styles.sectionTitle}>
+          How does {personName} tend to behave?
+        </Text>
         <Text style={styles.sectionHint}>
-          Tune these to make your practice more realistic. Defaults are fine if you're unsure.
+          Tune these to make your practice more realistic. Defaults are fine if
+          you're unsure.
         </Text>
 
         {[
@@ -208,7 +213,9 @@ export default function PersonaScreen() {
         <View style={styles.fieldGroup}>
           <Text style={styles.fieldLabel}>RESEARCH & CONTEXT</Text>
           <Text style={styles.fieldHint}>
-            Paste anything real you know about them — LinkedIn bio, recent company news, deal notes, past conversations. The more specific, the sharper the practice.
+            Paste anything real you know about them — LinkedIn bio, recent
+            company news, deal notes, past conversations. The more specific, the
+            sharper the practice.
           </Text>
           <TextInput
             style={[styles.input, styles.textarea]}
@@ -247,7 +254,12 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    backBtn: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
+    backBtn: {
+      width: 36,
+      height: 36,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     topTitle: {
       fontSize: 16,
       fontWeight: "600",

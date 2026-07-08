@@ -3,7 +3,6 @@ import * as Haptics from "expo-haptics";
 import { router, useNavigation } from "expo-router";
 import React, { useEffect } from "react";
 import {
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -48,7 +47,8 @@ export default function ScoreScreen() {
   if (!isLoaded) return null;
   if (!isSignedIn) return <Redirect href="/(auth)/sign-in" />;
 
-  const allScored = scores.clarity > 0 && scores.composure > 0 && scores.outcome_score > 0;
+  const allScored =
+    scores.clarity > 0 && scores.composure > 0 && scores.outcome_score > 0;
 
   function setScore(dim: keyof Scores, value: number) {
     Haptics.selectionAsync();
@@ -79,7 +79,10 @@ export default function ScoreScreen() {
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: insets.bottom + 100 },
+        ]}
         showsVerticalScrollIndicator={false}
         bounces={false}
         overScrollMode="never"
@@ -107,8 +110,14 @@ export default function ScoreScreen() {
                     styles.scoreBtn,
                     scores[dim.key] === v &&
                       (v === 5
-                        ? { backgroundColor: colors.sageLight, borderColor: colors.sage }
-                        : { backgroundColor: colors.rustLight, borderColor: colors.rust }),
+                        ? {
+                            backgroundColor: colors.sageLight,
+                            borderColor: colors.sage,
+                          }
+                        : {
+                            backgroundColor: colors.rustLight,
+                            borderColor: colors.rust,
+                          }),
                   ]}
                   onPress={() => setScore(dim.key, v)}
                 >
@@ -116,7 +125,9 @@ export default function ScoreScreen() {
                     style={[
                       styles.scoreBtnText,
                       scores[dim.key] === v &&
-                        (v === 5 ? { color: colors.sageDark } : { color: colors.rustDim }),
+                        (v === 5
+                          ? { color: colors.sageDark }
+                          : { color: colors.rustDim }),
                     ]}
                   >
                     {v}
@@ -153,7 +164,12 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    backBtn: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
+    backBtn: {
+      width: 36,
+      height: 36,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     topTitle: {
       fontSize: 16,
       fontWeight: "600",

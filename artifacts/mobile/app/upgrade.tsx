@@ -84,7 +84,9 @@ export default function UpgradeScreen() {
   const { getToken } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [checkoutLoadingId, setCheckoutLoadingId] = useState<string | null>(null);
+  const [checkoutLoadingId, setCheckoutLoadingId] = useState<string | null>(
+    null,
+  );
   const [error, setError] = useState("");
   const [currentSub, setCurrentSub] = useState<{ status: string } | null>(null);
 
@@ -109,7 +111,8 @@ export default function UpgradeScreen() {
             .then((d: { subscription?: { status: string } | null }) => ({
               isPro:
                 d?.subscription != null &&
-                (d.subscription.status === "active" || d.subscription.status === "trialing"),
+                (d.subscription.status === "active" ||
+                  d.subscription.status === "trialing"),
             }))
             .catch(() => ({ isPro: false })),
         );
@@ -150,33 +153,38 @@ export default function UpgradeScreen() {
   }, []);
 
   // Each plan card taps directly into checkout for that price.
-  const handleSubscribe = useCallback(async (priceId: string) => {
-    if (checkoutLoadingId) return;
-    setCheckoutLoadingId(priceId);
-    setError("");
-    try {
-      const token = await getToken();
-      const baseUrl = getApiUrl();
-      const res = await fetch(`${baseUrl}api/stripe/checkout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ priceId }),
-      });
-      const data = (await res.json()) as { url?: string; error?: string };
-      if (data.url) {
-        openCheckoutUrl(data.url);
-      } else {
-        setError(data.error ?? "Failed to start checkout. Please try again.");
+  const handleSubscribe = useCallback(
+    async (priceId: string) => {
+      if (checkoutLoadingId) return;
+      setCheckoutLoadingId(priceId);
+      setError("");
+      try {
+        const token = await getToken();
+        const baseUrl = getApiUrl();
+        const res = await fetch(`${baseUrl}api/stripe/checkout`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ priceId }),
+        });
+        const data = (await res.json()) as { url?: string; error?: string };
+        if (data.url) {
+          openCheckoutUrl(data.url);
+        } else {
+          setError(data.error ?? "Failed to start checkout. Please try again.");
+        }
+      } catch {
+        setError(
+          "Couldn't connect to checkout. Check your connection and try again.",
+        );
+      } finally {
+        setCheckoutLoadingId(null);
       }
-    } catch {
-      setError("Couldn't connect to checkout. Check your connection and try again.");
-    } finally {
-      setCheckoutLoadingId(null);
-    }
-  }, [checkoutLoadingId, getToken]);
+    },
+    [checkoutLoadingId, getToken],
+  );
 
   const handleManageBilling = useCallback(async () => {
     setCheckoutLoadingId("portal");
@@ -261,7 +269,12 @@ export default function UpgradeScreen() {
       backgroundColor: colors.rust,
       marginBottom: 10,
     },
-    badgeText: { fontSize: 10, fontWeight: "700", color: "#fff", letterSpacing: 1 },
+    badgeText: {
+      fontSize: 10,
+      fontWeight: "700",
+      color: "#fff",
+      letterSpacing: 1,
+    },
     planName: { fontSize: 18, fontWeight: "700", marginBottom: 4 },
     planNameLight: { color: colors.ink },
     planNameDark: { color: "#fff" },
@@ -298,8 +311,19 @@ export default function UpgradeScreen() {
       marginBottom: 12,
     },
     manageBtnText: { color: colors.rust, fontSize: 15, fontWeight: "600" },
-    error: { color: "#c0392b", fontSize: 13, textAlign: "center", marginTop: 8 },
-    disclaimer: { fontSize: 11, color: colors.ink4, textAlign: "center", lineHeight: 16, marginTop: 16 },
+    error: {
+      color: "#c0392b",
+      fontSize: 13,
+      textAlign: "center",
+      marginTop: 8,
+    },
+    disclaimer: {
+      fontSize: 11,
+      color: colors.ink4,
+      textAlign: "center",
+      lineHeight: 16,
+      marginTop: 16,
+    },
     proTag: {
       backgroundColor: colors.rust,
       borderRadius: 12,
@@ -309,7 +333,13 @@ export default function UpgradeScreen() {
       marginBottom: 20,
     },
     proTagText: { color: "#fff", fontWeight: "700", fontSize: 14 },
-    proMsg: { fontSize: 16, color: colors.ink, textAlign: "center", marginBottom: 20, lineHeight: 24 },
+    proMsg: {
+      fontSize: 16,
+      color: colors.ink,
+      textAlign: "center",
+      marginBottom: 20,
+      lineHeight: 24,
+    },
   });
 
   return (
@@ -321,27 +351,42 @@ export default function UpgradeScreen() {
         <Text style={styles.headerTitle}>Upgrade to Pro</Text>
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.inner} bounces={false} overScrollMode="never">
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.inner}
+        bounces={false}
+        overScrollMode="never"
+      >
         <View style={styles.hero}>
           <Text style={styles.heroTag}>Pricing</Text>
-          <Text style={styles.heroTitle}>Less than one{"\n"}hour of coaching.</Text>
+          <Text style={styles.heroTitle}>
+            Less than one{"\n"}hour of coaching.
+          </Text>
           <Text style={styles.heroSub}>
             Your first prep is free.{"\n"}Upgrade anytime for unlimited access.
           </Text>
         </View>
 
         {loading ? (
-          <ActivityIndicator size="large" color={colors.rust} style={{ marginTop: 40 }} />
+          <ActivityIndicator
+            size="large"
+            color={colors.rust}
+            style={{ marginTop: 40 }}
+          />
         ) : isPro ? (
           <>
             <View style={styles.proTag}>
               <Text style={styles.proTagText}>Pro Active</Text>
             </View>
             <Text style={styles.proMsg}>
-              You have unlimited access to all TalkPrep features. Thank you for being a Pro member!
+              You have unlimited access to all TalkPrep features. Thank you for
+              being a Pro member!
             </Text>
             <Pressable
-              style={[styles.manageBtn, checkoutLoadingId === "portal" && styles.ctaBtnDisabled]}
+              style={[
+                styles.manageBtn,
+                checkoutLoadingId === "portal" && styles.ctaBtnDisabled,
+              ]}
               onPress={handleManageBilling}
               disabled={checkoutLoadingId === "portal"}
             >
@@ -368,18 +413,40 @@ export default function UpgradeScreen() {
                 >
                   {PLAN_BADGE[product.name] && (
                     <View style={styles.badge}>
-                      <Text style={styles.badgeText}>{PLAN_BADGE[product.name]}</Text>
+                      <Text style={styles.badgeText}>
+                        {PLAN_BADGE[product.name]}
+                      </Text>
                     </View>
                   )}
-                  <Text style={[styles.planName, isMonthly ? styles.planNameDark : styles.planNameLight]}>
+                  <Text
+                    style={[
+                      styles.planName,
+                      isMonthly ? styles.planNameDark : styles.planNameLight,
+                    ]}
+                  >
                     {product.name.replace(" Pro", "")}
                   </Text>
                   {price && (
-                    <Text style={[styles.planPrice, isMonthly ? styles.planPriceDark : styles.planPriceLight]}>
-                      {formatPrice(price.unit_amount, price.recurring?.interval ?? null)}
+                    <Text
+                      style={[
+                        styles.planPrice,
+                        isMonthly
+                          ? styles.planPriceDark
+                          : styles.planPriceLight,
+                      ]}
+                    >
+                      {formatPrice(
+                        price.unit_amount,
+                        price.recurring?.interval ?? null,
+                      )}
                     </Text>
                   )}
-                  <Text style={[styles.planSub, isMonthly ? styles.planSubDark : styles.planSubLight]}>
+                  <Text
+                    style={[
+                      styles.planSub,
+                      isMonthly ? styles.planSubDark : styles.planSubLight,
+                    ]}
+                  >
                     {price?.recurring
                       ? `per ${price.recurring.interval} · cancel anytime`
                       : "per conversation"}
@@ -393,7 +460,14 @@ export default function UpgradeScreen() {
                         color={colors.rust}
                         style={styles.featureCheck}
                       />
-                      <Text style={[styles.featureText, isMonthly ? styles.featureTextDark : styles.featureTextLight]}>
+                      <Text
+                        style={[
+                          styles.featureText,
+                          isMonthly
+                            ? styles.featureTextDark
+                            : styles.featureTextLight,
+                        ]}
+                      >
                         {feat}
                       </Text>
                     </View>
@@ -404,7 +478,7 @@ export default function UpgradeScreen() {
                     style={[
                       styles.ctaBtn,
                       isMonthly ? styles.ctaBtnDark : styles.ctaBtnLight,
-                      (anyLoading) && styles.ctaBtnDisabled,
+                      anyLoading && styles.ctaBtnDisabled,
                     ]}
                     onPress={() => price && handleSubscribe(price.id)}
                     disabled={anyLoading || !price}
@@ -413,7 +487,9 @@ export default function UpgradeScreen() {
                       <ActivityIndicator size="small" color="#fff" />
                     ) : (
                       <Text style={styles.ctaText}>
-                        {product.name === "Single Session" ? "Buy session →" : "Get started →"}
+                        {product.name === "Single Session"
+                          ? "Buy session →"
+                          : "Get started →"}
                       </Text>
                     )}
                   </Pressable>

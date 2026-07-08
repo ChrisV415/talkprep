@@ -42,8 +42,8 @@ export default function TabLayout() {
 
   return (
     <Tabs
-      sceneContainerStyle={{ backgroundColor: colors.background }}
       screenOptions={{
+        sceneStyle: { backgroundColor: colors.background },
         tabBarActiveTintColor: colors.rust,
         tabBarInactiveTintColor: colors.ink4,
         headerShown: false,
@@ -63,7 +63,10 @@ export default function TabLayout() {
             />
           ) : isWeb ? (
             <View
-              style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]}
+              style={[
+                StyleSheet.absoluteFill,
+                { backgroundColor: colors.background },
+              ]}
             />
           ) : null,
       }}

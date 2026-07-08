@@ -2,7 +2,6 @@ import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 import {
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -43,8 +42,13 @@ export default function HistoryScreen() {
         <View style={styles.empty}>
           <Feather name="clock" size={32} color={colors.ink4} />
           <Text style={styles.emptyTitle}>No sessions yet</Text>
-          <Text style={styles.emptyHint}>Your prep history will appear here</Text>
-          <Pressable style={styles.emptyBtn} onPress={() => router.push("/prep")}>
+          <Text style={styles.emptyHint}>
+            Your prep history will appear here
+          </Text>
+          <Pressable
+            style={styles.emptyBtn}
+            onPress={() => router.push("/prep")}
+          >
             <Text style={styles.emptyBtnText}>Start your first prep</Text>
           </Pressable>
         </View>
@@ -68,7 +72,7 @@ export default function HistoryScreen() {
                   {s.scenario.toUpperCase()}
                 </Text>
                 <Text style={styles.itemWho}>
-                  {s.who.split(/[,.]/ )[0]?.trim()}
+                  {s.who.split(/[,.]/)[0]?.trim()}
                 </Text>
                 <Text style={styles.itemPreview} numberOfLines={1}>
                   {s.situation}
@@ -77,12 +81,28 @@ export default function HistoryScreen() {
               <View style={styles.itemRight}>
                 <Text style={styles.itemDate}>{s.date}</Text>
                 {s.scores ? (
-                  <View style={[styles.badge, { backgroundColor: colors.sageLight }]}>
-                    <Text style={[styles.badgeText, { color: colors.sageDark }]}>SCORED</Text>
+                  <View
+                    style={[
+                      styles.badge,
+                      { backgroundColor: colors.sageLight },
+                    ]}
+                  >
+                    <Text
+                      style={[styles.badgeText, { color: colors.sageDark }]}
+                    >
+                      SCORED
+                    </Text>
                   </View>
                 ) : s.debrief ? (
-                  <View style={[styles.badge, { backgroundColor: colors.rustLight }]}>
-                    <Text style={[styles.badgeText, { color: colors.rustDim }]}>DEBRIEFED</Text>
+                  <View
+                    style={[
+                      styles.badge,
+                      { backgroundColor: colors.rustLight },
+                    ]}
+                  >
+                    <Text style={[styles.badgeText, { color: colors.rustDim }]}>
+                      DEBRIEFED
+                    </Text>
                   </View>
                 ) : null}
                 <Feather name="chevron-right" size={16} color={colors.ink4} />

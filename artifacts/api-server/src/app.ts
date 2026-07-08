@@ -38,7 +38,9 @@ app.post(
           webhookSecret,
         );
       } else {
-        logger.warn("STRIPE_WEBHOOK_SECRET not set — skipping signature verification");
+        logger.warn(
+          "STRIPE_WEBHOOK_SECRET not set — skipping signature verification",
+        );
         event = JSON.parse((req.body as Buffer).toString()) as Stripe.Event;
       }
 

@@ -78,12 +78,8 @@
           "name": "messages_conversation_id_conversations_id_fk",
           "tableFrom": "messages",
           "tableTo": "conversations",
-          "columnsFrom": [
-            "conversation_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["conversation_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -232,10 +228,7 @@
       "compositePrimaryKeys": {
         "usage_counts_user_id_period_pk": {
           "name": "usage_counts_user_id_period_pk",
-          "columns": [
-            "user_id",
-            "period"
-          ]
+          "columns": ["user_id", "period"]
         }
       },
       "uniqueConstraints": {},

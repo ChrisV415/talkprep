@@ -17,16 +17,23 @@ router.get("/user/me", requireAuth, async (req: Request, res: Response) => {
   res.json({ user });
 });
 
-router.get("/user/pro-status", requireAuth, async (req: Request, res: Response) => {
-  const userId = (req as AuthenticatedRequest).userId;
-  try {
-    const isPro = await storage.isProUser(userId);
-    const hasOverride = isPro ? await storage.hasProOverride(userId) : false;
-    res.json({ isPro, source: hasOverride ? "override" : isPro ? "stripe" : "none" });
-  } catch {
-    res.json({ isPro: false, source: "none" });
-  }
-});
+router.get(
+  "/user/pro-status",
+  requireAuth,
+  async (req: Request, res: Response) => {
+    const userId = (req as AuthenticatedRequest).userId;
+    try {
+      const isPro = await storage.isProUser(userId);
+      const hasOverride = isPro ? await storage.hasProOverride(userId) : false;
+      res.json({
+        isPro,
+        source: hasOverride ? "override" : isPro ? "stripe" : "none",
+      });
+    } catch {
+      res.json({ isPro: false, source: "none" });
+    }
+  },
+);
 
 router.post("/user/phone", requireAuth, async (req: Request, res: Response) => {
   const userId = (req as AuthenticatedRequest).userId;
@@ -59,7 +66,9 @@ router.delete("/user/me", requireAuth, async (req: Request, res: Response) => {
     res.json({ ok: true });
   } catch (err) {
     logger.error({ err, userId }, "Failed to delete user account");
-    res.status(500).json({ error: "Failed to delete account. Please try again." });
+    res
+      .status(500)
+      .json({ error: "Failed to delete account. Please try again." });
   }
 });
 

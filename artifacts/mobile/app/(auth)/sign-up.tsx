@@ -46,7 +46,7 @@ function WebForm({
       },
       style: { display: "flex", flexDirection: "column" },
     },
-    children
+    children,
   );
 }
 
@@ -85,7 +85,7 @@ function SubmitBtn({
           width: "100%",
         },
       },
-      label
+      label,
     );
   }
   return (
@@ -102,7 +102,7 @@ function SubmitBtn({
 const RESEND_COOLDOWN = 60;
 
 export default function SignUpScreen() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const clerk = useClerk() as any;
   const router = useRouter();
   const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
@@ -149,17 +149,20 @@ export default function SignUpScreen() {
     setError("");
     try {
       const redirectUrl =
-        Platform.OS === "web"
-          ? window.location.origin + "/"
-          : "talkprep://";
-      const { createdSessionId, setActive } = await startOAuthFlow({ redirectUrl });
+        Platform.OS === "web" ? window.location.origin + "/" : "talkprep://";
+      const { createdSessionId, setActive } = await startOAuthFlow({
+        redirectUrl,
+      });
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
         router.replace("/(tabs)");
       }
     } catch (err: unknown) {
       const e = err as { errors?: { message?: string }[]; message?: string };
-      const msg = e.errors?.[0]?.message ?? e.message ?? "Google sign-up failed. Please try again.";
+      const msg =
+        e.errors?.[0]?.message ??
+        e.message ??
+        "Google sign-up failed. Please try again.";
       setError(msg);
     } finally {
       setGoogleLoading(false);
@@ -198,9 +201,16 @@ export default function SignUpScreen() {
       setPendingVerification(true);
       startCooldown();
     } catch (err: unknown) {
-      const e = err as { errors?: { longMessage?: string; message?: string }[]; message?: string };
+      const e = err as {
+        errors?: { longMessage?: string; message?: string }[];
+        message?: string;
+      };
       const clerkErr = e.errors?.[0];
-      const msg = clerkErr?.longMessage ?? clerkErr?.message ?? e.message ?? "An error occurred";
+      const msg =
+        clerkErr?.longMessage ??
+        clerkErr?.message ??
+        e.message ??
+        "An error occurred";
       setError(msg);
     } finally {
       setLoading(false);
@@ -220,8 +230,12 @@ export default function SignUpScreen() {
         setError("Verification incomplete. Please try again.");
       }
     } catch (err: unknown) {
-      const e = err as { errors?: { longMessage?: string; message?: string }[] };
-      setError(e.errors?.[0]?.longMessage ?? e.errors?.[0]?.message ?? "Invalid code");
+      const e = err as {
+        errors?: { longMessage?: string; message?: string }[];
+      };
+      setError(
+        e.errors?.[0]?.longMessage ?? e.errors?.[0]?.message ?? "Invalid code",
+      );
     } finally {
       setLoading(false);
     }
@@ -254,7 +268,8 @@ export default function SignUpScreen() {
             <Text style={styles.emailHighlight}>{email}</Text>
           </Text>
           <Text style={styles.hint}>
-            Delivery can take up to 2 minutes. Check your spam folder if it hasn't arrived.
+            Delivery can take up to 2 minutes. Check your spam folder if it
+            hasn't arrived.
           </Text>
           <Text style={styles.label}>Verification code</Text>
           <TextInput
@@ -276,7 +291,9 @@ export default function SignUpScreen() {
             onPress={handleVerify}
             disabled={loading || !code}
           >
-            <Text style={styles.btnText}>{loading ? "Verifying…" : "Verify email"}</Text>
+            <Text style={styles.btnText}>
+              {loading ? "Verifying…" : "Verify email"}
+            </Text>
           </Pressable>
           <Pressable
             onPress={resendCode}
@@ -284,7 +301,9 @@ export default function SignUpScreen() {
             style={resendCooldown > 0 ? styles.resendDisabled : undefined}
           >
             <Text style={[styles.link, resendCooldown > 0 && styles.linkMuted]}>
-              {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : "Resend code"}
+              {resendCooldown > 0
+                ? `Resend code in ${resendCooldown}s`
+                : "Resend code"}
             </Text>
           </Pressable>
         </View>
@@ -293,7 +312,13 @@ export default function SignUpScreen() {
     );
   }
 
-  const btnDisabled = !email || !password || !confirmPassword || loading || googleLoading || !isLoaded;
+  const btnDisabled =
+    !email ||
+    !password ||
+    !confirmPassword ||
+    loading ||
+    googleLoading ||
+    !isLoaded;
   const googleDisabled = loading || googleLoading || !isLoaded;
 
   return (
@@ -375,7 +400,9 @@ export default function SignUpScreen() {
             <TextInput
               style={[
                 styles.input,
-                confirmPassword.length > 0 && password !== confirmPassword && styles.inputError,
+                confirmPassword.length > 0 &&
+                  password !== confirmPassword &&
+                  styles.inputError,
               ]}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
@@ -393,7 +420,13 @@ export default function SignUpScreen() {
             <SubmitBtn
               onPress={handleSignUp}
               disabled={btnDisabled}
-              label={loading ? "Creating account…" : !isLoaded ? "Loading…" : "Create account"}
+              label={
+                loading
+                  ? "Creating account…"
+                  : !isLoaded
+                    ? "Loading…"
+                    : "Create account"
+              }
             />
           </WebForm>
 
@@ -478,7 +511,13 @@ const styles = StyleSheet.create({
   inputError: { borderColor: "#c0392b", borderWidth: 1.5 },
   footer: { flexDirection: "row", justifyContent: "center", marginTop: 8 },
   footerText: { color: C.ink4, fontSize: 14 },
-  link: { color: C.rust, fontSize: 14, fontWeight: "600", textAlign: "center", marginTop: 8 },
+  link: {
+    color: C.rust,
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+    marginTop: 8,
+  },
   linkMuted: { color: C.ink4 },
   resendDisabled: { opacity: 0.6 },
 });

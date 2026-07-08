@@ -19,7 +19,10 @@ async function requestWebPermission(): Promise<boolean> {
   return result === "granted";
 }
 
-export async function enableReminders(): Promise<{ ok: boolean; reason?: string }> {
+export async function enableReminders(): Promise<{
+  ok: boolean;
+  reason?: string;
+}> {
   if (Platform.OS !== "web") {
     await AsyncStorage.setItem(REMINDERS_KEY, "true");
     return { ok: true };

@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -42,7 +41,15 @@ function buildSystemContext(
   who: string,
   situation: string,
   outcome: string,
-  persona: { emotional_intensity: number; defensiveness: number; communication: number; power: number; reaction: string; difficulty: string; extra: string }
+  persona: {
+    emotional_intensity: number;
+    defensiveness: number;
+    communication: number;
+    power: number;
+    reaction: string;
+    difficulty: string;
+    extra: string;
+  },
 ) {
   const traitDesc = `Emotional intensity: ${persona.emotional_intensity}/100 (${persona.emotional_intensity > 60 ? "tends to get emotional" : "stays fairly calm"}).
 Defensiveness: ${persona.defensiveness}/100 (${persona.defensiveness > 60 ? "gets defensive" : "relatively open"}).
@@ -75,7 +82,15 @@ export default function RoleplayScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const { scenario, who, situation, outcome, persona, rpMessages, setRpMessages, setRpSystemContext } = useApp();
+  const {
+    scenario,
+    who,
+    situation,
+    outcome,
+    persona,
+    setRpMessages,
+    setRpSystemContext,
+  } = useApp();
 
   const [displayMsgs, setDisplayMsgs] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState("");
@@ -85,22 +100,34 @@ export default function RoleplayScreen() {
   const [exchangeCount, setExchangeCount] = useState(0);
   const [elapsedSecs, setElapsedSecs] = useState(0);
   const inputRef = useRef<TextInput>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(
+    undefined,
+  );
   const historyRef = useRef<RpMessage[]>([]);
 
-  const { isListening: micListening, isSupported: micSupported, start: micStart, abort: micAbort } =
-    useSpeechInput({
-      onResult: (text) => {
-        setInput((prev) => (prev ? prev + " " + text : text));
-      },
-      onError: (kind) => {
-        if (kind === "permission") {
-          Alert.alert("Microphone Access", "Allow microphone access in your browser settings to use voice input.");
-        } else if (kind === "other") {
-          Alert.alert("Voice Input", "Could not recognise speech. Please try again.");
-        }
-      },
-    });
+  const {
+    isListening: micListening,
+    isSupported: micSupported,
+    start: micStart,
+    abort: micAbort,
+  } = useSpeechInput({
+    onResult: (text) => {
+      setInput((prev) => (prev ? prev + " " + text : text));
+    },
+    onError: (kind) => {
+      if (kind === "permission") {
+        Alert.alert(
+          "Microphone Access",
+          "Allow microphone access in your browser settings to use voice input.",
+        );
+      } else if (kind === "other") {
+        Alert.alert(
+          "Voice Input",
+          "Could not recognise speech. Please try again.",
+        );
+      }
+    },
+  });
 
   function toggleMic() {
     if (micListening) {
@@ -113,7 +140,13 @@ export default function RoleplayScreen() {
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
 
-    const sysCtx = buildSystemContext(scenario, who, situation, outcome, persona);
+    const sysCtx = buildSystemContext(
+      scenario,
+      who,
+      situation,
+      outcome,
+      persona,
+    );
     setRpSystemContext(sysCtx);
 
     timerRef.current = setInterval(() => setElapsedSecs((s) => s + 1), 1000);
@@ -121,7 +154,7 @@ export default function RoleplayScreen() {
     const systemMsg: ChatMsg = {
       id: newId(),
       role: "system",
-      content: `Practice started. You're talking to: ${who.split(/[,.]/ )[0]?.trim() || "them"}. Start the conversation with what you'd actually say.`,
+      content: `Practice started. You're talking to: ${who.split(/[,.]/)[0]?.trim() || "them"}. Start the conversation with what you'd actually say.`,
     };
     setDisplayMsgs([systemMsg]);
     historyRef.current = [];
@@ -151,12 +184,21 @@ export default function RoleplayScreen() {
     const userMsg: ChatMsg = { id: newId(), role: "user", content: text };
     setDisplayMsgs((prev) => [...prev, userMsg]);
 
-    const newHistory: RpMessage[] = [...historyRef.current, { role: "user", content: text }];
+    const newHistory: RpMessage[] = [
+      ...historyRef.current,
+      { role: "user", content: text },
+    ];
     historyRef.current = newHistory;
     const newExchanges = exchangeCount + 1;
     setExchangeCount(newExchanges);
 
-    const sysCtx = buildSystemContext(scenario, who, situation, outcome, persona);
+    const sysCtx = buildSystemContext(
+      scenario,
+      who,
+      situation,
+      outcome,
+      persona,
+    );
     let fullContent = "";
     let assistantAdded = false;
     const assistantId = newId();
@@ -186,7 +228,10 @@ export default function RoleplayScreen() {
         }
       },
       () => {
-        historyRef.current = [...newHistory, { role: "assistant", content: fullContent }];
+        historyRef.current = [
+          ...newHistory,
+          { role: "assistant", content: fullContent },
+        ];
         setRpMessages(historyRef.current);
         setIsStreaming(false);
         setShowTyping(false);
@@ -198,13 +243,19 @@ export default function RoleplayScreen() {
       (err) => {
         setIsStreaming(false);
         setShowTyping(false);
-        const isLimit = err?.message?.includes("limit") || err?.message?.includes("429");
+        const isLimit =
+          err?.message?.includes("limit") || err?.message?.includes("429");
         if (isLimit) {
           router.push("/upgrade");
         } else {
           setDisplayMsgs((prev) => [
             ...prev,
-            { id: newId(), role: "system", content: "Couldn't get a response. Check your connection and try again." },
+            {
+              id: newId(),
+              role: "system",
+              content:
+                "Couldn't get a response. Check your connection and try again.",
+            },
           ]);
         }
       },
@@ -212,13 +263,19 @@ export default function RoleplayScreen() {
     );
   }
 
-  async function generateNudge(userSaid: string, theySaid: string, history: RpMessage[]) {
+  async function generateNudge(
+    userSaid: string,
+    theySaid: string,
+    history: RpMessage[],
+  ) {
     let nudgeText = "";
     const token = await getToken();
     await streamRequest(
       "api/talkprep/nudge",
       { scenario, outcome, userSaid, theySaid, history },
-      (chunk) => { nudgeText += chunk; },
+      (chunk) => {
+        nudgeText += chunk;
+      },
       () => {
         if (nudgeText.trim()) {
           setNudge(nudgeText.trim());
@@ -250,7 +307,7 @@ export default function RoleplayScreen() {
           <View style={styles.personaPill}>
             <View style={styles.personaDot} />
             <Text style={styles.personaName}>
-              {who.split(/[,.]/ )[0]?.trim() || "them"}
+              {who.split(/[,.]/)[0]?.trim() || "them"}
             </Text>
           </View>
         </View>
@@ -277,7 +334,9 @@ export default function RoleplayScreen() {
           data={reversedMsgs}
           keyExtractor={(item) => item.id}
           inverted={displayMsgs.length > 0}
-          renderItem={({ item }) => <MessageBubble msg={item} who={who} colors={colors} />}
+          renderItem={({ item }) => (
+            <MessageBubble msg={item} who={who} colors={colors} />
+          )}
           ListHeaderComponent={
             showTyping ? (
               <View style={styles.typingBubble}>
@@ -295,7 +354,9 @@ export default function RoleplayScreen() {
           <TextInput
             ref={inputRef}
             style={styles.textInput}
-            placeholder={micListening ? "Listening…" : "What would you actually say?"}
+            placeholder={
+              micListening ? "Listening…" : "What would you actually say?"
+            }
             placeholderTextColor={micListening ? colors.rust : colors.ink4}
             value={input}
             onChangeText={setInput}
@@ -312,7 +373,10 @@ export default function RoleplayScreen() {
             size={20}
           />
           <Pressable
-            style={[styles.sendBtn, { opacity: isStreaming || !input.trim() ? 0.4 : 1 }]}
+            style={[
+              styles.sendBtn,
+              { opacity: isStreaming || !input.trim() ? 0.4 : 1 },
+            ]}
             onPress={() => {
               sendMessage();
               inputRef.current?.focus();
@@ -385,13 +449,15 @@ function MessageBubble({
   const isUser = msg.role === "user";
   return (
     <View
-      style={[
-        styles.wrap,
-        { alignSelf: isUser ? "flex-end" : "flex-start" },
-      ]}
+      style={[styles.wrap, { alignSelf: isUser ? "flex-end" : "flex-start" }]}
     >
-      <Text style={[styles.label, { color: colors.ink4, textAlign: isUser ? "right" : "left" }]}>
-        {isUser ? "YOU" : (who.split(/[,.]/ )[0]?.trim()?.toUpperCase() || "THEM")}
+      <Text
+        style={[
+          styles.label,
+          { color: colors.ink4, textAlign: isUser ? "right" : "left" },
+        ]}
+      >
+        {isUser ? "YOU" : who.split(/[,.]/)[0]?.trim()?.toUpperCase() || "THEM"}
       </Text>
       <Text
         style={[
@@ -424,7 +490,12 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       borderBottomColor: colors.border,
       backgroundColor: colors.cream2,
     },
-    backBtn: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
+    backBtn: {
+      width: 36,
+      height: 36,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     topMeta: { flex: 1, alignItems: "center" },
     personaPill: {
       flexDirection: "row",
@@ -435,7 +506,12 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       paddingVertical: 5,
       borderRadius: 20,
     },
-    personaDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.rust },
+    personaDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: colors.rust,
+    },
     personaName: {
       fontSize: 12,
       color: colors.rustDim,
@@ -443,7 +519,11 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       fontWeight: "500",
     },
     topStats: { flexDirection: "row", alignItems: "center", gap: 4 },
-    statText: { fontSize: 11, color: colors.ink3, fontFamily: "Sora_400Regular" },
+    statText: {
+      fontSize: 11,
+      color: colors.ink3,
+      fontFamily: "Sora_400Regular",
+    },
     statSep: { fontSize: 11, color: colors.ink4 },
     chatList: { flex: 1 },
     nudgeCard: {
@@ -515,6 +595,10 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       borderWidth: 1,
       borderColor: "rgba(194, 40, 40, 0.25)",
     },
-    endBtnText: { fontSize: 12, color: "#C22828", fontFamily: "Sora_600SemiBold" },
+    endBtnText: {
+      fontSize: 12,
+      color: "#C22828",
+      fontFamily: "Sora_600SemiBold",
+    },
   });
 }

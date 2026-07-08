@@ -40,7 +40,7 @@ export function MicButton({
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
-        ])
+        ]),
       );
       loopRef.current.start();
     } else {
@@ -57,7 +57,10 @@ export function MicButton({
     <Pressable
       onPress={onToggle}
       disabled={disabled}
-      style={[{ padding: 6, alignItems: "center", justifyContent: "center" }, style]}
+      style={[
+        { padding: 6, alignItems: "center", justifyContent: "center" },
+        style,
+      ]}
       accessibilityLabel={isListening ? "Stop recording" : "Start voice input"}
       accessibilityRole="button"
     >

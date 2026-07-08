@@ -132,7 +132,11 @@ export default function ResultScreen() {
           {copied ? (
             <Text style={styles.copiedText}>Copied!</Text>
           ) : (
-            <Feather name="share" size={19} color={fullResponse ? colors.ink3 : colors.border} />
+            <Feather
+              name="share"
+              size={19}
+              color={fullResponse ? colors.ink3 : colors.border}
+            />
           )}
         </Pressable>
       </View>
@@ -146,7 +150,7 @@ export default function ResultScreen() {
         {who ? (
           <View style={[styles.tag, { backgroundColor: colors.sageLight }]}>
             <Text style={[styles.tagText, { color: colors.sageDark }]}>
-              {who.split(/[,.]/ )[0]?.trim()}
+              {who.split(/[,.]/)[0]?.trim()}
             </Text>
           </View>
         ) : null}
@@ -168,7 +172,10 @@ export default function ResultScreen() {
             <Text
               style={[
                 styles.tabText,
-                activeTab === t.key && { color: colors.rust, fontFamily: "Sora_600SemiBold" },
+                activeTab === t.key && {
+                  color: colors.rust,
+                  fontFamily: "Sora_600SemiBold",
+                },
               ]}
             >
               {t.label}
@@ -179,7 +186,10 @@ export default function ResultScreen() {
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: insets.bottom + 100 },
+        ]}
         showsVerticalScrollIndicator={false}
         bounces={false}
         overScrollMode="never"
@@ -223,9 +233,23 @@ function makeStyles(colors: ReturnType<typeof useColors>) {
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    backBtn: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
-    shareBtn: { width: 52, height: 36, alignItems: "center", justifyContent: "center" },
-    copiedText: { fontSize: 11, color: colors.rust, fontFamily: "Sora_600SemiBold" },
+    backBtn: {
+      width: 36,
+      height: 36,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    shareBtn: {
+      width: 52,
+      height: 36,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    copiedText: {
+      fontSize: 11,
+      color: colors.rust,
+      fontFamily: "Sora_600SemiBold",
+    },
     topTitle: {
       fontSize: 16,
       fontWeight: "600",

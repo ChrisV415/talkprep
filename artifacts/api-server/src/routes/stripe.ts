@@ -3,7 +3,10 @@ import { requireAuth } from "../middlewares/requireAuth";
 import type { AuthenticatedRequest } from "../middlewares/requireAuth";
 import type { Request, Response } from "express";
 import { storage } from "../lib/storage";
-import { getUncachableStripeClient, getStripePublishableKey } from "../lib/stripeClient";
+import {
+  getUncachableStripeClient,
+  getStripePublishableKey,
+} from "../lib/stripeClient";
 import { logger } from "../lib/logger";
 
 const router = Router();
@@ -28,97 +31,111 @@ router.get("/stripe/products", async (_req: Request, res: Response) => {
   }
 });
 
-router.get("/stripe/subscription", requireAuth, async (req: Request, res: Response) => {
-  try {
+router.get(
+  "/stripe/subscription",
+  requireAuth,
+  async (req: Request, res: Response) => {
+    try {
+      const userId = (req as AuthenticatedRequest).userId;
+      const hasOverride = await storage.hasProOverride(userId);
+      if (hasOverride) {
+        res.json({ subscription: { status: "active", source: "override" } });
+        return;
+      }
+      const sub = await storage.getActiveSubscription(userId);
+      res.json({ subscription: sub });
+    } catch (err) {
+      logger.error({ err }, "Failed to get subscription");
+      res.status(500).json({ error: "Failed to load subscription" });
+    }
+  },
+);
+
+router.post(
+  "/stripe/checkout",
+  requireAuth,
+  async (req: Request, res: Response) => {
     const userId = (req as AuthenticatedRequest).userId;
-    const hasOverride = await storage.hasProOverride(userId);
-    if (hasOverride) {
-      res.json({ subscription: { status: "active", source: "override" } });
+    const { priceId, email } = req.body as {
+      priceId: string;
+      email?: string;
+    };
+
+    if (!priceId) {
+      res.status(400).json({ error: "priceId is required" });
       return;
     }
-    const sub = await storage.getActiveSubscription(userId);
-    res.json({ subscription: sub });
-  } catch (err) {
-    logger.error({ err }, "Failed to get subscription");
-    res.status(500).json({ error: "Failed to load subscription" });
-  }
-});
 
-router.post("/stripe/checkout", requireAuth, async (req: Request, res: Response) => {
-  const userId = (req as AuthenticatedRequest).userId;
-  const { priceId, email } = req.body as {
-    priceId: string;
-    email?: string;
-  };
+    try {
+      const stripe = await getUncachableStripeClient();
+      let user = await storage.getUser(userId);
 
-  if (!priceId) {
-    res.status(400).json({ error: "priceId is required" });
-    return;
-  }
+      if (!user) {
+        user = await storage.upsertUser(userId, email);
+      }
 
-  try {
-    const stripe = await getUncachableStripeClient();
-    let user = await storage.getUser(userId);
+      let customerId = user.stripeCustomerId ?? undefined;
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          email: email ?? undefined,
+          metadata: { userId },
+        });
+        await storage.updateUserStripeInfo(userId, {
+          stripeCustomerId: customer.id,
+        });
+        customerId = customer.id;
+      }
 
-    if (!user) {
-      user = await storage.upsertUser(userId, email);
-    }
+      // Determine whether this is a one-time or recurring price
+      const priceObj = await stripe.prices.retrieve(priceId);
+      const mode = priceObj.recurring ? "subscription" : "payment";
 
-    let customerId = user.stripeCustomerId ?? undefined;
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: email ?? undefined,
+      const baseUrl = `https://${process.env.REPLIT_DOMAINS?.split(",")[0]}`;
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        payment_method_types: ["card"],
+        line_items: [{ price: priceId, quantity: 1 }],
+        mode,
+        success_url: `${baseUrl}/?checkout=success`,
+        cancel_url: `${baseUrl}/?checkout=cancel`,
+        // Store userId in metadata so the webhook can grant access after payment
         metadata: { userId },
       });
-      await storage.updateUserStripeInfo(userId, { stripeCustomerId: customer.id });
-      customerId = customer.id;
+
+      res.json({ url: session.url });
+    } catch (err) {
+      logger.error({ err }, "Failed to create checkout session");
+      res.status(500).json({ error: "Failed to create checkout session" });
     }
+  },
+);
 
-    // Determine whether this is a one-time or recurring price
-    const priceObj = await stripe.prices.retrieve(priceId);
-    const mode = priceObj.recurring ? "subscription" : "payment";
+router.post(
+  "/stripe/portal",
+  requireAuth,
+  async (req: Request, res: Response) => {
+    const userId = (req as AuthenticatedRequest).userId;
 
-    const baseUrl = `https://${process.env.REPLIT_DOMAINS?.split(",")[0]}`;
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      payment_method_types: ["card"],
-      line_items: [{ price: priceId, quantity: 1 }],
-      mode,
-      success_url: `${baseUrl}/?checkout=success`,
-      cancel_url: `${baseUrl}/?checkout=cancel`,
-      // Store userId in metadata so the webhook can grant access after payment
-      metadata: { userId },
-    });
+    try {
+      const user = await storage.getUser(userId);
+      if (!user?.stripeCustomerId) {
+        res.status(404).json({ error: "No billing account found" });
+        return;
+      }
 
-    res.json({ url: session.url });
-  } catch (err) {
-    logger.error({ err }, "Failed to create checkout session");
-    res.status(500).json({ error: "Failed to create checkout session" });
-  }
-});
+      const stripe = await getUncachableStripeClient();
+      const baseUrl = `https://${process.env.REPLIT_DOMAINS?.split(",")[0]}`;
+      const portalSession = await stripe.billingPortal.sessions.create({
+        customer: user.stripeCustomerId,
+        return_url: baseUrl,
+      });
 
-router.post("/stripe/portal", requireAuth, async (req: Request, res: Response) => {
-  const userId = (req as AuthenticatedRequest).userId;
-
-  try {
-    const user = await storage.getUser(userId);
-    if (!user?.stripeCustomerId) {
-      res.status(404).json({ error: "No billing account found" });
-      return;
+      res.json({ url: portalSession.url });
+    } catch (err) {
+      logger.error({ err }, "Failed to create portal session");
+      res.status(500).json({ error: "Failed to open billing portal" });
     }
-
-    const stripe = await getUncachableStripeClient();
-    const baseUrl = `https://${process.env.REPLIT_DOMAINS?.split(",")[0]}`;
-    const portalSession = await stripe.billingPortal.sessions.create({
-      customer: user.stripeCustomerId,
-      return_url: baseUrl,
-    });
-
-    res.json({ url: portalSession.url });
-  } catch (err) {
-    logger.error({ err }, "Failed to create portal session");
-    res.status(500).json({ error: "Failed to open billing portal" });
-  }
-});
+  },
+);
 
 export default router;

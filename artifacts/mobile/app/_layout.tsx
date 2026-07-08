@@ -15,7 +15,10 @@ import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { setBaseUrl, setAuthTokenGetter as setApiClientTokenGetter } from "@workspace/api-client-react";
+import {
+  setBaseUrl,
+  setAuthTokenGetter as setApiClientTokenGetter,
+} from "@workspace/api-client-react";
 import { setAuthTokenGetter } from "@/lib/api";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -136,15 +139,42 @@ function RootLayoutNav() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
-      <Stack.Screen name="prep" options={{ headerShown: false, presentation: "card" }} />
-      <Stack.Screen name="result" options={{ headerShown: false, presentation: "card" }} />
-      <Stack.Screen name="persona" options={{ headerShown: false, presentation: "card" }} />
-      <Stack.Screen name="roleplay" options={{ headerShown: false, presentation: "card" }} />
-      <Stack.Screen name="transcript" options={{ headerShown: false, presentation: "card" }} />
-      <Stack.Screen name="score" options={{ headerShown: false, presentation: "card" }} />
-      <Stack.Screen name="debrief" options={{ headerShown: false, presentation: "card" }} />
-      <Stack.Screen name="upgrade" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen
+        name="onboarding"
+        options={{ headerShown: false, gestureEnabled: false }}
+      />
+      <Stack.Screen
+        name="prep"
+        options={{ headerShown: false, presentation: "card" }}
+      />
+      <Stack.Screen
+        name="result"
+        options={{ headerShown: false, presentation: "card" }}
+      />
+      <Stack.Screen
+        name="persona"
+        options={{ headerShown: false, presentation: "card" }}
+      />
+      <Stack.Screen
+        name="roleplay"
+        options={{ headerShown: false, presentation: "card" }}
+      />
+      <Stack.Screen
+        name="transcript"
+        options={{ headerShown: false, presentation: "card" }}
+      />
+      <Stack.Screen
+        name="score"
+        options={{ headerShown: false, presentation: "card" }}
+      />
+      <Stack.Screen
+        name="debrief"
+        options={{ headerShown: false, presentation: "card" }}
+      />
+      <Stack.Screen
+        name="upgrade"
+        options={{ headerShown: false, presentation: "modal" }}
+      />
     </Stack>
   );
 }
@@ -172,7 +202,11 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) return null;
 
   return (
-    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache} proxyUrl={proxyUrl}>
+    <ClerkProvider
+      publishableKey={publishableKey}
+      tokenCache={tokenCache}
+      proxyUrl={proxyUrl}
+    >
       <ClerkLoaded>
         <AuthSync />
         <SafeAreaProvider>

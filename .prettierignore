@@ -1,0 +1,12 @@
+node_modules
+**/node_modules
+**/dist
+**/build
+**/.expo
+**/drizzle
+pnpm-lock.yaml
+lib/api-spec/generated
+lib/api-zod/src/generated
+lib/api-client-react/src/generated
+attached_assets
+*.md

@@ -5,6 +5,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { requireAuth } from "../middlewares/requireAuth";
 import type { AuthenticatedRequest } from "../middlewares/requireAuth";
 import type { Request } from "express";
+import { logger } from "../lib/logger";
 
 const router = Router();
 
@@ -19,6 +20,7 @@ router.get("/sessions", requireAuth, async (req: Request, res) => {
       .limit(100);
     res.json(rows);
   } catch (err) {
+    logger.error({ err, userId }, "Failed to load sessions");
     res.status(500).json({ error: "Failed to load sessions" });
   }
 });
@@ -42,10 +44,19 @@ router.post("/sessions", requireAuth, async (req: Request, res) => {
   try {
     await db
       .insert(sessions)
-      .values({ id, userId, sessionDate: sessionDate ?? "", scenario, who, situation: situation ?? "", response: response ?? "" })
+      .values({
+        id,
+        userId,
+        sessionDate: sessionDate ?? "",
+        scenario,
+        who,
+        situation: situation ?? "",
+        response: response ?? "",
+      })
       .onConflictDoNothing();
     res.json({ success: true });
   } catch (err) {
+    logger.error({ err, userId }, "Failed to save session");
     res.status(500).json({ error: "Failed to save session" });
   }
 });
@@ -74,11 +85,14 @@ router.patch("/sessions/:id", requireAuth, async (req: Request, res) => {
   try {
     const updates: Partial<typeof sessions.$inferInsert> = {};
     if (scoresClarity !== undefined) updates.scoresClarity = scoresClarity;
-    if (scoresComposure !== undefined) updates.scoresComposure = scoresComposure;
+    if (scoresComposure !== undefined)
+      updates.scoresComposure = scoresComposure;
     if (scoresOutcome !== undefined) updates.scoresOutcome = scoresOutcome;
     if (debriefOutcome !== undefined) updates.debriefOutcome = debriefOutcome;
-    if (debriefHappened !== undefined) updates.debriefHappened = debriefHappened;
-    if (debriefDifferent !== undefined) updates.debriefDifferent = debriefDifferent;
+    if (debriefHappened !== undefined)
+      updates.debriefHappened = debriefHappened;
+    if (debriefDifferent !== undefined)
+      updates.debriefDifferent = debriefDifferent;
     if (debriefText !== undefined) updates.debriefText = debriefText;
 
     if (Object.keys(updates).length === 0) {
@@ -92,6 +106,7 @@ router.patch("/sessions/:id", requireAuth, async (req: Request, res) => {
       .where(and(eq(sessions.id, id), eq(sessions.userId, userId)));
     res.json({ success: true });
   } catch (err) {
+    logger.error({ err, userId, sessionId: id }, "Failed to update session");
     res.status(500).json({ error: "Failed to update session" });
   }
 });
@@ -106,6 +121,7 @@ router.delete("/sessions/:id", requireAuth, async (req: Request, res) => {
       .where(and(eq(sessions.id, id), eq(sessions.userId, userId)));
     res.json({ success: true });
   } catch (err) {
+    logger.error({ err, userId, sessionId: id }, "Failed to delete session");
     res.status(500).json({ error: "Failed to delete session" });
   }
 });

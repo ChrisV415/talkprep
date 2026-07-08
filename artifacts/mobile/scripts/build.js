@@ -18,7 +18,9 @@ function getDeploymentDomain() {
     process.env.REPLIT_DEV_DOMAIN ||
     "talk-prep.replit.app"; // hardcoded last-resort so the build never fails
 
-  console.log(`Domain resolved: ${d} (REPLIT_INTERNAL_APP_DOMAIN=${process.env.REPLIT_INTERNAL_APP_DOMAIN || "unset"}, REPLIT_DOMAINS=${process.env.REPLIT_DOMAINS || "unset"})`);
+  console.log(
+    `Domain resolved: ${d} (REPLIT_INTERNAL_APP_DOMAIN=${process.env.REPLIT_INTERNAL_APP_DOMAIN || "unset"}, REPLIT_DOMAINS=${process.env.REPLIT_DOMAINS || "unset"})`,
+  );
   return d.replace(/^https?:\/\//, "");
 }
 
@@ -39,14 +41,11 @@ const env = {
 };
 
 try {
-  execSync(
-    "pnpm exec expo export --platform web --output-dir dist",
-    {
-      cwd: projectRoot,
-      env,
-      stdio: "inherit",
-    }
-  );
+  execSync("pnpm exec expo export --platform web --output-dir dist", {
+    cwd: projectRoot,
+    env,
+    stdio: "inherit",
+  });
   console.log("Web build complete! Output: dist/");
 } catch (err) {
   console.error("Build failed:", err.message);
@@ -98,21 +97,27 @@ if (oldReset.test(html)) {
   html = html.replace(oldReset, newReset);
   console.log("Patched dist/index.html with scroll-lock CSS.");
 } else {
-  console.warn("Warning: expo-reset style block not found — skipping CSS patch.");
+  console.warn(
+    "Warning: expo-reset style block not found — skipping CSS patch.",
+  );
 }
 
 // ── 2. Locate hashed icon PNG ─────────────────────────────────────────────────
 const assetsDir = path.join(projectRoot, "dist", "assets", "assets", "images");
 let iconSrc = null;
 if (fs.existsSync(assetsDir)) {
-  const iconFile = fs.readdirSync(assetsDir).find((f) => f.startsWith("icon.") && f.endsWith(".png"));
+  const iconFile = fs
+    .readdirSync(assetsDir)
+    .find((f) => f.startsWith("icon.") && f.endsWith(".png"));
   if (iconFile) {
     iconSrc = `/assets/assets/images/${iconFile}`;
   }
 }
 
 // ── 3. Locate entry JS ────────────────────────────────────────────────────────
-const scriptMatch = html.match(/src="(\/_expo\/static\/js\/web\/entry-[^"]+\.js)"/);
+const scriptMatch = html.match(
+  /src="(\/_expo\/static\/js\/web\/entry-[^"]+\.js)"/,
+);
 const entryJs = scriptMatch ? scriptMatch[1] : null;
 
 // ── 4. Inject resource hints into <head> ──────────────────────────────────────
@@ -124,8 +129,12 @@ if (iconSrc) {
   hints.push(`<link rel="preload" href="${iconSrc}" as="image">`);
 }
 // Preconnect to Clerk and fonts
-hints.push(`<link rel="preconnect" href="https://clerk.accounts.dev" crossorigin>`);
-hints.push(`<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>`);
+hints.push(
+  `<link rel="preconnect" href="https://clerk.accounts.dev" crossorigin>`,
+);
+hints.push(
+  `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>`,
+);
 
 if (hints.length > 0) {
   html = html.replace("</head>", `${hints.join("\n")}\n</head>`);
@@ -137,7 +146,10 @@ if (hints.length > 0) {
 // dropping LCP from ~20 s to ~1–2 s on slow connections.
 if (iconSrc) {
   const splash = `<div id="app-splash"><img src="${iconSrc}" width="80" height="80" style="border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,0.10);" fetchpriority="high" alt="TalkPrep"/></div>`;
-  html = html.replace('<div id="root"></div>', `<div id="root">${splash}</div>`);
+  html = html.replace(
+    '<div id="root"></div>',
+    `<div id="root">${splash}</div>`,
+  );
   console.log(`Injected static splash (icon: ${iconSrc}).`);
 } else {
   console.warn("Warning: icon PNG not found in dist — splash not injected.");
@@ -158,18 +170,33 @@ console.log("Written dist/robots.txt.");
 // immediately and swaps to Sora once it's loaded.
 const soraWeights = [
   { name: "Sora_400Regular", weight: 400, dir: "400Regular" },
-  { name: "Sora_500Medium",  weight: 500, dir: "500Medium"  },
+  { name: "Sora_500Medium", weight: 500, dir: "500Medium" },
   { name: "Sora_600SemiBold", weight: 600, dir: "600SemiBold" },
-  { name: "Sora_700Bold",    weight: 700, dir: "700Bold"    },
+  { name: "Sora_700Bold", weight: 700, dir: "700Bold" },
 ];
 
 function findSoraTtf(weightDir) {
   // Locate the versioned pnpm dir — e.g. ".pnpm/@expo-google-fonts+sora@0.4.2"
-  const pnpmRoot = path.join(projectRoot, "dist", "assets", "__node_modules", ".pnpm");
+  const pnpmRoot = path.join(
+    projectRoot,
+    "dist",
+    "assets",
+    "__node_modules",
+    ".pnpm",
+  );
   if (!fs.existsSync(pnpmRoot)) return null;
-  const soraEntry = fs.readdirSync(pnpmRoot).find((d) => d.startsWith("@expo-google-fonts+sora"));
+  const soraEntry = fs
+    .readdirSync(pnpmRoot)
+    .find((d) => d.startsWith("@expo-google-fonts+sora"));
   if (!soraEntry) return null;
-  const dir = path.join(pnpmRoot, soraEntry, "node_modules", "@expo-google-fonts", "sora", weightDir);
+  const dir = path.join(
+    pnpmRoot,
+    soraEntry,
+    "node_modules",
+    "@expo-google-fonts",
+    "sora",
+    weightDir,
+  );
   if (!fs.existsSync(dir)) return null;
   const file = fs.readdirSync(dir).find((f) => f.endsWith(".ttf"));
   if (!file) return null;
@@ -183,7 +210,7 @@ for (const { name, weight, dir } of soraWeights) {
   if (src) {
     if (name === "Sora_400Regular") soraRegularSrc = src;
     fontFaceRules.push(
-      `  @font-face { font-family: '${name}'; src: url('${src}') format('truetype'); font-weight: ${weight}; font-style: normal; font-display: swap; }`
+      `  @font-face { font-family: '${name}'; src: url('${src}') format('truetype'); font-weight: ${weight}; font-style: normal; font-display: swap; }`,
     );
   }
 }
@@ -191,13 +218,15 @@ for (const { name, weight, dir } of soraWeights) {
 if (fontFaceRules.length > 0) {
   const fontStyle = `<style id="font-display-swap">\n${fontFaceRules.join("\n")}\n</style>`;
   html = html.replace("</head>", `${fontStyle}\n</head>`);
-  console.log(`Injected font-display:swap for ${fontFaceRules.length} Sora weights.`);
+  console.log(
+    `Injected font-display:swap for ${fontFaceRules.length} Sora weights.`,
+  );
 }
 
 if (soraRegularSrc) {
   html = html.replace(
     "</head>",
-    `<link rel="preload" href="${soraRegularSrc}" as="font" type="font/ttf" crossorigin>\n</head>`
+    `<link rel="preload" href="${soraRegularSrc}" as="font" type="font/ttf" crossorigin>\n</head>`,
   );
   console.log(`Preloaded Sora_400Regular.`);
 }

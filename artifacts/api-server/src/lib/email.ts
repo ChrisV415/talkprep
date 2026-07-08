@@ -1,6 +1,9 @@
 import sgMail from "@sendgrid/mail";
 
-async function getCredentials(): Promise<{ apiKey: string; fromEmail: string }> {
+async function getCredentials(): Promise<{
+  apiKey: string;
+  fromEmail: string;
+}> {
   const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
   const xReplitToken = process.env.REPL_IDENTITY
     ? "repl " + process.env.REPL_IDENTITY

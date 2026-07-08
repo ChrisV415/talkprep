@@ -23,7 +23,7 @@ const C = {
 };
 
 export default function ForgotPasswordScreen() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const clerk = useClerk() as any;
   const router = useRouter();
 
@@ -52,7 +52,11 @@ export default function ForgotPasswordScreen() {
       setStep("reset");
     } catch (err: any) {
       const clerkMsg = err.errors?.[0]?.longMessage ?? err.errors?.[0]?.message;
-      setError(clerkMsg ?? err.message ?? "Could not send reset code. Please try again.");
+      setError(
+        clerkMsg ??
+          err.message ??
+          "Could not send reset code. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -87,7 +91,9 @@ export default function ForgotPasswordScreen() {
       }
     } catch (err: any) {
       const clerkMsg = err.errors?.[0]?.longMessage ?? err.errors?.[0]?.message;
-      setError(clerkMsg ?? err.message ?? "An error occurred. Please try again.");
+      setError(
+        clerkMsg ?? err.message ?? "An error occurred. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -154,7 +160,8 @@ export default function ForgotPasswordScreen() {
             <Pressable
               style={[
                 styles.btn,
-                (!code || !newPassword || !confirmPassword || loading) && styles.btnDisabled,
+                (!code || !newPassword || !confirmPassword || loading) &&
+                  styles.btnDisabled,
               ]}
               onPress={handleReset}
               disabled={!code || !newPassword || !confirmPassword || loading}
@@ -164,7 +171,12 @@ export default function ForgotPasswordScreen() {
               </Text>
             </Pressable>
 
-            <Pressable onPress={() => { setStep("email"); setError(""); }}>
+            <Pressable
+              onPress={() => {
+                setStep("email");
+                setError("");
+              }}
+            >
               <Text style={styles.link}>Use a different email</Text>
             </Pressable>
           </ScrollView>
@@ -257,5 +269,11 @@ const styles = StyleSheet.create({
   btnDisabled: { opacity: 0.5 },
   btnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
   error: { color: "#c0392b", fontSize: 13, marginBottom: 12 },
-  link: { color: C.rust, fontSize: 14, fontWeight: "600", textAlign: "center", marginTop: 4 },
+  link: {
+    color: C.rust,
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+    marginTop: 4,
+  },
 });

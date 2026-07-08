@@ -1,6 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "@clerk/expo";
-import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { getApiUrl } from "@/lib/api";
 
 export interface Persona {
@@ -88,7 +94,10 @@ interface AppContextType extends AppState {
   setScores: (s: Scores) => void;
   saveSession: (response: string) => Promise<string>;
   updateSessionScores: (id: string, scores: Scores) => Promise<void>;
-  updateSessionDebrief: (id: string, debrief: Session["debrief"]) => Promise<void>;
+  updateSessionDebrief: (
+    id: string,
+    debrief: Session["debrief"],
+  ) => Promise<void>;
   loadSession: (session: Session) => void;
   resetCurrentSession: () => void;
   getSessions: () => Session[];
@@ -176,7 +185,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         return authFetch("api/stripe/subscription", "GET")
           .then((data: { subscription: { status: string } | null }) => {
             const sub = data?.subscription as { status: string } | null;
-            const active = sub != null && (sub.status === "active" || sub.status === "trialing");
+            const active =
+              sub != null &&
+              (sub.status === "active" || sub.status === "trialing");
             setState((s) => ({ ...s, isPro: active, isProLoaded: true }));
           })
           .catch(() => {
@@ -237,38 +248,43 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
   }, []);
 
-  const saveSession = useCallback(async (response: string): Promise<string> => {
-    const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const sessionDate = new Date().toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-    const newSession: Session = {
-      id,
-      date: sessionDate,
-      scenario: state.scenario,
-      who: state.who,
-      situation: state.situation.slice(0, 120) + (state.situation.length > 120 ? "..." : ""),
-      response,
-    };
-
-    if (isSignedIn) {
-      authFetch("api/sessions", "POST", {
+  const saveSession = useCallback(
+    async (response: string): Promise<string> => {
+      const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const sessionDate = new Date().toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+      const newSession: Session = {
         id,
-        sessionDate,
+        date: sessionDate,
         scenario: state.scenario,
         who: state.who,
-        situation: newSession.situation,
+        situation:
+          state.situation.slice(0, 120) +
+          (state.situation.length > 120 ? "..." : ""),
         response,
-      }).catch(() => {});
-    }
+      };
 
-    const updated = [newSession, ...state.sessions].slice(0, 50);
-    setState((s) => ({ ...s, sessions: updated, currentSessionId: id }));
-    await saveSessions(updated);
-    return id;
-  }, [state, isSignedIn, authFetch, saveSessions]);
+      if (isSignedIn) {
+        authFetch("api/sessions", "POST", {
+          id,
+          sessionDate,
+          scenario: state.scenario,
+          who: state.who,
+          situation: newSession.situation,
+          response,
+        }).catch(() => {});
+      }
+
+      const updated = [newSession, ...state.sessions].slice(0, 50);
+      setState((s) => ({ ...s, sessions: updated, currentSessionId: id }));
+      await saveSessions(updated);
+      return id;
+    },
+    [state, isSignedIn, authFetch, saveSessions],
+  );
 
   const updateSessionScores = useCallback(
     async (id: string, scores: Scores) => {
@@ -349,7 +365,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setFullResponse: (v) => setState((s) => ({ ...s, fullResponse: v })),
     setPersona: (p) => setState((s) => ({ ...s, persona: p })),
     setRpMessages: (msgs) => setState((s) => ({ ...s, rpMessages: msgs })),
-    setRpSystemContext: (ctx) => setState((s) => ({ ...s, rpSystemContext: ctx })),
+    setRpSystemContext: (ctx) =>
+      setState((s) => ({ ...s, rpSystemContext: ctx })),
     setScores: (sc) => setState((s) => ({ ...s, scores: sc })),
     saveSession,
     updateSessionScores,

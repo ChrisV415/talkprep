@@ -46,7 +46,7 @@ function WebForm({
       },
       style: { display: "flex", flexDirection: "column" },
     },
-    children
+    children,
   );
 }
 
@@ -85,7 +85,7 @@ function SubmitBtn({
           width: "100%",
         },
       },
-      label
+      label,
     );
   }
   return (
@@ -100,7 +100,7 @@ function SubmitBtn({
 }
 
 export default function SignInScreen() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const clerk = useClerk() as any;
   const router = useRouter();
   const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
@@ -134,7 +134,10 @@ export default function SignInScreen() {
         setError("Sign in could not be completed. Please try again.");
       }
     } catch (err: unknown) {
-      const e = err as { errors?: { longMessage?: string; message?: string }[]; message?: string };
+      const e = err as {
+        errors?: { longMessage?: string; message?: string }[];
+        message?: string;
+      };
       const clerkMsg = e.errors?.[0]?.longMessage ?? e.errors?.[0]?.message;
       setError(clerkMsg ?? e.message ?? "An error occurred. Please try again.");
     } finally {
@@ -147,24 +150,28 @@ export default function SignInScreen() {
     setError("");
     try {
       const redirectUrl =
-        Platform.OS === "web"
-          ? window.location.origin + "/"
-          : "talkprep://";
-      const { createdSessionId, setActive } = await startOAuthFlow({ redirectUrl });
+        Platform.OS === "web" ? window.location.origin + "/" : "talkprep://";
+      const { createdSessionId, setActive } = await startOAuthFlow({
+        redirectUrl,
+      });
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
         router.replace("/(tabs)");
       }
     } catch (err: unknown) {
       const e = err as { errors?: { message?: string }[]; message?: string };
-      const msg = e.errors?.[0]?.message ?? e.message ?? "Google sign-in failed. Please try again.";
+      const msg =
+        e.errors?.[0]?.message ??
+        e.message ??
+        "Google sign-in failed. Please try again.";
       setError(msg);
     } finally {
       setGoogleLoading(false);
     }
   };
 
-  const btnDisabled = !email || !password || loading || googleLoading || !isLoaded;
+  const btnDisabled =
+    !email || !password || loading || googleLoading || !isLoaded;
   const googleDisabled = loading || googleLoading || !isLoaded;
 
   return (
@@ -248,7 +255,9 @@ export default function SignInScreen() {
             <SubmitBtn
               onPress={handleSignIn}
               disabled={btnDisabled}
-              label={loading ? "Signing in…" : !isLoaded ? "Loading…" : "Sign in"}
+              label={
+                loading ? "Signing in…" : !isLoaded ? "Loading…" : "Sign in"
+              }
             />
           </WebForm>
 

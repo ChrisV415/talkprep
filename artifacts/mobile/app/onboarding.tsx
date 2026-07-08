@@ -2,7 +2,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  Dimensions,
   Image,
   ImageSourcePropType,
   Pressable,
@@ -11,8 +10,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-const { width } = Dimensions.get("window");
 
 const ONBOARDING_KEY = "@talkprep_onboarded";
 
@@ -110,7 +107,9 @@ export default function OnboardingScreen() {
         <View style={styles.dots}>
           {slides.map((_, i) => (
             <Pressable key={i} onPress={() => setActiveIndex(i)} hitSlop={8}>
-              <View style={[styles.dot, i === activeIndex && styles.dotActive]} />
+              <View
+                style={[styles.dot, i === activeIndex && styles.dotActive]}
+              />
             </Pressable>
           ))}
         </View>

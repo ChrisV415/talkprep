@@ -23,7 +23,9 @@ async function getStripeClient(): Promise<Stripe> {
     `https://${hostname}/api/v2/connection?include_secrets=true&connector_names=stripe&environment=development`,
     { headers: { Accept: "application/json", "X-Replit-Token": xReplitToken } },
   );
-  const data = await resp.json() as { items?: { settings: { secret?: string } }[] };
+  const data = (await resp.json()) as {
+    items?: { settings: { secret?: string } }[];
+  };
   const secretKey = data.items?.[0]?.settings?.secret;
   if (!secretKey) throw new Error("Stripe development connection not found");
   return new Stripe(secretKey, { apiVersion: "2026-04-22.dahlia" as any });
@@ -36,25 +38,43 @@ async function seedProducts() {
   const plans = [
     {
       name: "Single Session",
-      description: "Full prep guide, opening script + 3 response handlers, persona setup + role-play, annotated transcript review, post-conversation debrief.",
+      description:
+        "Full prep guide, opening script + 3 response handlers, persona setup + role-play, annotated transcript review, post-conversation debrief.",
       prices: [
-        { amount: 499, currency: "usd", interval: null, nickname: "Single Session" },
+        {
+          amount: 499,
+          currency: "usd",
+          interval: null,
+          nickname: "Single Session",
+        },
       ],
       metadata: { plan: "single", highlight: "PAY AS YOU GO" },
     },
     {
       name: "Monthly Pro",
-      description: "Unlimited conversations, full conversation history, progress dashboard + score tracking, Curveballs mode + persona depth, live strategy nudges, session sharing links.",
+      description:
+        "Unlimited conversations, full conversation history, progress dashboard + score tracking, Curveballs mode + persona depth, live strategy nudges, session sharing links.",
       prices: [
-        { amount: 1299, currency: "usd", interval: "month" as const, nickname: "Monthly Pro" },
+        {
+          amount: 1299,
+          currency: "usd",
+          interval: "month" as const,
+          nickname: "Monthly Pro",
+        },
       ],
       metadata: { plan: "monthly", highlight: "MOST POPULAR" },
     },
     {
       name: "Annual Pro",
-      description: "Everything in Monthly, save 49% vs monthly, export conversation history, priority response speed.",
+      description:
+        "Everything in Monthly, save 49% vs monthly, export conversation history, priority response speed.",
       prices: [
-        { amount: 7900, currency: "usd", interval: "year" as const, nickname: "Annual Pro" },
+        {
+          amount: 7900,
+          currency: "usd",
+          interval: "year" as const,
+          nickname: "Annual Pro",
+        },
       ],
       metadata: { plan: "annual", highlight: "BEST VALUE" },
     },
@@ -68,9 +88,14 @@ async function seedProducts() {
     if (existing.data.length > 0) {
       const product = existing.data[0];
       console.log(`✓ ${plan.name} already exists (${product.id})`);
-      const prices = await stripe.prices.list({ product: product.id, active: true });
+      const prices = await stripe.prices.list({
+        product: product.id,
+        active: true,
+      });
       prices.data.forEach((p) =>
-        console.log(`  price: $${(p.unit_amount ?? 0) / 100}${p.recurring ? `/${p.recurring.interval}` : ""} (${p.id})`),
+        console.log(
+          `  price: $${(p.unit_amount ?? 0) / 100}${p.recurring ? `/${p.recurring.interval}` : ""} (${p.id})`,
+        ),
       );
       continue;
     }
@@ -96,7 +121,9 @@ async function seedProducts() {
     }
   }
 
-  console.log("\nDone! Products are in Stripe and will sync to the database via webhook.");
+  console.log(
+    "\nDone! Products are in Stripe and will sync to the database via webhook.",
+  );
 }
 
 seedProducts().catch((err) => {

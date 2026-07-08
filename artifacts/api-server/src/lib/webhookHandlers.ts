@@ -12,12 +12,17 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
         // One-time payment → grant lifetime pro override
         let userId = metaUserId;
         if (!userId && typeof session.customer === "string") {
-          const user = await storage.getUserByStripeCustomerId(session.customer);
+          const user = await storage.getUserByStripeCustomerId(
+            session.customer,
+          );
           userId = user?.id ?? null;
         }
         if (userId) {
           await storage.grantProOverride(userId, "Single Session purchase");
-          logger.info({ userId }, "Granted pro override for single-session purchase");
+          logger.info(
+            { userId },
+            "Granted pro override for single-session purchase",
+          );
         }
       } else if (
         session.mode === "subscription" &&
@@ -26,7 +31,9 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
         // Subscription → save subscription ID so status checks work
         let userId = metaUserId;
         if (!userId && typeof session.customer === "string") {
-          const user = await storage.getUserByStripeCustomerId(session.customer);
+          const user = await storage.getUserByStripeCustomerId(
+            session.customer,
+          );
           userId = user?.id ?? null;
         }
         if (userId) {
@@ -52,7 +59,10 @@ export async function handleStripeEvent(event: Stripe.Event): Promise<void> {
         await storage.updateUserStripeInfo(user.id, {
           stripeSubscriptionId: undefined,
         });
-        logger.info({ userId: user.id }, "Cleared subscription after cancellation");
+        logger.info(
+          { userId: user.id },
+          "Cleared subscription after cancellation",
+        );
       }
       break;
     }

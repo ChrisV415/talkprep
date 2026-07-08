@@ -63,7 +63,9 @@ export class Storage {
     if (!user?.stripeSubscriptionId) return null;
     try {
       const stripe = await getUncachableStripeClient();
-      const sub = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+      const sub = await stripe.subscriptions.retrieve(
+        user.stripeSubscriptionId,
+      );
       return { id: sub.id, status: sub.status };
     } catch {
       return null;
@@ -127,13 +129,16 @@ export class Storage {
 
     const pricesByProduct = new Map<string, ProductWithPrices["prices"]>();
     for (const price of pricesRes.data) {
-      const pid = typeof price.product === "string" ? price.product : price.product.id;
+      const pid =
+        typeof price.product === "string" ? price.product : price.product.id;
       if (!pricesByProduct.has(pid)) pricesByProduct.set(pid, []);
       pricesByProduct.get(pid)!.push({
         id: price.id,
         unit_amount: price.unit_amount ?? 0,
         currency: price.currency,
-        recurring: price.recurring ? { interval: price.recurring.interval } : null,
+        recurring: price.recurring
+          ? { interval: price.recurring.interval }
+          : null,
       });
     }
 
@@ -142,7 +147,9 @@ export class Storage {
       name: p.name,
       description: p.description ?? "",
       metadata: (p.metadata as Record<string, string>) ?? {},
-      prices: (pricesByProduct.get(p.id) ?? []).sort((a, b) => a.unit_amount - b.unit_amount),
+      prices: (pricesByProduct.get(p.id) ?? []).sort(
+        (a, b) => a.unit_amount - b.unit_amount,
+      ),
     }));
 
     return this._sortProducts(products);
