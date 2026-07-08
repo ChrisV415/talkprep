@@ -49,9 +49,11 @@ export default function DebriefScreen() {
   const [copied, setCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const debriefRef = useRef("");
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
+    return () => abortRef.current?.abort();
   }, [navigation]);
 
   if (!isLoaded) return null;
@@ -64,6 +66,8 @@ export default function DebriefScreen() {
     debriefRef.current = "";
     setDebriefText("");
 
+    const controller = new AbortController();
+    abortRef.current = controller;
     const token = await getToken();
     await streamRequest(
       "api/talkprep/debrief",
@@ -93,6 +97,7 @@ export default function DebriefScreen() {
       },
       () => setIsGenerating(false),
       token,
+      controller.signal,
     );
   }
 

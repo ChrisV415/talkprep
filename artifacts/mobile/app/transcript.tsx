@@ -32,6 +32,7 @@ export default function TranscriptScreen() {
   const { scenario, outcome, who, rpMessages } = useApp();
   const [messages, setMessages] = useState<AnnotatedMsg[]>([]);
   const annotatingRef = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
@@ -47,6 +48,8 @@ export default function TranscriptScreen() {
       annotatingRef.current = true;
       annotateMessages(initial);
     }
+
+    return () => abortRef.current?.abort();
   }, []);
 
   if (!isLoaded) return null;
@@ -62,6 +65,8 @@ export default function TranscriptScreen() {
         .join("\n");
 
       let annotText = "";
+      const controller = new AbortController();
+      abortRef.current = controller;
       const token = await getToken();
       await streamRequest(
         "api/talkprep/annotate",
@@ -96,6 +101,7 @@ export default function TranscriptScreen() {
           });
         },
         token,
+        controller.signal,
       );
 
       await new Promise((r) => setTimeout(r, 200));

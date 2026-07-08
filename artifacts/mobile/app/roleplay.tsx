@@ -104,6 +104,7 @@ export default function RoleplayScreen() {
     undefined,
   );
   const historyRef = useRef<RpMessage[]>([]);
+  const abortRef = useRef<AbortController | null>(null);
 
   const {
     isListening: micListening,
@@ -159,7 +160,10 @@ export default function RoleplayScreen() {
     setDisplayMsgs([systemMsg]);
     historyRef.current = [];
 
-    return () => clearInterval(timerRef.current);
+    return () => {
+      clearInterval(timerRef.current);
+      abortRef.current?.abort();
+    };
   }, []);
 
   const formatTime = useCallback((secs: number) => {
@@ -203,6 +207,8 @@ export default function RoleplayScreen() {
     let assistantAdded = false;
     const assistantId = newId();
 
+    const controller = new AbortController();
+    abortRef.current = controller;
     const token = await getToken();
     await streamRequest(
       "api/talkprep/roleplay",
@@ -260,6 +266,7 @@ export default function RoleplayScreen() {
         }
       },
       token,
+      controller.signal,
     );
   }
 
@@ -269,6 +276,8 @@ export default function RoleplayScreen() {
     history: RpMessage[],
   ) {
     let nudgeText = "";
+    const controller = new AbortController();
+    abortRef.current = controller;
     const token = await getToken();
     await streamRequest(
       "api/talkprep/nudge",
@@ -284,6 +293,7 @@ export default function RoleplayScreen() {
       },
       () => {},
       token,
+      controller.signal,
     );
   }
 

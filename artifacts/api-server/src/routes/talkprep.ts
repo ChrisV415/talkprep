@@ -22,6 +22,43 @@ function startSSE(res: import("express").Response) {
   res.flushHeaders();
 }
 
+// Aborts the upstream OpenAI request when the client disconnects mid-stream,
+// so we stop paying for tokens nobody is listening for.
+function abortOnClientClose(
+  req: import("express").Request,
+  res: import("express").Response,
+): AbortController {
+  const controller = new AbortController();
+  const onClose = () => controller.abort();
+  req.on("close", onClose);
+  res.on("close", onClose);
+  return controller;
+}
+
+const MAX_ROLEPLAY_MESSAGES = 60;
+const MAX_MESSAGE_LENGTH = 4000;
+
+function sanitizeRoleplayMessages(
+  input: unknown,
+): { role: "user" | "assistant"; content: string }[] {
+  if (!Array.isArray(input)) return [];
+  return input
+    .filter(
+      (m): m is { role: unknown; content: unknown } =>
+        m && typeof m === "object",
+    )
+    .filter(
+      (m) =>
+        (m.role === "user" || m.role === "assistant") &&
+        typeof m.content === "string",
+    )
+    .slice(-MAX_ROLEPLAY_MESSAGES)
+    .map((m) => ({
+      role: m.role as "user" | "assistant",
+      content: (m.content as string).slice(0, MAX_MESSAGE_LENGTH),
+    }));
+}
+
 type PastSession = {
   scenario: string;
   who: string;
@@ -146,6 +183,7 @@ router.post(
   rateLimiter,
   async (req: Request, res) => {
     startSSE(res);
+    const controller = abortOnClientClose(req, res);
     const userId = (req as AuthenticatedRequest).userId;
     const { scenario, who, situation, outcome, tone } = req.body as {
       scenario: string;
@@ -180,15 +218,18 @@ Preferred tone: ${tone || "balanced"}
 Generate their full conversation prep guide.`;
 
     try {
-      const stream = await openai.chat.completions.create({
-        model: "gpt-4o",
-        max_tokens: 4096,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        stream: true,
-      });
+      const stream = await openai.chat.completions.create(
+        {
+          model: "gpt-4o",
+          max_tokens: 4096,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          stream: true,
+        },
+        { signal: controller.signal },
+      );
 
       for await (const chunk of stream) {
         const content = chunk.choices[0]?.delta?.content || "";
@@ -199,32 +240,39 @@ Generate their full conversation prep guide.`;
       res.write("data: [DONE]\n\n");
       res.end();
     } catch {
-      res.write(
-        `data: ${JSON.stringify({ error: "Failed to generate prep" })}\n\n`,
-      );
-      res.end();
+      if (!res.writableEnded) {
+        res.write(
+          `data: ${JSON.stringify({ error: "Failed to generate prep" })}\n\n`,
+        );
+        res.end();
+      }
     }
   },
 );
 
 router.post("/talkprep/roleplay", requireAuth, async (req, res) => {
   startSSE(res);
-  const { messages, systemContext } = req.body as {
-    messages: { role: "user" | "assistant"; content: string }[];
+  const controller = abortOnClientClose(req, res);
+  const { messages: rawMessages, systemContext } = req.body as {
+    messages: unknown;
     systemContext: string;
   };
+  const messages = sanitizeRoleplayMessages(rawMessages);
 
-  const enhancedSystem = `${systemContext}
+  const enhancedSystem = `${typeof systemContext === "string" ? systemContext : ""}
 
 Vary your emotional register. Let genuine moments land. End some turns with a question or silence-signal. Never break character or coach.`;
 
   try {
-    const stream = await openai.chat.completions.create({
-      model: "gpt-4o",
-      max_tokens: 2048,
-      messages: [{ role: "system", content: enhancedSystem }, ...messages],
-      stream: true,
-    });
+    const stream = await openai.chat.completions.create(
+      {
+        model: "gpt-4o",
+        max_tokens: 2048,
+        messages: [{ role: "system", content: enhancedSystem }, ...messages],
+        stream: true,
+      },
+      { signal: controller.signal },
+    );
 
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content || "";
@@ -235,13 +283,16 @@ Vary your emotional register. Let genuine moments land. End some turns with a qu
     res.write("data: [DONE]\n\n");
     res.end();
   } catch {
-    res.write(`data: ${JSON.stringify({ error: "Failed to respond" })}\n\n`);
-    res.end();
+    if (!res.writableEnded) {
+      res.write(`data: ${JSON.stringify({ error: "Failed to respond" })}\n\n`);
+      res.end();
+    }
   }
 });
 
 router.post("/talkprep/nudge", requireAuth, async (req, res) => {
   startSSE(res);
+  const controller = abortOnClientClose(req, res);
   const { scenario, outcome, userSaid, theySaid, history } = req.body as {
     scenario: string;
     outcome?: string;
@@ -273,20 +324,23 @@ Look across the whole exchange, not just the last line — spot a pattern (repea
 FORMAT: One to two sentences. Direct. No preamble ("Great job!", "Consider...", etc.). Start with the insight or the action.`;
 
   try {
-    const stream = await openai.chat.completions.create({
-      model: "o4-mini",
-      max_completion_tokens: 1500,
-      reasoning_effort: "low",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a reasoning coach silently watching a live practice conversation. Analyze speech patterns across turns, not just the last line. One tactical tip, 1–2 sentences, no preamble.",
-        },
-        { role: "user", content: prompt },
-      ],
-      stream: true,
-    });
+    const stream = await openai.chat.completions.create(
+      {
+        model: "o4-mini",
+        max_completion_tokens: 1500,
+        reasoning_effort: "low",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a reasoning coach silently watching a live practice conversation. Analyze speech patterns across turns, not just the last line. One tactical tip, 1–2 sentences, no preamble.",
+          },
+          { role: "user", content: prompt },
+        ],
+        stream: true,
+      },
+      { signal: controller.signal },
+    );
 
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content || "";
@@ -297,15 +351,18 @@ FORMAT: One to two sentences. Direct. No preamble ("Great job!", "Consider...", 
     res.write("data: [DONE]\n\n");
     res.end();
   } catch {
-    res.write(
-      `data: ${JSON.stringify({ error: "Failed to generate nudge" })}\n\n`,
-    );
-    res.end();
+    if (!res.writableEnded) {
+      res.write(
+        `data: ${JSON.stringify({ error: "Failed to generate nudge" })}\n\n`,
+      );
+      res.end();
+    }
   }
 });
 
 router.post("/talkprep/annotate", requireAuth, async (req, res) => {
   startSSE(res);
+  const controller = abortOnClientClose(req, res);
   const { scenario, outcome, context, message } = req.body as {
     scenario: string;
     outcome?: string;
@@ -332,19 +389,22 @@ ANNOTATION: [your specific explanation]
 ALTERNATIVE: [only if MISSED — one sentence they could have said]`;
 
   try {
-    const stream = await openai.chat.completions.create({
-      model: "gpt-4o",
-      max_tokens: 200,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You annotate practice conversation messages with precise, tactical feedback tied to the exact words used. No generic praise or criticism. Be a sharp but fair evaluator.",
-        },
-        { role: "user", content: prompt },
-      ],
-      stream: true,
-    });
+    const stream = await openai.chat.completions.create(
+      {
+        model: "gpt-4o",
+        max_tokens: 200,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You annotate practice conversation messages with precise, tactical feedback tied to the exact words used. No generic praise or criticism. Be a sharp but fair evaluator.",
+          },
+          { role: "user", content: prompt },
+        ],
+        stream: true,
+      },
+      { signal: controller.signal },
+    );
 
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content || "";
@@ -355,13 +415,16 @@ ALTERNATIVE: [only if MISSED — one sentence they could have said]`;
     res.write("data: [DONE]\n\n");
     res.end();
   } catch {
-    res.write(`data: ${JSON.stringify({ error: "Failed to annotate" })}\n\n`);
-    res.end();
+    if (!res.writableEnded) {
+      res.write(`data: ${JSON.stringify({ error: "Failed to annotate" })}\n\n`);
+      res.end();
+    }
   }
 });
 
 router.post("/talkprep/debrief", requireAuth, async (req: Request, res) => {
   startSSE(res);
+  const controller = abortOnClientClose(req, res);
   const userId = (req as AuthenticatedRequest).userId;
   const { scenario, who, situation, outcome, happened, different, scores } =
     req.body as {
@@ -403,19 +466,22 @@ Write a warm, honest 3–5 sentence debrief as a trusted coach who has seen thei
 Tone: honest, warm, direct. Like a coach who respects them enough not to be soft.`;
 
   try {
-    const stream = await openai.chat.completions.create({
-      model: "gpt-4o",
-      max_tokens: 512,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a trusted conversation coach giving a personalised post-conversation debrief. Reference specifics. Be direct but warm. 3–5 sentences. No generic coaching speak.",
-        },
-        { role: "user", content: prompt },
-      ],
-      stream: true,
-    });
+    const stream = await openai.chat.completions.create(
+      {
+        model: "gpt-4o",
+        max_tokens: 512,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a trusted conversation coach giving a personalised post-conversation debrief. Reference specifics. Be direct but warm. 3–5 sentences. No generic coaching speak.",
+          },
+          { role: "user", content: prompt },
+        ],
+        stream: true,
+      },
+      { signal: controller.signal },
+    );
 
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content || "";
@@ -426,10 +492,12 @@ Tone: honest, warm, direct. Like a coach who respects them enough not to be soft
     res.write("data: [DONE]\n\n");
     res.end();
   } catch {
-    res.write(
-      `data: ${JSON.stringify({ error: "Failed to generate debrief" })}\n\n`,
-    );
-    res.end();
+    if (!res.writableEnded) {
+      res.write(
+        `data: ${JSON.stringify({ error: "Failed to generate debrief" })}\n\n`,
+      );
+      res.end();
+    }
   }
 });
 

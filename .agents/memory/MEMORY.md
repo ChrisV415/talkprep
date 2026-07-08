@@ -1,1 +1,2 @@
 - [OpenAI o-series reasoning models (o3/o4-mini) silently return empty content](openai-reasoning-model-token-budget.md) — hidden reasoning tokens can eat the whole max_completion_tokens budget.
+- [SSE streaming endpoints: client-disconnect handling](sse-streaming-client-disconnect.md) — abort upstream AI calls on client close and guard double-writes with `res.writableEnded`, on both server and client (AbortController) sides.

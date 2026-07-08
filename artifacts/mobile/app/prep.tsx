@@ -157,8 +157,11 @@ export default function PrepScreen() {
     micStart();
   }
 
+  const abortRef = useRef<AbortController | null>(null);
+
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
+    return () => abortRef.current?.abort();
   }, [navigation]);
 
   const canGenerate = scenario.trim() && who.trim() && situation.trim();
@@ -169,6 +172,8 @@ export default function PrepScreen() {
     setIsGenerating(true);
     responseRef.current = "";
 
+    const controller = new AbortController();
+    abortRef.current = controller;
     const token = await getToken();
     await streamRequest(
       "api/talkprep/generate",
@@ -203,6 +208,7 @@ export default function PrepScreen() {
         }
       },
       token,
+      controller.signal,
     );
   }
 

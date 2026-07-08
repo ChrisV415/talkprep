@@ -10,7 +10,6 @@ import { handleStripeEvent } from "./lib/webhookHandlers";
 import { getUncachableStripeClient } from "./lib/stripeClient";
 import router from "./routes";
 import { logger } from "./lib/logger";
-import type Stripe from "stripe";
 
 const app: Express = express();
 
@@ -25,24 +24,25 @@ app.post(
       return;
     }
 
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      // Never process unsigned events — without a secret we cannot tell a real
+      // Stripe event from a forged request that could grant free Pro access.
+      logger.error(
+        "STRIPE_WEBHOOK_SECRET not set — rejecting webhook (set the secret to enable billing webhooks)",
+      );
+      res.status(503).json({ error: "Webhook not configured" });
+      return;
+    }
+
     try {
       const sig = Array.isArray(signature) ? signature[0] : signature;
       const stripe = await getUncachableStripeClient();
-      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-      let event: Stripe.Event;
-      if (webhookSecret) {
-        event = stripe.webhooks.constructEvent(
-          req.body as Buffer,
-          sig,
-          webhookSecret,
-        );
-      } else {
-        logger.warn(
-          "STRIPE_WEBHOOK_SECRET not set — skipping signature verification",
-        );
-        event = JSON.parse((req.body as Buffer).toString()) as Stripe.Event;
-      }
+      const event = stripe.webhooks.constructEvent(
+        req.body as Buffer,
+        sig,
+        webhookSecret,
+      );
 
       await handleStripeEvent(event);
       res.status(200).json({ received: true });

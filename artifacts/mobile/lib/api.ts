@@ -66,6 +66,7 @@ export async function streamRequest(
   onDone?: () => void,
   onError?: (err: Error) => void,
   token?: string | null,
+  signal?: AbortSignal,
 ): Promise<void> {
   const baseUrl = getApiUrl();
   const resolved = await resolveToken(token);
@@ -78,6 +79,7 @@ export async function streamRequest(
         ...buildAuthHeaders(resolved),
       },
       body: JSON.stringify(body),
+      signal,
     });
 
     if (!response.ok) {
@@ -126,6 +128,7 @@ export async function streamRequest(
     }
     onDone?.();
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") return;
     onError?.(err instanceof Error ? err : new Error(String(err)));
   }
 }
