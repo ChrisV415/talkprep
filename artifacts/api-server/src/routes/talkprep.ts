@@ -241,7 +241,8 @@ FORMAT: One to two sentences. Direct. No preamble ("Great job!", "Consider...", 
   try {
     const stream = await openai.chat.completions.create({
       model: "o4-mini",
-      max_completion_tokens: 600,
+      max_completion_tokens: 1500,
+      reasoning_effort: "low",
       messages: [
         {
           role: "system",

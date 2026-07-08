@@ -1,0 +1,1 @@
+- [OpenAI o-series reasoning models (o3/o4-mini) silently return empty content](openai-reasoning-model-token-budget.md) — hidden reasoning tokens can eat the whole max_completion_tokens budget.
